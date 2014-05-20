@@ -151,7 +151,7 @@ since
 ```lisp
 my-lambda <=> (lambda [a b] (+ a b))
 ```
-when evaluating <strong>(my-lambda 3 4)</strong>, we just replace <strong>my-lambda</strong> with <strong> (lambda [a b] (+ a b)) </strong>
+when evaluating <strong>(my-lambda 3 4)</strong>, we just replace <strong>my-lambda</strong> with <strong> "(lambda [a b] (+ a b))" </strong>
 ,  which is
 ```lisp
 ((lambda [a b] (+ a b)) 3 4)
