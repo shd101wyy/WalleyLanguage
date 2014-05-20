@@ -12,8 +12,8 @@ Walley Language
  Not finished yet...
  </strong>
 
- ----------------------------------
- ### Installation:
+----------------------------------
+### Installation:
  under .nix (eg Linux,Mac OS X)  
  open terminal
 
@@ -22,7 +22,7 @@ cd [walley-language project folder that u download, where Makefile is there]
 sudo make
 sudo make install
 ```
- ### Uninstallation:  
+### Uninstallation:  
  under .nix (eg Linux, Mac OS X)  
  open terminal  
 
@@ -31,8 +31,8 @@ cd [walley-language project folder that u download, where Makefile is there]
 sudo make uninstall  
 ```
 #### Windows is not currently supported (T_T)
- ----------------------------------
- ### Mysterious S Expression (~#_#~)
+----------------------------------
+### Mysterious S Expression (~#_#~)
  <strong>
  Walley Language, like all lisp dialects, uses S expression.  
  Therefore, its syntax is extremely simple.  
@@ -58,20 +58,20 @@ so (+ 3 4) runs + function with 3 4 as parameters, which produces 7 as result
 and here are lots of builtin functions in walley language  
 we call those functions => <strong>lambda</strong>  
 
- ----------------------------------
- ### Hello World  
+----------------------------------
+### Hello World  
 
  <strong>display</strong> is a <strong>lambda</strong>, which can print out a its parameter.  
  for example  
- ```lisp
+```lisp
  (display "Hello World")
- ```
+```
  will print out
- ```lisp
+```lisp
   Hello World
- ```
- -----------------------------------
- ### How to run your program
+```
+-----------------------------------
+### How to run your program
  now u already know how the display lambda works, but how do we run it in walley language?
 
  after installation, open ur terminal,  
@@ -96,7 +96,7 @@ you will see the string Hello World print out.
 also, try to type something like (+ 3 4), (- 3 4 5) (* 1 2 3)  to see what u can get  
 
  -----------------------------------
- ### Define Your Own Lambda
+### Define Your Own Lambda
  now we already know how to use S expression to run a <strong>lambda</strong>.  
  Sometimes, we want to define our own <strong>lambda</strong>, like
 ```lisp
