@@ -61,7 +61,7 @@ we call those functions => <strong>lambda</strong>
 ----------------------------------
 ### Hello World  
 
- <strong>display</strong> is a <strong>lambda</strong>, which can print out a its parameter.  
+ <strong>display</strong> is a <strong>lambda</strong>, which can print out its parameter.  
  for example  
 ```lisp
  (display "Hello World")
@@ -151,7 +151,7 @@ since
 ```lisp
 my-lambda <=> (lambda [a b] (+ a b))
 ```
-when evaluating <strong>(my-lambda 3 4)</strong>, we just replace <strong>my-lambda</strong> with <strong>(lambda [a b] (+ a b))</strong>
+when evaluating <strong>(my-lambda 3 4)</strong>, we just replace <strong>my-lambda</strong> with <strong> (lambda [a b] (+ a b)) </strong>
 ,  which is
 ```lisp
 ((lambda [a b] (+ a b)) 3 4)
@@ -580,5 +580,3 @@ Some terms that I used in this tutorial are actually wrong, I use them just to o
 [dillinger]:http://dillinger.io
 [sicp]:http://mitpress.mit.edu/sicp/full-text/book/book.html
 [root-of-lisp]:http://www.paulgraham.com/rootsoflisp.html
-
-    
