@@ -1,0 +1,404 @@
+;; walley_core.wa 
+;; walley language 
+;; created by Yiyi Wang 
+;; Copyright (c) Yiyi Wang. All rights reserved.
+(def walley-core-author 'Yiyi-Wang)
+(def walley-core-version "0.00021")
+(def walley-language-version "0.3.8465")
+
+(def break 'break)          ;; for foreach function
+(def continue 'continue)
+
+;; check data type
+(def int? (lambda [v] (eq? (typeof v) 'integer)))
+(def integer? int?)
+(def float? (lambda [v] (eq? (typeof v) 'float)))
+(def pair? (lambda [v] (eq? (typeof v) 'pair)))
+(def list? pair?)
+;(defn ratio? [v] (eq? (typeof v) 'ratio))
+(def null? (lambda [v] (eq? v ())))
+(def vector? (lambda [v] (eq? (typeof v) 'vector)))
+(def lambda? (lambda [v] (eq? (typeof v) 'lambda)))
+(def table? (lambda [v] (eq? (typeof v) 'table)))
+(def string? (lambda [v] (eq? (typeof v) 'string)))
+
+;; append and reverse functions.
+;; which will be used for macro expansion
+(def append 
+     (lambda (a b)
+       (if (null? a)
+	   b
+	 (cons (car a)
+	       (append (cdr a)
+		       b)))))
+;; reverse the list
+(def reverse 
+     (def reverse_iter 
+     	  (lambda (a result)
+	  	  (if (null? a)
+                    result
+                    (reverse_iter (cdr a)
+                                  (cons (car a)
+                                        result)))))
+     (reverse_iter a ()))
+
+;; get the length of the list
+(def list-length
+  (lambda [n]
+          (def list-length-iter
+            (lambda [n r]
+                    (if (null? n)
+                      r
+                      (list-length-iter (cdr n)
+                                        (+ r 1)))))
+          (list-length-iter n 0)))
+
+
+(def error (lambda [s] (display "ERROR: ") (display s)))
+
+;; defn macro
+;; like clojure
+;; (defn func-name args . body)
+(defmacro defn
+  [(func_name args . body)
+  `(def ~func_name (lambda ~args ~@body))
+  ]
+  )
+
+
+;; list macro
+(defmacro list 
+  [() ()]
+  [(a) `(cons ~a ())]
+  [(a . b) `(cons ~a (list ~@b))])
+
+;; cond macro
+(defmacro cond 
+  [() ()]
+  [(#else body)
+   body]
+  [(#else body . rest)
+   (display "ERROR: cond invalid statements.\n")]
+  [(test body)
+  `(if ~test ~body '())]
+  [(test body . rest)
+   `(if ~test ~body (cond ~@rest))])
+
+;; and
+(defmacro and 
+  [() 'true]
+  [(a) a]
+  [(a . b) `(if ~a (and ~@b) ())]
+  )	 
+
+;; or
+(defmacro or
+  [() ()]
+  [(a) a]
+  [(a . b) `(if ~a ~a (or ~@b))]
+  )
+	  
+;; test cond
+;(display (cond (= 0 1) (display "Hi1")
+;               (= 2 3) (display "Hi2")
+;               else    (display "else")
+;               1
+;               ))
+
+(defmacro defm 
+	  [(macro-name args pattern)
+	   `(defmacro ~macro-name (~args ~pattern))])
+
+
+;; list-slice-helper
+(defn list-slice-helper [l end]
+  (if (= end 0)
+    ()
+    (cons (car l)
+          (list-slice-helper (cdr l)
+                             (- end 1)))))
+(defn list-slice-remove-head [l start]
+  (if (= start 0)
+    l
+    (list-slice-remove-head (cdr l)
+                            (- start 1))))
+;; list-slice
+(defn list-slice  [l start end]
+          (set! end (or end (list-length l)))
+          (list-slice-helper (list-slice-remove-head l start)
+                             (- end start)))
+
+
+;; str
+;; eg (str "Hello " "World") -> "Hello World"
+(defn str [. b]
+  (defn str-iter [b]
+    (if (null? b)
+    ""
+    (string-append (car b)
+                   (str-iter (cdr b)))))
+  (str-iter b))
+
+
+;; get length of several data types
+(defn len [b] 
+  (if (null? b)
+    0
+    (if (string? b)
+      (string-length b)
+      (if (pair? b)
+        (list-length b)
+        (if (vector? b)
+          (vector-length b)
+          (error "Function len invalid data type"))))))
+
+
+;; string=?
+;; string>?
+;; string<?
+;; string>=?
+;; string<=?
+
+(defn string=? [a b] (= (strcmp a b) 0))
+(defn string>? [a b] (> (strcmp a b) 0))
+(defn string<? [a b] (< (strcmp a b) 0))
+(defn string>=? [a b] (>= (strcmp a b) 0))
+(defn string<=? [a b] (<= (strcmp a b) 0))
+
+;; **
+(def ** math-pow)
+
+;; ########################### LIST ############################
+;; some functions for list
+
+(defn caar [x] (car (car x)))
+(defn cadr [x] (car (cdr x)))
+(defn cddr [x] (cdr (cdr x)))
+(defn caddr [x] (car (cdr (cdr x))))
+(defn cdddr [x] (cdr (cdr (cdr x))))
+(defn cadddr [x] (car (cdr (cdr (cdr x)))))
+
+(def list-reverse reverse)
+(defn list-ref [l i]
+  (if (= i 0)
+    (car l)
+    (list-ref (cdr l)
+              (- i 1))))
+
+;; list-append
+;; eg (list-append '(1 2) '(4 5)) => '(1 2 4 5)
+;; eg (list-append '(1 2) 4) => '(1 2 4)
+(defn list-append [l0 l1]
+  (defn list-append-iter0 [l0]
+    (if (null? l0)
+      l1
+      (cons (car l0) 
+            (list-append-iter0 (cdr l0)))))
+  (if (pair? l1)
+    (list-append-iter0 l0)
+    (begin (set! l1 (cons l1 '()))
+           (list-append-iter0 l0))))
+;; list->vector
+(defn list->vector [l]
+  (defn list->vector-iter [l output]
+    (if (null? l)
+      output
+      (list->vector-iter (cdr l) 
+                         (vector-push! output (car l)))))
+  (list->vector-iter l #[]))
+
+;; (list-for-each '(1 2 3 4) (lambda [n] (display n)))
+(defn list-foreach [l fn]
+  (if (null? l)
+    ()
+    (if (eq? (fn (car l)) 'break)
+      ()
+      (list-foreach (cdr l)
+                     fn))
+    ))
+
+;; ############## VECTOR ########################
+;; vector->list
+(defn vector->list [v]
+  (def length (vector-length v))
+  (defn vector->list-iter [v i]
+    (if (= i length)
+      '()
+      (cons v[i]
+            (vector->list-iter v
+                               (+ i 1)))))
+  (vector->list-iter v 0))
+
+;; vector-find
+;; find element in vector and return its index
+(defn vector-find [v o start-index]
+  (set! start-index (or start-index 0))
+  (def length (vector-length v))
+  (defn vector-find-iter [i]
+    (if (= i length)
+      -1 ;; didn't find
+      (if (eq? v[i]
+               o)
+        i
+        (vector-find-iter (+ i 1))))) 
+  (vector-find-iter start-index))
+
+;; vector-foreach
+;; eg (vector-foreach #[1,2,3,4] (lambda [i] (if (= i 3) break (display i))))
+;; will print 1 2
+(defn vector-foreach [v fn]
+  (def v-length (vector-length v))
+  (defn vector-foreach-iter [count]
+    (if (= count v-length)
+      ()
+      (if (eq? (fn v[count]) 'break) ;; break
+        ()
+        (vector-foreach-iter (+ count 1)))))
+  (vector-foreach-iter 0))
+
+;; table-foreach
+(defn table-foreach [t fn]
+  (def keys (table-keys t))
+  (defn table-foreach-iter [keys]
+    (if (null? keys)
+      ()
+      (if (eq? (fn (car keys)
+                   t[(car keys)])
+               'break)
+        ()
+        (table-foreach-iter (cdr keys)))))
+  (table-foreach-iter keys))
+
+
+;; foreach together
+;; pair       => list-foreach
+;; vector     => vector-foreach
+;; dictionary => dictionary-foreach
+(defn foreach [value func]
+  (def t (typeof value))
+  (cond (eq? t 'pair)   (list-foreach value func)
+        (eq? t 'vector) (vector-foreach value func)
+        (eq? t 'table)  (table-foreach value func)
+        else (display "ERROR: Function foreach invalid param type")))
+
+;; slice
+(defn slice [v start end]
+  (def t (typeof v))
+  (set! end (or end (cond (eq? t 'pair) (list-length v)
+                          (eq? t 'string) (string-length v)
+                          (eq? t 'vector) (vector-length v))))
+  (cond (eq? t 'pair) (list-slice v start end)
+        (eq? t 'string) (string-slice v start end)
+        (eq? t 'vector) (vector-slice v start end)
+        else ()))
+
+;; times function
+;; eg 
+;; (times 5 (lambda [n] (display n))) => 0 1 2 3 4
+(defn times [n fn]
+  (defn times-iter [c]
+    (if (= c n)
+      ()
+      (begin (fn c)
+             (times-iter (+ c 1)))))
+  (times-iter 0)) 
+
+;; (for 0 5 1 (lambda [i] (display i))) => 0, 1, 2, 3, 4
+;; (for 0 4 (lambda [i] (display i)))   => 0 1 2 3
+;; (for 10 0 -1 (lambda [i] (display i))) => 10987654321
+;; (for 3 (lambda [i] (display i))) => 0 1 2
+;; only support integer param
+(defn for_fn [start end step fn]
+  (def judge-sign (if (> step 0) >= <=))
+  (defn for-iter [i]
+    (if (judge-sign i end)
+      ()
+      (if (eq? (fn i) 'break)
+        ()
+        (for-iter (+ i step)))))
+  (for-iter start))
+;; macro for for function
+;;  (for 0 1 (lambda [i] (for 0 i (lambda [j] (display "j")))))
+;; (lambda (i) ((0 0 109) 0 i (lambda (j) ((0 0 35) "j"))))
+;; so macro doesn't work at this point
+;; so I changed for function to for_fn function
+(defmacro for 
+  [(start end step fn) `(for_fn ~start ~end ~step ~fn)]
+  [(start end fn) `(for_fn ~start ~end 1 ~fn)]
+  [(end fn) `(for_fn 0 ~end 1 ~fn)])
+
+
+;; some fundamental functions are here
+
+;;##################### map #####################
+;; map one parameters
+;; (map1 square '(3 4)) => (9 16)
+(defn map1 [f p]
+  (if (null? p)
+    '()
+    (cons (f (car p))
+          (map1 f (cdr p)))))
+;; map variadic parameters
+;; (map + '(3 4) '(5 6)) => '(8 10)
+(defn map [f p0 . p]
+  ;(display p)
+  ;(display (apply f (map1 car (cons p0 p))))
+  (if (null? p0)
+    '()
+    (cons (apply f (map1 car (cons p0 p)))
+          (apply map (cons f (map1 cdr (cons p0 p)))))))
+
+
+
+(defn apply-test [f p0 . p]
+  (apply f (map1 car (cons p0 p))))
+
+;; ##################### filter ##################
+;; filter function
+;; eg (filter is-even '(3 4 5 6)) => '(4 6)
+;; where is-even return true or false
+;; (filter fn l)
+;; where fn must return true or false
+
+(defn filter [fn l]
+  (if (null? l)
+    '()
+    (if (fn (car l))
+      (cons (car l)
+            (filter fn (cdr l)))
+      (filter fn (cdr l)))))
+;; test filter function
+;; (display (filter (lambda [n] (if (> n 0) 'true '())) '(-1 2 -3 4 -5 6))) => (2 4 6)
+;; pass
+
+;; ##################### reduce ##################
+;; reduce function
+;; eg (reduce + '(3 4 5)) => (+ (+ 3 4) 5)
+;; (reduce fn l)
+;; where fn has to have two parameters
+(defn reduce [fn l param-num]
+  (set! param-num (if param-num param-num 2)) ;; default is 2
+  (defn get-num-element-list [l num] ;; eg '(3 4 5) 2 => '(3 4)
+    (if (= num 0)
+      '()
+      (if (null? l)
+        (display "ERROR: reduce function invalid parameters list")
+        (cons (car l)
+            (get-num-element-list (cdr l)
+                                  (- num 1))))))
+  (defn cdrn [l num] ;; eg '(3 4 5) 2 => '(5)
+    (if (= num 0)
+      l
+      (cdrn (cdr l) (- num 1))))
+  (defn reduce-iter [fn l param-num-1 acc]
+    (if (null? l)
+      acc
+      (reduce-iter fn 
+                 (cdrn l param-num-1)
+                 param-num-1
+                 (apply fn (cons acc (get-num-element-list l param-num-1))))))
+  (if (null? l)
+    '()
+    (reduce-iter fn (cdr l) (- param-num 1) (car l))))
+
+

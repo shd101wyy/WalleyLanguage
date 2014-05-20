@@ -1,0 +1,19 @@
+;;(car (car (quote ((x)) )  ) )
+;(def append 
+;     (lambda (a b)
+;       (if (null? a)
+;	   b
+;	 (cons (car a)
+;	       (append (cdr a)
+;		       b)))))
+;(defmacro defn
+;  [(var_name args . body)
+;  `(def ~var_name (lambda ~args ~@body))
+;  ]
+;  )
+
+;(def f (lambda [n] (if (= n 0) 1 (begin (display "Hi\n") (f (- n 1))))))
+;(f 1000000)
+;(display "Hello World")
+;(def x 12)
+(times 1000000 (lambda [i] (display "Hi\n")))
