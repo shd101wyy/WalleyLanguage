@@ -29,7 +29,8 @@ Object * compiler_begin(Instructions * insts,
                         Environment * env,
                         MacroTable * mt);
 
-Object *VM(uint16_t * instructions,
+Object *VM(/*uint16_t * instructions,*/
+           Instructions * instructions_,
            uint64_t start_pc,
            uint64_t end_pc,
            Environment * env,
@@ -305,7 +306,7 @@ Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable *
             // cannot run in compiler_begin,
             // because the default insts->start_pc is wrong
             // should use insts_length as start_pc;
-            expanded_value = VM(insts->array, insts_length, insts->length, new_env, NULL, NULL);
+            expanded_value = VM(insts, insts_length, insts->length, new_env, NULL, NULL);
             
            
 #if MACRO_DEBUG
@@ -1173,7 +1174,7 @@ Object * compiler_begin(Instructions * insts,
                     Lambda_for_Compilation * function_for_compilation,
                     int32_t eval_flag,
                     Environment * env,
-                    MacroTable * mt){
+                    MacroTable * mt){    
     Object * acc = GLOBAL_NULL;
     Object * l_ = l; // make a copy of l, so that we can free it later
     while (l != GLOBAL_NULL) {
@@ -1207,7 +1208,7 @@ Object * compiler_begin(Instructions * insts,
 #if COMPILER_DEBUG
             printInstructions(insts);
 #endif
-            acc = VM(insts->array,
+            acc = VM(insts,
                      insts->start_pc,
                      insts->length,
                      env,

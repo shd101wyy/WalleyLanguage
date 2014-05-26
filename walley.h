@@ -271,7 +271,7 @@ void Walley_Run_Compiled_File(char * file_name){
     
     //printf("%llu %llu\n", constant_table_insts_length, insts_length);
     
-    VM(insts->array, 0, insts->length, env, NULL, NULL);
+    VM(insts, 0, insts->length, env, NULL, NULL);
     return;
 }
 

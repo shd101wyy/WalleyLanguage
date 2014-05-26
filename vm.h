@@ -30,12 +30,14 @@ Object * Walley_Run_File_for_VM(char * file_name,
 /*
  Walley Language Virtual Machine
  */
-Object *VM(uint16_t * instructions,
+Object *VM(/*uint16_t * instructions,*/
+           Instructions * instructions_,
            uint64_t start_pc,
            uint64_t end_pc,
            Environment * env,
            Variable_Table * vt,
            MacroTable * mt){
+    uint16_t * instructions = instructions_->array;
     uint64_t pc;
     uint64_t i;
     uint16_t frame_index, value_index;
@@ -463,7 +465,6 @@ Object *VM(uint16_t * instructions,
                         }
                     case USER_DEFINED_LAMBDA: // user defined function
                     eval_user_defined_lambda:
-                        // printf("HERE");
                         required_param_num = v->data.User_Defined_Lambda.param_num;
                         required_variadic_place = v->data.User_Defined_Lambda.variadic_place;
                         start_pc = v->data.User_Defined_Lambda.start_pc;
@@ -532,6 +533,7 @@ Object *VM(uint16_t * instructions,
                                     printf("ERROR: eval function is only run time supported");
                                     vm_error_jump
                                 }
+                                /*
                                 Instructions * temp_insts = Insts_init();
                                 temp->use_count++;
                                 accumulator = compiler_begin(temp_insts,
@@ -540,12 +542,33 @@ Object *VM(uint16_t * instructions,
                                                              vt,
                                                              NULL,
                                                              NULL,
-                                                             1, original_env,
+                                                             1,
+                                                             original_env,
                                                              mt);
                                 temp->use_count--;
                                 
                                 free(temp_insts->array);
-                                free(temp_insts);
+                                free(temp_insts);*/
+                                
+                                // get value to compile
+                                temp = temp->type == STRING ? parser(lexer(temp->data.String.v))
+                                : cons(temp, GLOBAL_NULL);
+                                
+                                // reset start_pc
+                                instructions_->start_pc = instructions_->length;
+                                // run
+                                accumulator = compiler_begin(instructions_,
+                                                             temp,
+                                                             vt,
+                                                             NULL,
+                                                             NULL,
+                                                             1,
+                                                             original_env,
+                                                             mt);
+                                // Object_free(temp); // compiler_begin 会给 free 掉
+                                
+                                // restore start-pc
+                                instructions_->start_pc = start_pc;
                                 
                                 accumulator->use_count++; //必须在pop
                                 // pop parameters

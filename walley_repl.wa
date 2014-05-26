@@ -1,0 +1,11 @@
+;; walley language repl
+(def walley-language-repl 
+     (lambda []
+       (display (eval (input "walley> ")))
+       (display "\n")
+       (walley-language-repl)))
+
+(display "\nWalley Language 0.3.8467\n")
+(display "Copyright (c) 2012-2014 Yiyi Wang\n")
+(display "All Rights Reserved\n\n")
+(walley-language-repl)
