@@ -16,4 +16,18 @@
 ;(f 1000000)
 ;(display "Hello World")
 ;(def x 12)
-(times 1000000 (lambda [i] (display "Hi\n")))
+;(times 1000000 (lambda [i] (display "Hi\n")))
+
+(def make-person 
+     (lambda []
+       (def self {})
+       (self :age 12)
+       (self :print-age (lambda [] (display self:age)))
+       (self :set-age (lambda [s] (self :age s)))
+       self))
+(def x (make-person))
+(x:print-age)
+(x:set-age 15)
+(x:print-age)
+(def y (make-person))
+(y:print-age)

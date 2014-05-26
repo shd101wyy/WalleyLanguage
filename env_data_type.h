@@ -14,8 +14,9 @@
 #define GLOBAL_FRAME_SIZE 1024
 static Object * GLOBAL_FRAME[GLOBAL_FRAME_SIZE];
 
-static Object * Constant_Pool[1024]; // used to save symbols and strings
-static uint32_t Constant_Pool_Length;
+static Object ** Constant_Pool; // used to save symbols and strings
+static uint64_t Constant_Pool_Length;
+static uint64_t Constant_Pool_Size;
 
 static Object* CONSTANT_TABLE_FOR_COMPILATION;
 static uint64_t   CONSTANT_TABLE_FOR_COMPILATION_LENGTH;
@@ -111,6 +112,9 @@ void Walley_init(){
     
     CONSTANT_TABLE_FOR_COMPILATION_LENGTH = 266; // set length
     
+    // init Constant_Pool
+    Constant_Pool = (Object**)malloc(sizeof(Object*)*1024);
+    Constant_Pool_Size = 1024;
     // create constant integer pool
     // 0 ~ 249
     int32_t i;

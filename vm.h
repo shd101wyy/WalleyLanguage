@@ -111,8 +111,11 @@ Object *VM(uint16_t * instructions,
                 // create string
                 accumulator = Object_initString(created_string, string_length);
                 accumulator->use_count = 1;
+                if (Constant_Pool_Length == Constant_Pool_Size) {
+                    Constant_Pool = realloc(Constant_Pool, sizeof(Object*) * Constant_Pool_Size * 2);
+                    Constant_Pool_Size *= 2;
+                }
                 // push to Constant_Pool
-                // printf("PUSH %s %d\n", accumulator->data.String.v, Constant_Pool_Length);
                 Constant_Pool[Constant_Pool_Length] = accumulator;
                 Constant_Pool_Length++;
                 pc = pc + 1;
