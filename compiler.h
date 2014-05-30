@@ -628,6 +628,19 @@ void compiler(Instructions * insts,
                 return;
             }
             else if(str_eq(tag, "set!")){
+                // check eg (set! x 0 12) case
+                if (cdddr(l) != GLOBAL_NULL) {
+                    return compiler(insts,
+                                    cdr(l),
+                                    vt,
+                                    tail_call_flag,
+                                    parent_func_name,
+                                    function_for_compilation,
+                                    env,
+                                    mt);
+                }
+                
+                // change value of a variable
                 var_name = cadr(l);
                 var_value = caddr(l);
                 VT_find(vt, var_name->data.String.v, vt_find);
