@@ -134,7 +134,11 @@ int32_t macro_match(Object * a, Object * b, char **var_names, Object **var_value
         }
         if (car(a)->type == STRING &&
             str_eq(car(a)->data.String.v, ".")) {
-            var_names[count] = cadr(a)->data.String.v; // save var name
+            // 这里 var_name 前加 空格
+            char * temp = malloc(sizeof(char) * (strlen(cadr(a)->data.String.v) + 2));
+            strcpy(temp, " ");
+            strcat(temp, cadr(a)->data.String.v);
+            var_names[count] = temp;// cadr(a)->data.String.v; // save var name
             var_values[count] = b; // save var value
             count++;
             return count;
@@ -222,6 +226,7 @@ Object * macro_expansion_replacement(Object * expanded_value,
 Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable * mt, Environment * global_env, Instructions * insts){
     Object * clauses = macro->clauses;
     Object * expanded_value_after_replacement;
+    Object * temp;
     // macro 最多有 64 个 parameters
     char * var_names[64];
     Object * var_values[64];
@@ -274,8 +279,45 @@ Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable *
             
             // add var name to top frame of new_vt;
             for (i = 0; i < match; i++) {
+                
+                
+                if (var_names[i][0] == ' ') {
+                    char * a = malloc(sizeof(char) * (strlen(var_names[i])));
+                    strcpy(a, &var_names[i][1]);
+                    free(var_names[i]);
+                    var_names[i] = a;
+                }
+                else{
+                    //
+                    //    这里是解决以下的bug
+                    //    (def x 12)
+                    //    (defn t [x] x)
+                    //    这里替换 [x] 的时候， 因为亦钱已经定义了x，且[x]的x在head， 所以会被替换。 其实这里不应该被替换
+                    //
+                    // no replacement
+                    if (var_values[i]->type == PAIR && car(var_values[i])->type == STRING) {
+                        temp = car(var_values[i]);
+                        char * t = temp->data.String.v;
+                        
+                        // 不改变以下的这几个
+                        if (str_eq(t, "quasiquote") || str_eq(t, "quote")
+                            || str_eq(t, "unquote-splice")) {
+                        }
+                        else{
+                            char buffer[256];
+                            strcpy(buffer, "!");
+                            strcat(buffer, car(var_values[i])->data.String.v);
+                            car(var_values[i]) = Object_initString(buffer, strlen(buffer));
+                            // free 掉原来的
+                            free(temp->data.String.v);
+                            free(temp);
+                        }
+                    }
+                }
+                
                 // 这里不用 VT_push了因为不用copy string了
                 new_vt_top_frame->var_names[i] = var_names[i];
+                
                 new_env_top_frame->array[i] = var_values[i];
                 var_values[i]->use_count++; // in use
                 
@@ -589,6 +631,17 @@ void compiler(Instructions * insts,
             }
             else if(str_eq(tag, "def")){
                 var_name = cadr(l);
+                if (var_name->type == STRING
+                    && (
+                        str_eq(var_name->data.String.v, "quote") ||
+                        str_eq(var_name->data.String.v, "quasiquote") ||
+                        str_eq(var_name->data.String.v, "unquote-splice") ||
+                        str_eq(var_name->data.String.v, "lambda") ||
+                        str_eq(var_name->data.String.v, "def") ||
+                        str_eq(var_name->data.String.v, "set!"))) {
+                    printf("ERROR: Invalid variable name %s\n", var_name->data.String.v);
+                    return;
+                }
                 // 暂不支持 (def (add a b) (+ a b))
                 if (cddr(l)->type == NULL_)
                     var_value = GLOBAL_NULL;
