@@ -1249,4 +1249,12 @@ Object * builtin_set_cdr(Object ** params, uint32_t param_num, uint32_t start_in
     p2->use_count++;
     return p1;
 }
+
+// 67 system
+Object * builtin_system(Object ** params, uint32_t param_num, uint32_t start_index){
+    system(params[start_index]->data.String.v);
+    return GLOBAL_NULL;
+}
+
+
 #endif

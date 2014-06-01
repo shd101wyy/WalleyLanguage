@@ -331,7 +331,9 @@ Environment_Frame *createFrame0(){
     EF_set_builtin_lambda(frame, 64, builtin_vector_slice);
     EF_set_builtin_lambda(frame, 65, builtin_set_car);
     EF_set_builtin_lambda(frame, 66, builtin_set_cdr);
-    frame->length = 67; // set length
+    EF_set_builtin_lambda(frame, 67, builtin_system);
+
+    frame->length = 68; // set length
     return frame;
 }
 /*

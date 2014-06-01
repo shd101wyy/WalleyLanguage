@@ -227,6 +227,7 @@ Variable_Table * VT_init(){
     VT_push(vt, 0, "vector-slice"); // 64
     VT_push(vt, 0, "set-car!"); // 65
     VT_push(vt, 0, "set-cdr!"); // 66
+    VT_push(vt, 0, "system"); // 67
     return vt;
 }
 
