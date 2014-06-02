@@ -18,7 +18,8 @@ void compiler(Instructions * insts,
               char * parent_func_name,
               Lambda_for_Compilation * function_for_compilation,
               Environment * env,
-              MacroTable * mt);
+              MacroTable * mt,
+              char * ns);
 
 Object * compiler_begin(Instructions * insts,
                         Object * l,
@@ -27,7 +28,8 @@ Object * compiler_begin(Instructions * insts,
                         Lambda_for_Compilation * function_for_compilation,
                         int32_t eval_flag,
                         Environment * env,
-                        MacroTable * mt);
+                        MacroTable * mt,
+                        char * ns);
 
 Object *VM(/*uint16_t * instructions,*/
            Instructions * instructions_,
@@ -223,7 +225,7 @@ Object * macro_expansion_replacement(Object * expanded_value,
     (defmacro square ([x] `(* ~x ~x)))
     (square 12) => (* 12 12)
  */
-Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable * mt, Environment * global_env, Instructions * insts){
+Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable * mt, Environment * global_env, Instructions * insts, char *ns){
     Object * clauses = macro->clauses;
     Object * expanded_value_after_replacement;
     Object * temp;
@@ -343,7 +345,8 @@ Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable *
                           NULL,
                           false,
                           new_env,
-                          mt);
+                          mt,
+                          ns);
             
             // cannot run in compiler_begin,
             // because the default insts->start_pc is wrong
@@ -413,7 +416,8 @@ void compiler(Instructions * insts,
               char * parent_func_name,
               Lambda_for_Compilation * function_for_compilation,
               Environment * env,
-              MacroTable * mt){
+              MacroTable * mt,
+              char * ns){
     /*if(l->type == PAIR){
         printf("\n##");
         parser_debug(l);
@@ -434,6 +438,7 @@ void compiler(Instructions * insts,
     Object * temp;
     int32_t var_existed/*, var_index*/;
     Variable_Table_Frame * frame;
+    char var_name_[256]; // temp var_name_ string buffer
     switch (l->type) {
         case NULL_:
             Insts_push(insts, CONST_NULL); // push null;
@@ -545,7 +550,8 @@ void compiler(Instructions * insts,
                                     parent_func_name,
                                     function_for_compilation,
                                     env,
-                                    mt);
+                                    mt,
+                                    ns);
                 }
                 else if (v->type == PAIR){ // pair
                     temp = quote_list(v);
@@ -556,7 +562,8 @@ void compiler(Instructions * insts,
                                     parent_func_name,
                                     function_for_compilation,
                                     env,
-                                    mt);
+                                    mt,
+                                    ns);
                     Object_free(temp);
                     return;
                 }
@@ -574,12 +581,13 @@ void compiler(Instructions * insts,
                              parent_func_name,
                              function_for_compilation,
                              env,
-                             mt);
+                             mt,
+                             ns);
                     Object_free(v);
                     free(string);
                     return;
                 }
-                return compiler(insts, v, vt, tail_call_flag, parent_func_name, function_for_compilation,env,mt);
+                return compiler(insts, v, vt, tail_call_flag, parent_func_name, function_for_compilation,env,mt,ns);
             }
             else if(str_eq(tag, "quasiquote")){
                 v = cadr(l);
@@ -592,7 +600,8 @@ void compiler(Instructions * insts,
                                     parent_func_name,
                                     function_for_compilation,
                                     env,
-                                    mt);
+                                    mt,
+                                    ns);
                 }
                 else if (v->type == PAIR){ // pair
                     temp = quasiquote_list(v);
@@ -603,7 +612,8 @@ void compiler(Instructions * insts,
                                     parent_func_name,
                                     function_for_compilation,
                                     env,
-                                    mt);
+                                    mt,
+                                    ns);
                     Object_free(temp);
                     return;
                 }
@@ -622,12 +632,13 @@ void compiler(Instructions * insts,
                             parent_func_name,
                             function_for_compilation,
                             env,
-                            mt);
+                            mt,
+                            ns);
                     Object_free(v);
                     free(string);
                     return;
                 }
-                return compiler(insts, v, vt, tail_call_flag, parent_func_name, function_for_compilation,env, mt);
+                return compiler(insts, v, vt, tail_call_flag, parent_func_name, function_for_compilation,env, mt, ns);
             }
             else if(str_eq(tag, "def")){
                 var_name = cadr(l);
@@ -647,22 +658,37 @@ void compiler(Instructions * insts,
                     var_value = GLOBAL_NULL;
                 else
                     var_value = caddr(l);
+                
+                // check namespace
+                if (ns == NULL) {
+                    strcpy(var_name_, var_name->data.String.v);
+                }
+                else{
+                    strcpy(var_name_, ns);
+                    strcat(var_name_, "/");
+                    strcat(var_name_, var_name->data.String.v);
+                }
+                
                 var_existed = false;
                 // var_index = -1;
                 frame = vt->frames[vt->length - 1];
                 for (j = frame->length - 1; j >= 0; j--) {
-                    if (str_eq(var_name->data.String.v,
+                    if (str_eq(/*var_name->data.String.v*/var_name_,
                                frame->var_names[j])) {
-                        printf("ERROR: variable: %s already defined\n", var_name->data.String.v);
+                        if (ns == NULL) {
+                            printf("ERROR: variable: %s already defined\n", var_name->data.String.v);
+                        }
+                        else
+                            printf("ERROR: variable: %s in ns %s already defined\n", var_name->data.String.v, ns);
                         return;
                     }
                 }
                 if(var_existed == false)
-                    VT_push(vt, vt->length-1, var_name->data.String.v);
+                    VT_push(vt, vt->length-1, /*var_name->data.String.v*/ var_name_);
                 if (var_value->type == PAIR &&
                     str_eq(car(var_value)->data.String.v,
                            "lambda")) {
-                        parent_func_name = var_name->data.String.v;
+                        parent_func_name = /*var_name->data.String.v*/var_name_;
                 }
                 // compile value
                 compiler(insts,
@@ -672,7 +698,8 @@ void compiler(Instructions * insts,
                          parent_func_name,
                          function_for_compilation,
                          env,
-                         mt);
+                         mt,
+                         ns);
                 // add instruction
                 //Insts_push(insts, (SET << 12) | (vt->length - 1));
                 //Insts_push(insts, vt->frames[vt->length - 1]->length - 1);
@@ -710,24 +737,40 @@ void compiler(Instructions * insts,
                             parent_func_name,
                             function_for_compilation,
                             env,
-                            mt);
+                            mt,
+                            ns);
                     Object_free(temp_);
                     return;
                 }
                 
                 // change value of a variable
                 var_name = cadr(l);
+                // check namespace
+                if (ns == NULL) {
+                    strcpy(var_name_, var_name->data.String.v);
+                }
+                else{
+                    strcpy(var_name_, ns);
+                    strcat(var_name_, "/");
+                    strcat(var_name_, var_name->data.String.v);
+                }
                 var_value = caddr(l);
-                VT_find(vt, var_name->data.String.v, vt_find);
+                VT_find(vt, var_name_, vt_find);
                 if (vt_find[0] == -1) {
-                    printf("ERROR: undefined variable %s \n", var_name->data.String.v);
+                    if (ns == NULL) {
+                        printf("ERROR: undefined variable %s \n", var_name->data.String.v);
+
+                    }
+                    else{
+                        printf("ERROR: undefined variable %s in ns %s \n", var_name->data.String.v, ns);
+                    }
                     return;
                 }
                 else{
                     if(var_value->type == PAIR &&
                        str_eq(car(var_value)->data.String.v,
                               "lambda"))
-                        parent_func_name = var_name->data.String.v;
+                        parent_func_name = var_name_;/*var_name->data.String.v*/;
                     // compile value
                     compiler(insts,
                              var_value,
@@ -736,22 +779,51 @@ void compiler(Instructions * insts,
                              parent_func_name,
                              function_for_compilation,
                              env,
-                             mt);
+                             mt,
+                             ns);
                     Insts_push(insts, SET << 12 | (0x0FFF & vt_find[0])); // frame_index
                     
                     Insts_push(insts, vt_find[1]); // value index
                     return;
                 }
             }
+            /*
+             *  special builtin macro: load
+             *  (load "list") ; will load list.wa file with ns NULL
+             *  (load "list" as "list") load file with ns: list
+             */
             else if (str_eq(tag, "load")){
                 if (vt->length != 1) {
                     printf("ERROR: load invalid place");
                     return;
                 }
                 else{
-                    char * file_name = format_string(cadr(l)->data.String.v);
-                    // read content from file
-                    FILE* file = fopen(file_name,"r");
+                    char * file_name;
+                    if (cadr(l)->type == PAIR && str_eq(car(cadr(l))->data.String.v, "quote")) {
+                        file_name = malloc(sizeof(char) * (256)); // max 256
+                        strcpy(file_name, cadr(cadr(l))->data.String.v);
+                    }
+                    else{
+                        file_name = format_string(cadr(l)->data.String.v);
+                    }
+                    uint64_t file_name_length = strlen(file_name);
+                    FILE *file;
+                    // check . existed
+                    if (file_name_length > 3 &&
+                        file_name[file_name_length - 1] == 'a' &&
+                        file_name[file_name_length - 2] == 'w' &&
+                        file_name[file_name_length - 3] == '.') {
+                        // read content from file
+                        file = fopen(file_name,"r");
+                    }
+                    else{
+                        char temp_file_name[file_name_length + 5];
+                        strcpy(temp_file_name, file_name);
+                        strcat(temp_file_name, ".wa");
+                        // read content from file
+                        file = fopen(temp_file_name, "r");
+                    }
+                   
                     if(file == NULL)
                     {
                         printf("ERROR: Failed to load %s\n", file_name);
@@ -772,16 +844,50 @@ void compiler(Instructions * insts,
                     Object * o;
                     p = lexer(content);
                     o = parser(p);
-
-                    compiler_begin(insts,
-                                   o,
-                                   vt,
-                                   NULL,
-                                   NULL,
-                                   0,
-                                   env,
-                                   mt);
                     
+                    // check namespace
+                    if (cddr(l) != GLOBAL_NULL) {
+                        // (load 'test as 'test)
+                        if (str_eq(caddr(l)->data.String.v, "as")) {
+                            char ns_[256]; // namespace max length = 255
+                            
+                            if (cadddr(l)->type == PAIR && str_eq(car(cadddr(l))->data.String.v, "quote")) {
+                                strcpy(ns_, cadr(cadddr(l))->data.String.v);
+                            }
+                            else{
+                                string = format_string(cadddr(l)->data.String.v);
+                                strcpy(ns_, string);
+                                free(string);
+                            }
+                            
+                            compiler_begin(insts,
+                                           o,
+                                           vt,
+                                           NULL,
+                                           NULL,
+                                           0,
+                                           env,
+                                           mt,
+                                           ns_);
+                        }
+                        else{
+                            printf("ERROR: load invalid args\n");
+                            printf("%s\n", to_string(l));
+                            return;
+                        }
+                    }
+                    else{
+
+                        compiler_begin(insts,
+                                       o,
+                                       vt,
+                                       NULL,
+                                       NULL,
+                                       0,
+                                       env,
+                                       mt,
+                                       ns);
+                    }
                     free(file_name);
                     free(content);
                     return;
@@ -800,7 +906,8 @@ void compiler(Instructions * insts,
                          parent_func_name,
                          function_for_compilation,
                          env,
-                         mt);
+                         mt,
+                         ns);
                 // push test, but now we don't know jump steps
                 Insts_push(insts, TEST << 12); // jump over consequence
                 index1 = insts->length;
@@ -816,7 +923,8 @@ void compiler(Instructions * insts,
                                function_for_compilation,
                                false, // cannot eval
                                env,
-                               mt);
+                               mt,
+                               ns);
                 //printf("\n@ %ld\n", insts->length);
                 
                 index2 = insts->length;
@@ -834,7 +942,8 @@ void compiler(Instructions * insts,
                                function_for_compilation,
                                /*vt->length == 1 ? true :*/false,
                                env,
-                               mt);
+                               mt,
+                               ns);
                 
                 index3 = insts->length;
                 jump_steps = index3 - index2;
@@ -864,7 +973,8 @@ void compiler(Instructions * insts,
                                function_for_compilation,
                                false,
                                env,
-                               mt);
+                               mt,
+                               ns);
                 return;
             }
             else if (str_eq(tag, "let")){
@@ -913,7 +1023,8 @@ void compiler(Instructions * insts,
                          parent_func_name,
                          function_for_compilation,
                          env,
-                         mt);
+                         mt,
+                         ns);
                 Object_free(temp);
                 return;
             }
@@ -979,7 +1090,8 @@ void compiler(Instructions * insts,
                                function_,
                                false,
                                env,
-                               mt_);
+                               mt_,
+                               ns);
                 // return
                 Insts_push(insts, RETURN << 12);
                 index2 = insts->length;
@@ -1028,18 +1140,27 @@ void compiler(Instructions * insts,
              */
             else if (str_eq(tag, "defmacro")){
                 var_name = cadr(l);
+                // check namespace
+                if (ns == NULL) {
+                    strcpy(var_name_, var_name->data.String.v);
+                }
+                else{
+                    strcpy(var_name_, ns);
+                    strcat(var_name_, "/");
+                    strcat(var_name_, var_name->data.String.v);
+                }
                 Object * clauses = cddr(l);
                 MacroTableFrame * frame = mt->frames[mt->length-1]; // get op frame
                 // length = frame->length;
                 for (i = frame->length - 1; i >= 0; i--) {
-                    if (str_eq(var_name->data.String.v, frame->array[i]->macro_name)) { // already existed
+                    if (str_eq(/*var_name->data.String.v*/ var_name_, frame->array[i]->macro_name)) { // already existed
                         
                         free(frame->array[i]->macro_name);
                         frame->array[i]->clauses->use_count--;
                         Object_free(frame->array[i]->clauses);
                         
                         clauses->use_count+=1; // 必须+1
-                        frame->array[i] = Macro_init(var_name->data.String.v, (clauses), VT_copy(vt));
+                        frame->array[i] = Macro_init(/*var_name->data.String.v*/var_name_, (clauses), VT_copy(vt));
                         return;
                     }
                 }
@@ -1051,7 +1172,7 @@ void compiler(Instructions * insts,
                 }
                 
                 clauses->use_count+=1; // 必须+1
-                frame->array[frame->length] = Macro_init(var_name->data.String.v, (clauses), VT_copy(vt));
+                frame->array[frame->length] = Macro_init(/*var_name->data.String.v*/var_name_, (clauses), VT_copy(vt));
                 frame->length+=1;
                 return;
             }
@@ -1065,7 +1186,8 @@ void compiler(Instructions * insts,
                                                                        cdr(l),
                                                                        mt,
                                                                        env,
-                                                                       insts);
+                                                                       insts,
+                                                                       ns);
                         compiler(insts,
                                         expand,
                                         vt,
@@ -1073,7 +1195,8 @@ void compiler(Instructions * insts,
                                         parent_func_name,
                                         function_for_compilation,
                                         env,
-                                        mt);
+                                        mt,
+                                        ns);
                         Object_free(expand);
                         return;
                     }
@@ -1106,7 +1229,8 @@ void compiler(Instructions * insts,
                                  parent_func_name,
                                  function_for_compilation,
                                  env,
-                                 mt); // compile that one parameter
+                                 mt,
+                                 ns); // compile that one parameter
                         
                         // set tp current frame
                         Insts_push(insts, (SET << 12) | (vt->length - 1)); // frame index
@@ -1131,7 +1255,8 @@ void compiler(Instructions * insts,
                                      parent_func_name,
                                      function_for_compilation,
                                      env,
-                                     mt); // each argument is not tail call
+                                     mt,
+                                     ns); // each argument is not tail call
                             
                             Object_free(p);
                             
@@ -1152,7 +1277,8 @@ void compiler(Instructions * insts,
                                      parent_func_name,
                                      function_for_compilation,
                                      env,
-                                     mt); // this argument is not tail call
+                                     mt,
+                                     ns); // this argument is not tail call
                             // set to current frame
                             //Insts_push(insts, (SET << 12) | (vt->length - 1)); // frame index
                             // 这里不能用 SET_OP, 因为stack的size会一直增长。。。
@@ -1219,7 +1345,8 @@ void compiler(Instructions * insts,
                              parent_func_name,
                              function_for_compilation,
                              env,
-                             mt); // compile lambda, save to accumulator
+                             mt,
+                             ns); // compile lambda, save to accumulator
                     Insts_push(insts, NEWFRAME << 12); // create new frame
                     // compile paremeters
                     int32_t param_num = 0;
@@ -1239,7 +1366,8 @@ void compiler(Instructions * insts,
                                  parent_func_name,
                                  function_for_compilation,
                                  env,
-                                 mt);// each argument is not tail call
+                                 mt,
+                                 ns);// each argument is not tail call
                         Insts_push(insts, PUSH_ARG << 12);
                     }
                     Insts_push(insts, (CALL << 12) | (0x0FFF & param_num));
@@ -1262,7 +1390,8 @@ Object * compiler_begin(Instructions * insts,
                     Lambda_for_Compilation * function_for_compilation,
                     int32_t eval_flag,
                     Environment * env,
-                    MacroTable * mt){
+                    MacroTable * mt,
+                    char * ns){
     
     Object * acc = GLOBAL_NULL;
     Object * l_ = l; // make a copy of l, so that we can free it later
@@ -1279,7 +1408,8 @@ Object * compiler_begin(Instructions * insts,
                      NULL,
                      function_for_compilation,
                      env,
-                     mt);
+                     mt,
+                     ns);
         }
         else{
             compiler(insts,
@@ -1289,7 +1419,8 @@ Object * compiler_begin(Instructions * insts,
                      parent_func_name,
                      function_for_compilation,
                      env,
-                     mt);
+                     mt,
+                     ns);
         }
         l = cdr(l);
         
