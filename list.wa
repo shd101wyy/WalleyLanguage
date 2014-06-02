@@ -1,5 +1,9 @@
 ;; list module
 ;; get the length of the list
+(def null? 
+  (lambda [n] (eq? n ())))
+(def pair?
+  (lambda [n] (eq? typeof[n] 'pair)))
 (def length
   (lambda [n]
           (def list-length-iter
@@ -21,14 +25,6 @@
                                   result)))))
   (reverse_iter a ()))
 
-;; append list
-(def append 
-  (lambda (a b)
-          (if (null? a)
-            b
-            (cons (car a)
-                  (append (cdr a)
-                          b)))))
 ;; ref an element
 (def ref
   (lambda [l i]
@@ -62,7 +58,7 @@
                     (if (null? l)
                       output
                       (list->vector-iter (cdr l) 
-                                         (vector-push! output (car l))))))
+                                         (vector/push! output (car l))))))
           (list->vector-iter l #[])))
 
 
