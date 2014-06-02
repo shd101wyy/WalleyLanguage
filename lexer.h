@@ -88,6 +88,26 @@ char * string_append(char *str1, char *str2){
     return r;
 }
 
+#if LEXER_DEBUG
+
+// print all strings in lexer string array
+void Lexer_Debug(Lexer * l){
+    uint32_t i;
+    for(i = 0; i < l->array_length; i++){
+        printf("%s ", l->string_array[i]);
+    }
+    printf("\n");
+}
+/*
+ // test
+ int main(){
+ char test[1000] = "(def x 12) (def y 5)";
+ Lexer_Debug(lexer((char*)test));
+ return 0;
+ }*/
+
+#endif
+
 
 //#define Lexer_set(l, index, value) ((l)->string_array[(index)] = (value))
 #define Lexer_get(l, index) ((l)->string_array[(index)])
@@ -113,7 +133,7 @@ Lexer* lexer(char * input_string){
     
     char * t;
     for(i = 0; i < string_length; i++){
-        // printf("%d %s %c\n", i, input_string, input_string[i]);
+        //printf("%d %c\n", i, input_string[i]);
         if(input_string[i] == '('){
             Lexer_push(output_list, "(");
             paren_count++;
@@ -140,7 +160,7 @@ Lexer* lexer(char * input_string){
             if(i!= 0 &&
                (input_string[i-1] != ' ' && input_string[i-1] != '\n'  && input_string[i-1] != '\t'
                 && input_string[i-1] != '\'' && input_string[i-1]!='`' && input_string[i-1]!='~'
-                && input_string[i - 1]!='(' && input_string[i - 1]!='{' && input_string[i - 1]!='[')){
+                && input_string[i-1]!='(' && input_string[i-1]!='{' && input_string[i-1]!='[')){
                    if(Lexer_get(output_list, output_list->array_length - 1)[0]!=')'){ // +[  => ( +
                        Lexer_push(output_list, Lexer_get(output_list, (Lexer_length(output_list) - 1)));
                        Lexer_set(output_list, Lexer_length(output_list)-2, "(");
@@ -150,10 +170,10 @@ Lexer* lexer(char * input_string){
                        count = 1;
                        start_index = 0;
                        for(j = output_list->array_length - 2; j >= 0; j--){
-                           if(input_string[j] == ')'){
+                           if(Lexer_get(output_list, j)[0] == ')'){
                                count++ ;
                            }
-                           else if(input_string[j] == '('){
+                           else if(Lexer_get(output_list, j)[0] == '('){
                                count--;
                                if(count == 0){
                                    start_index = j;
@@ -166,6 +186,7 @@ Lexer* lexer(char * input_string){
                            Lexer_set(output_list, j, Lexer_get(output_list, j - 1)); // move elements back
                        }
                        Lexer_set(output_list, j, "(");
+                       paren_count++;
                    }
                }
             else{
@@ -233,29 +254,8 @@ Lexer* lexer(char * input_string){
         Lexer_free(output_list);
         return NULL;
     }
+    
     return output_list;
 }
 
-
-
-
-#if LEXER_DEBUG
-
-// print all strings in lexer string array
-void Lexer_Debug(Lexer * l){
-    uint32_t i;
-    for(i = 0; i < l->array_length; i++){
-        printf("%s ", l->string_array[i]);
-    }
-    printf("\nFinish Lexer_Debug\n");
-}
-/*
- // test
- int main(){
- char test[1000] = "(def x 12) (def y 5)";
- Lexer_Debug(lexer((char*)test));
- return 0;
- }*/
-
-#endif
 #endif

@@ -277,7 +277,7 @@ Object *VM(/*uint16_t * instructions,*/
                         
                         pc++;
                         continue;
-                    case BUILTIN_LAMBDA: case VECTOR: case TABLE: case  INTEGER:// builtin lambda or vector or table
+                    case STRING: case BUILTIN_LAMBDA: case VECTOR: case TABLE: case  INTEGER:// builtin lambda or vector or table
                         current_frame_pointer = BUILTIN_PRIMITIVE_PROCEDURE_STACK; // get top frame
                         
                         // save to frame list
@@ -314,6 +314,31 @@ Object *VM(/*uint16_t * instructions,*/
                 v->use_count--; // decrement use count
                 
                 switch (v->type){
+                    case STRING: // only support access
+                        pc = pc + 1;
+                        temp = current_frame_pointer->array[current_frame_pointer->length - 1];
+                        integer_ = temp->data.Integer.v; // get index
+                        
+                        char b_[2];
+                        b_[0] = v->data.String.v[integer_];
+                        accumulator = Object_initString(b_, 1);
+                        // accumulator = v->data.String.v[integer_]; // get value
+                        
+                        temp->use_count--; // pop parameters
+                        Object_free(temp);
+                        current_frame_pointer->length--; // decrease length
+                        
+                        // free current_frame_pointer
+                        free_current_frame_pointer(current_frame_pointer);
+                        
+                        frames_list_length--; // pop frame list
+                        current_frame_pointer = frames_list[frames_list_length - 1];
+                        
+                        // free lambda
+                        Object_free(v);
+                        
+                        continue;
+
                     case BUILTIN_LAMBDA: // builtin lambda
                         func_ptr = v->data.Builtin_Lambda.func_ptr;
                         accumulator = (*func_ptr)(current_frame_pointer->array, param_num, current_frame_pointer->length - param_num); // call function

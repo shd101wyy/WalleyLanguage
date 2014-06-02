@@ -682,6 +682,7 @@ void compiler(Instructions * insts,
             }
             else if(str_eq(tag, "set!")){
                 // check eg (set! x 0 12) case
+                /*
                 if (cdddr(l) != GLOBAL_NULL) {
                     return compiler(insts,
                                     cdr(l),
@@ -691,6 +692,27 @@ void compiler(Instructions * insts,
                                     function_for_compilation,
                                     env,
                                     mt);
+                }*/
+                
+                // eg (def x #[1,2,3])
+                //    (set! x[0] 14)  => (x 0 3)
+                //    (def z #[#[1,2] 3])
+                //    (set! z[0][0] 3) => ((z 0) 0 3)
+                if (cadr(l)->type == PAIR) {
+                    //printf("%s\n", to_string(l));
+                    //printf("%s %s\n", to_string(cadr(l)), to_string(cddr(l)));
+                    Object * temp_ = list_append(cadr(l), cddr(l));
+                    //printf("%s\n", to_string(temp));
+                    compiler(insts,
+                            temp_,
+                            vt,
+                            tail_call_flag,
+                            parent_func_name,
+                            function_for_compilation,
+                            env,
+                            mt);
+                    Object_free(temp_);
+                    return;
                 }
                 
                 // change value of a variable
@@ -1240,7 +1262,8 @@ Object * compiler_begin(Instructions * insts,
                     Lambda_for_Compilation * function_for_compilation,
                     int32_t eval_flag,
                     Environment * env,
-                    MacroTable * mt){    
+                    MacroTable * mt){
+    
     Object * acc = GLOBAL_NULL;
     Object * l_ = l; // make a copy of l, so that we can free it later
     while (l != GLOBAL_NULL) {
