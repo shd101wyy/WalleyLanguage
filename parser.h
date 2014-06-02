@@ -14,17 +14,7 @@ Object * parser_get_tag(char * s){
     else if (strcmp(s, "~@") == 0) return UNQUOTE_SPLICE_STRING;
     else return QUASIQUOTE_STRING;
 }
-Object * formatQuickAccess(char**keys, int32_t n, int32_t count, Object * output){
-    if(count == n) return output;
-    return formatQuickAccess(keys,
-                             n,
-                             count+1,
-                             cons(output, cons(cons(QUOTE_STRING,
-                                                    cons(Object_initString(keys[count], strlen(keys[count])),
-                                                         GLOBAL_NULL)),
-                                               GLOBAL_NULL)));
-    
-}
+
 int32_t isDouble (char * s)
 {
     if (s == NULL || *s == '\0' || isspace(*s))
@@ -88,12 +78,12 @@ Object * parser(Lexer * le){
     uint32_t length = le->array_length;
     Object * current_list_pointer = GLOBAL_NULL;
     int32_t i;
-    uint32_t j, k, n, start;
+    uint32_t j;
     Object * lists = GLOBAL_NULL;//cons(GLOBAL_NULL, GLOBAL_NULL);
     Object * temp = NULL;
-    char * splitted_[100]; // max 100 string
+    //char * splitted_[100]; // max 100 string
     char * t = NULL;
-    char * ns;
+    //char * ns;
     for(i = length - 1; i >= 0; i--){
         // printf("@ %s\n", l[i]);
         if(str_eq(l[i], ")")){
@@ -129,90 +119,30 @@ Object * parser(Lexer * le){
         }
         else{
             temp = NULL;
-            // check Math:add like (Math 'add)
-            if(l[i][0] == '"' || l[i][0] == ':' || l[i][(uint32_t)strlen(l[i])-1] == ':'){
-                if (l[i][0] == ':') { // :a  =>  "a"
-                    t = malloc(sizeof(char) * strlen(l[i])+2); // " " 0
-                    t[0] = '"';
-                    for (j = 1; j < strlen(l[i]); j++) {
-                        t[j] = l[i][j];
-                    }
-                    t[j] = '"';
-                    t[j+1] = 0;
-                    temp = Object_initString(t, j+1);
-                    free(t);
+            if (l[i][0] == ':') { // :a  =>  "a"
+                t = malloc(sizeof(char) * strlen(l[i])+2); // " " 0
+                t[0] = '"';
+                for (j = 1; j < strlen(l[i]); j++) {
+                    t[j] = l[i][j];
                 }
-                else if(isInteger(l[i])){
-                    if (strlen(l[i]) >= 3 && l[i][0] == '0' && l[i][1] == 'x') { // hex
-                        temp = Object_initInteger(strtol(l[i], &t, 16));
-                    }
-                    else
-                        temp = Object_initInteger(strtol(l[i], &t, 10));
+                t[j] = '"';
+                t[j+1] = 0;
+                temp = Object_initString(t, j+1);
+                free(t);
+            }
+            else if (l[i][0] == '"')
+                temp = Object_initString(l[i], strlen(l[i]));
+            else if(isInteger(l[i])){
+                if (strlen(l[i]) >= 3 && l[i][0] == '0' && l[i][1] == 'x') { // hex
+                    temp = Object_initInteger(strtol(l[i], &t, 16));
                 }
-                else if(isDouble(l[i]))
-                    temp = Object_initDouble(strtod(l[i], &t));
                 else
-                    temp = Object_initString(l[i], strlen(l[i]));
+                    temp = Object_initInteger(strtol(l[i], &t, 10));
             }
-            else{
-                // split string
-                n = 0; // splitted_length
-                start = 0;
-                for(j = 0; j < (uint32_t)strlen(l[i]); j++){
-                    if(l[i][j] == ':'){
-                        /*char */ t = (char*)malloc(sizeof(char)*(j - start + 1));
-                        for(k = start; k < j; k++){
-                            t[k-start] = l[i][k];
-                        }
-                        t[k-start] = 0;
-                        start = j+1;
-                        splitted_[n] = t;
-                        n++; // increase size
-                    }
-                }
-                // append last
-                t = (char*)malloc(sizeof(char)*(j - start + 1));
-                for(k = start; k < j; k++){
-                    t[k-start] = l[i][k];
-                }
-                t[k-start] = 0;
-                splitted_[n] = t;
-                n++; // increase size
-                
-                ns = splitted_[0]; // get ns. eg x:a => ns 'x' keys ['a']
-                if(n == 1){ // 没有找到 :
-                    if(isInteger(l[i])){
-                        if (strlen(l[i]) >= 3 && l[i][0] == '0' && l[i][1] == 'x') { // hex
-                            temp = Object_initInteger(strtol(l[i], &t, 16));
-                        }
-                        else
-                            temp = Object_initInteger(strtol(l[i], &t, 10));
-                    }
-                    else if(isDouble(l[i])){
-                        temp = Object_initDouble(strtod(l[i], &t));
-                    }
-                    else
-                        temp = Object_initString(l[i], strlen(l[i]));
-                }
-                else{
-                    temp = formatQuickAccess(
-                                             splitted_,
-                                             n,
-                                             2,
-                                             cons(Object_initString(ns, strlen(ns)),
-                                                  cons(cons(QUOTE_STRING,
-                                                            cons(Object_initString(splitted_[1], strlen(splitted_[1])),
-                                                                 GLOBAL_NULL)),
-                                                       GLOBAL_NULL)));
-                }
-                // free splitted_
-                // also t, which is the last element of splitted_
-                // will be freed
-                for (j = 0; j < n; j++) {
-                    free(splitted_[j]);
-                    splitted_[j] = NULL;
-                }
-            }
+            else if(isDouble(l[i]))
+                temp = Object_initDouble(strtod(l[i], &t));
+            else
+                temp = Object_initString(l[i], strlen(l[i]));
             
             if(i!=0 &&
                (str_eq(l[i-1], "~@") || str_eq(l[i-1], "'") || str_eq(l[i-1], "~") || str_eq(l[i-1], "`"))){

@@ -108,6 +108,20 @@ void Lexer_Debug(Lexer * l){
 
 #endif
 
+/*
+    eg
+    01234567
+    def:add 0 return def 3
+    def:add 4 return def 7
+ */
+uint32_t lexer_getIndexOfValidStr(char *input_string, uint32_t end, uint32_t string_length){
+    while (1) {
+        if (end == string_length || input_string[end] == ' ' || input_string[end] == '\n' || input_string[end] == '\t' || input_string[end] == ',' || input_string[end] == ')' || input_string[end] == '(' || input_string[end] == ']' || input_string[end] == '[' || input_string[end] == '{' || input_string[end] == '}' || input_string[end] == '\'' || input_string[end] == '`' || input_string[end] == '~' || input_string[end] == ';' || input_string[end] == ':') break;
+        end += 1;
+    }
+    return end;
+}
+
 
 //#define Lexer_set(l, index, value) ((l)->string_array[(index)] = (value))
 #define Lexer_get(l, index) ((l)->string_array[(index)])
@@ -156,15 +170,26 @@ Lexer* lexer(char * input_string){
             }
             i++;
         }
-        else if (input_string[i] == '[' || input_string[i] == '{'){
+        else if (input_string[i] == '[' || input_string[i] == '{' || input_string[i] == ':'){
             if(i!= 0 &&
                (input_string[i-1] != ' ' && input_string[i-1] != '\n'  && input_string[i-1] != '\t'
                 && input_string[i-1] != '\'' && input_string[i-1]!='`' && input_string[i-1]!='~'
                 && input_string[i-1]!='(' && input_string[i-1]!='{' && input_string[i-1]!='[')){
                    if(Lexer_get(output_list, output_list->array_length - 1)[0]!=')'){ // +[  => ( +
                        Lexer_push(output_list, Lexer_get(output_list, (Lexer_length(output_list) - 1)));
-                       Lexer_set(output_list, Lexer_length(output_list)-2, "(");
-                       paren_count++;
+                       if (input_string[i] == '[' || input_string[i] == '{') {
+                           Lexer_set(output_list, Lexer_length(output_list)-2, "(");
+                           paren_count++;
+                       }
+                       else{
+                           Lexer_set(output_list, Lexer_length(output_list)-2, "(");
+                           end = lexer_getIndexOfValidStr(input_string, i + 1, string_length);
+                           t = string_slice(input_string, i, end);
+                           Lexer_push(output_list, t);
+                           i = end - 1;
+                           free(t);
+                           Lexer_push(output_list, ")");
+                       }
                    }
                    else{ // ahead is )
                        count = 1;
@@ -185,18 +210,38 @@ Lexer* lexer(char * input_string){
                        for(j = output_list->array_length - 2; j != start_index; j--){
                            Lexer_set(output_list, j, Lexer_get(output_list, j - 1)); // move elements back
                        }
-                       Lexer_set(output_list, j, "(");
-                       paren_count++;
+                       if(input_string[i] == '[' || input_string[i] == '{'){
+                           Lexer_set(output_list, j, "(");
+                           paren_count++;
+                       }
+                       else{
+                           Lexer_set(output_list, j, "(");
+                           end = lexer_getIndexOfValidStr(input_string, i + 1, string_length);
+                           t = string_slice(input_string, i, end);
+                           Lexer_push(output_list, t);
+                           i = end - 1;
+                           free(t);
+                           Lexer_push(output_list, ")");
+                       }
                    }
                }
             else{
-                if(input_string[i] == '[')
+                if (input_string[i] == ':') {
+                    end = lexer_getIndexOfValidStr(input_string, i + 1, string_length);
+                    t = string_slice(input_string, i, end);
+                    Lexer_push(output_list, t);
+                    i = end - 1;
+                    free(t);
+                }
+                else if(input_string[i] == '['){
                     Lexer_push(output_list, "(");
+                    paren_count++;
+                }
                 else{
                     Lexer_push(output_list, "(");
                     Lexer_push(output_list, "table");
+                    paren_count++;
                 }
-                paren_count++;
             }
         }
         else if (input_string[i] == ']' || input_string[i] == '}'){
@@ -238,17 +283,14 @@ Lexer* lexer(char * input_string){
             free(t);
         }
         else{
-            end = i;
-            while (1) {
-                if (end == string_length || input_string[end] == ' ' || input_string[end] == '\n' || input_string[end] == '\t' || input_string[end] == ',' || input_string[end] == ')' || input_string[end] == '(' || input_string[end] == ']' || input_string[end] == '[' || input_string[end] == '{' || input_string[end] == '}' || input_string[end] == '\'' || input_string[end] == '`' || input_string[end] == '~' || input_string[end] == ';') break;
-                end += 1;
-            }
+            end = lexer_getIndexOfValidStr(input_string, i + 1, string_length);
             t = string_slice(input_string, i, end);
             Lexer_push(output_list, t);
             i = end - 1;
             free(t);
         }
     }
+    //Lexer_Debug(output_list);
     if (paren_count!=0) {
         printf("ERROR: parentheses () num doesn't match");
         Lexer_free(output_list);
