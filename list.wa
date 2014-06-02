@@ -1,0 +1,99 @@
+;; list module
+;; get the length of the list
+(def length
+  (lambda [n]
+          (def list-length-iter
+            (lambda [n r]
+                    (if (null? n)
+                      r
+                      (list-length-iter (cdr n)
+                                        (+ r 1)))))
+          (list-length-iter n 0)))
+
+;; reverse the list
+(def reverse 
+  (def reverse_iter 
+    (lambda (a result)
+            (if (null? a)
+              result
+              (reverse_iter (cdr a)
+                            (cons (car a)
+                                  result)))))
+  (reverse_iter a ()))
+
+;; append list
+(def append 
+  (lambda (a b)
+          (if (null? a)
+            b
+            (cons (car a)
+                  (append (cdr a)
+                          b)))))
+;; ref an element
+(def ref
+  (lambda [l i]
+          (if (= i 0)
+            (car l)
+            (ref (cdr l)
+                 (- i 1)))))
+
+;; append
+;; eg (append '(1 2) '(4 5)) => '(1 2 4 5)
+;; eg (append '(1 2) 4) => '(1 2 4)
+(def append 
+  (lambda [l0 l1]
+          (def list-append-iter0 
+            (lambda [l0]
+                    (if (null? l0)
+                      l1
+                      (cons (car l0) 
+                            (list-append-iter0 (cdr l0))))))
+          (if (pair? l1)
+            (list-append-iter0 l0)
+            (begin (set! l1 (cons l1 '()))
+                   (list-append-iter0 l0)))))
+
+
+;; ->vector
+(def ->vector
+  (lambda [l]
+          (def list->vector-iter
+            (lambda [l output]
+                    (if (null? l)
+                      output
+                      (list->vector-iter (cdr l) 
+                                         (vector-push! output (car l))))))
+          (list->vector-iter l #[])))
+
+
+;; (foreach '(1 2 3 4) (lambda [n] (display n)))
+(def foreach
+  (lambda [l fn]
+          (if (null? l)
+            ()
+            (if (eq? (fn (car l)) 'break)
+              ()
+              (foreach (cdr l)
+                       fn)))))
+
+;; list-slice-helper
+(def list-slice-helper
+  (lambda [l end]
+          (if (= end 0)
+            ()
+            (cons (car l)
+                  (list-slice-helper (cdr l)
+                                     (- end 1))))))
+(def list-slice-remove-head
+  (lambda [l start]
+          (if (= start 0)
+            l
+            (list-slice-remove-head (cdr l)
+                                    (- start 1)))))
+;; slice
+(def slice 
+  (lambda [l start end]
+          (set! end (or end (length l)))
+          (list-slice-helper (list-slice-remove-head l start)
+                             (- end start))))
+

@@ -27,31 +27,10 @@
 (def append 
      (lambda (a b)
        (if (null? a)
-     b
-   (cons (car a)
-         (append (cdr a)
-           b)))))
-;; reverse the list
-(def reverse 
-     (def reverse_iter 
-        (lambda (a result)
-        (if (null? a)
-                    result
-                    (reverse_iter (cdr a)
-                                  (cons (car a)
-                                        result)))))
-     (reverse_iter a ()))
-
-;; get the length of the list
-(def list-length
-  (lambda [n]
-          (def list-length-iter
-            (lambda [n r]
-                    (if (null? n)
-                      r
-                      (list-length-iter (cdr n)
-                                        (+ r 1)))))
-          (list-length-iter n 0)))
+	   b
+	 (cons (car a)
+	       (append (cdr a)
+		       b)))))
 
 
 (def error (lambda [s] (display "ERROR: ") (display s)))
@@ -89,7 +68,7 @@
   [() 'true]
   [(a) a]
   [(a . b) `(if ~a (and ~@b) ())]
-  )  
+  )	 
 
 ;; or
 (defmacro or
@@ -97,7 +76,7 @@
   [(a) a]
   [(a . b) `(if ~a ~a (or ~@b))]
   )
-    
+	  
 ;; test cond
 ;(display (cond (= 0 1) (display "Hi1")
 ;               (= 2 3) (display "Hi2")
@@ -106,67 +85,10 @@
 ;               ))
 
 (defmacro defm 
-    [(macro-name args pattern)
-     `(defmacro ~macro-name (~args ~pattern))])
+	  [(macro-name args pattern)
+	   `(defmacro ~macro-name (~args ~pattern))])
 
 
-;; list-slice-helper
-(defn list-slice-helper [l end]
-  (if (= end 0)
-    ()
-    (cons (car l)
-          (list-slice-helper (cdr l)
-                             (- end 1)))))
-(defn list-slice-remove-head [l start]
-  (if (= start 0)
-    l
-    (list-slice-remove-head (cdr l)
-                            (- start 1))))
-;; list-slice
-(defn list-slice  [l start end]
-          (set! end (or end (list-length l)))
-          (list-slice-helper (list-slice-remove-head l start)
-                             (- end start)))
-
-
-;; str
-;; eg (str "Hello " "World") -> "Hello World"
-(defn str [. b]
-  (defn str-iter [b]
-    (if (null? b)
-    ""
-    (string-append (car b)
-                   (str-iter (cdr b)))))
-  (str-iter b))
-
-
-;; get length of several data types
-(defn len [b] 
-  (if (null? b)
-    0
-    (if (string? b)
-      (string-length b)
-      (if (pair? b)
-        (list-length b)
-        (if (vector? b)
-          (vector-length b)
-          (error "Function len invalid data type"))))))
-
-
-;; string=?
-;; string>?
-;; string<?
-;; string>=?
-;; string<=?
-
-(defn string=? [a b] (= (strcmp a b) 0))
-(defn string>? [a b] (> (strcmp a b) 0))
-(defn string<? [a b] (< (strcmp a b) 0))
-(defn string>=? [a b] (>= (strcmp a b) 0))
-(defn string<=? [a b] (<= (strcmp a b) 0))
-
-;; **
-(def ** math-pow)
 
 ;; ########################### LIST ############################
 ;; some functions for list
@@ -178,118 +100,73 @@
 (defn cdddr [x] (cdr (cdr (cdr x))))
 (defn cadddr [x] (car (cdr (cdr (cdr x)))))
 
-(def list-reverse reverse)
-(defn list-ref [l i]
-  (if (= i 0)
-    (car l)
-    (list-ref (cdr l)
-              (- i 1))))
+(load 'list as 'list) ;; load list module
 
-;; list-append
-;; eg (list-append '(1 2) '(4 5)) => '(1 2 4 5)
-;; eg (list-append '(1 2) 4) => '(1 2 4)
-(defn list-append [l0 l1]
-  (defn list-append-iter0 [l0]
-    (if (null? l0)
-      l1
-      (cons (car l0) 
-            (list-append-iter0 (cdr l0)))))
-  (if (pair? l1)
-    (list-append-iter0 l0)
-    (begin (set! l1 (cons l1 '()))
-           (list-append-iter0 l0))))
-;; list->vector
-(defn list->vector [l]
-  (defn list->vector-iter [l output]
-    (if (null? l)
-      output
-      (list->vector-iter (cdr l) 
-                         (vector-push! output (car l)))))
-  (list->vector-iter l #[]))
+;; ########################### VECTOR ##########################
+(load 'vector as 'vector)
 
-;; (list-for-each '(1 2 3 4) (lambda [n] (display n)))
-(defn list-foreach [l fn]
-  (if (null? l)
-    ()
-    (if (eq? (fn (car l)) 'break)
-      ()
-      (list-foreach (cdr l)
-                     fn))
-    ))
+;; ########################### TABLE ###########################
+(load 'table as 'table)
 
-;; ############## VECTOR ########################
-;; vector->list
-(defn vector->list [v]
-  (def length (vector-length v))
-  (defn vector->list-iter [v i]
-    (if (= i length)
-      '()
-      (cons v[i]
-            (vector->list-iter v
-                               (+ i 1)))))
-  (vector->list-iter v 0))
+;; str
+;; eg (str "Hello " "World") -> "Hello World"
+(defn str [. b]
+  (defn str-iter [b]
+    (if (null? b)
+    ""
+    (string/append (car b)
+                   (str-iter (cdr b)))))
+  (str-iter b))
 
-;; vector-find
-;; find element in vector and return its index
-(defn vector-find [v o start-index]
-  (set! start-index (or start-index 0))
-  (def length (vector-length v))
-  (defn vector-find-iter [i]
-    (if (= i length)
-      -1 ;; didn't find
-      (if (eq? v[i]
-               o)
-        i
-        (vector-find-iter (+ i 1))))) 
-  (vector-find-iter start-index))
 
-;; vector-foreach
-;; eg (vector-foreach #[1,2,3,4] (lambda [i] (if (= i 3) break (display i))))
-;; will print 1 2
-(defn vector-foreach [v fn]
-  (def v-length (vector-length v))
-  (defn vector-foreach-iter [count]
-    (if (= count v-length)
-      ()
-      (if (eq? (fn v[count]) 'break) ;; break
-        ()
-        (vector-foreach-iter (+ count 1)))))
-  (vector-foreach-iter 0))
+;; get length of several data types
+(defn len [b] 
+  (if (null? b)
+    0
+    (if (string? b)
+      (string/length b)
+      (if (pair? b)
+        (list/length b)
+        (if (vector? b)
+          (vector/length b)
+          (error "Function len invalid data type"))))))
 
-;; table-foreach
-(defn table-foreach [t fn]
-  (def keys (table-keys t))
-  (defn table-foreach-iter [keys]
-    (if (null? keys)
-      ()
-      (if (eq? (fn (car keys)
-                   t[(car keys)])
-               'break)
-        ()
-        (table-foreach-iter (cdr keys)))))
-  (table-foreach-iter keys))
+
+;; string=?
+;; string>?
+;; string<?
+;; string>=?
+;; string<=?
+(defn string=? [a b] (= (strcmp a b) 0))
+(defn string>? [a b] (> (strcmp a b) 0))
+(defn string<? [a b] (< (strcmp a b) 0))
+(defn string>=? [a b] (>= (strcmp a b) 0))
+(defn string<=? [a b] (<= (strcmp a b) 0))
+
+;; **
+(def ** math/pow)
 
 
 ;; foreach together
-;; pair       => list-foreach
-;; vector     => vector-foreach
-;; dictionary => dictionary-foreach
+;; pair       => list/foreach
+;; vector     => vector/foreach
+;; dictionary => dictionary/foreach
 (defn foreach [value func]
   (def t (typeof value))
-  (cond (eq? t 'pair)   (list-foreach value func)
-        (eq? t 'vector) (vector-foreach value func)
-        (eq? t 'table)  (table-foreach value func)
+  (cond (eq? t 'pair)   (list/foreach value func)
+        (eq? t 'vector) (vector/foreach value func)
+        (eq? t 'table)  (table/foreach value func)
         else (display "ERROR: Function foreach invalid param type")))
 
 ;; slice
 (defn slice [v start end]
   (def t (typeof v))
-  (set! end (or end (cond (eq? t 'pair) (list-length v)
-                          (eq? t 'string) (string-length v)
-                          (eq? t 'vector) (vector-length v))))
-  (cond (eq? t 'pair) (list-slice v start end)
-        (eq? t 'string) (string-slice v start end)
-        (eq? t 'vector) (vector-slice v start end)
+  (set! end (or end (cond (eq? t 'pair) (list/length v)
+                          (eq? t 'string) (string/length v)
+                          (eq? t 'vector) (vector/length v))))
+  (cond (eq? t 'pair) (list/slice v start end)
+        (eq? t 'string) (string/slice v start end)
+        (eq? t 'vector) (vector/slice v start end)
         else ()))
 
 ;; times function

@@ -438,7 +438,6 @@ void compiler(Instructions * insts,
     Object * temp;
     int32_t var_existed/*, var_index*/;
     Variable_Table_Frame * frame;
-    char var_name_[256]; // temp var_name_ string buffer
     switch (l->type) {
         case NULL_:
             Insts_push(insts, CONST_NULL); // push null;
@@ -658,37 +657,22 @@ void compiler(Instructions * insts,
                     var_value = GLOBAL_NULL;
                 else
                     var_value = caddr(l);
-                
-                // check namespace
-                if (ns == NULL) {
-                    strcpy(var_name_, var_name->data.String.v);
-                }
-                else{
-                    strcpy(var_name_, ns);
-                    strcat(var_name_, "/");
-                    strcat(var_name_, var_name->data.String.v);
-                }
-                
                 var_existed = false;
                 // var_index = -1;
                 frame = vt->frames[vt->length - 1];
                 for (j = frame->length - 1; j >= 0; j--) {
-                    if (str_eq(/*var_name->data.String.v*/var_name_,
+                    if (str_eq(var_name->data.String.v,
                                frame->var_names[j])) {
-                        if (ns == NULL) {
-                            printf("ERROR: variable: %s already defined\n", var_name->data.String.v);
-                        }
-                        else
-                            printf("ERROR: variable: %s in ns %s already defined\n", var_name->data.String.v, ns);
+                        printf("ERROR: variable: %s already defined\n", var_name->data.String.v);
                         return;
                     }
                 }
                 if(var_existed == false)
-                    VT_push(vt, vt->length-1, /*var_name->data.String.v*/ var_name_);
+                    VT_push(vt, vt->length-1, var_name->data.String.v);
                 if (var_value->type == PAIR &&
                     str_eq(car(var_value)->data.String.v,
                            "lambda")) {
-                        parent_func_name = /*var_name->data.String.v*/var_name_;
+                        parent_func_name = var_name->data.String.v;
                 }
                 // compile value
                 compiler(insts,
@@ -745,32 +729,17 @@ void compiler(Instructions * insts,
                 
                 // change value of a variable
                 var_name = cadr(l);
-                // check namespace
-                if (ns == NULL) {
-                    strcpy(var_name_, var_name->data.String.v);
-                }
-                else{
-                    strcpy(var_name_, ns);
-                    strcat(var_name_, "/");
-                    strcat(var_name_, var_name->data.String.v);
-                }
                 var_value = caddr(l);
-                VT_find(vt, var_name_, vt_find);
+                VT_find(vt, var_name->data.String.v, vt_find);
                 if (vt_find[0] == -1) {
-                    if (ns == NULL) {
-                        printf("ERROR: undefined variable %s \n", var_name->data.String.v);
-
-                    }
-                    else{
-                        printf("ERROR: undefined variable %s in ns %s \n", var_name->data.String.v, ns);
-                    }
+                    printf("ERROR: undefined variable %s \n", var_name->data.String.v);
                     return;
                 }
                 else{
                     if(var_value->type == PAIR &&
                        str_eq(car(var_value)->data.String.v,
                               "lambda"))
-                        parent_func_name = var_name_;/*var_name->data.String.v*/;
+                        parent_func_name = var_name->data.String.v;
                     // compile value
                     compiler(insts,
                              var_value,
@@ -859,7 +828,6 @@ void compiler(Instructions * insts,
                                 strcpy(ns_, string);
                                 free(string);
                             }
-                            
                             compiler_begin(insts,
                                            o,
                                            vt,
@@ -1140,27 +1108,18 @@ void compiler(Instructions * insts,
              */
             else if (str_eq(tag, "defmacro")){
                 var_name = cadr(l);
-                // check namespace
-                if (ns == NULL) {
-                    strcpy(var_name_, var_name->data.String.v);
-                }
-                else{
-                    strcpy(var_name_, ns);
-                    strcat(var_name_, "/");
-                    strcat(var_name_, var_name->data.String.v);
-                }
                 Object * clauses = cddr(l);
                 MacroTableFrame * frame = mt->frames[mt->length-1]; // get op frame
                 // length = frame->length;
                 for (i = frame->length - 1; i >= 0; i--) {
-                    if (str_eq(/*var_name->data.String.v*/ var_name_, frame->array[i]->macro_name)) { // already existed
+                    if (str_eq(var_name->data.String.v, frame->array[i]->macro_name)) { // already existed
                         
                         free(frame->array[i]->macro_name);
                         frame->array[i]->clauses->use_count--;
                         Object_free(frame->array[i]->clauses);
                         
                         clauses->use_count+=1; // 必须+1
-                        frame->array[i] = Macro_init(/*var_name->data.String.v*/var_name_, (clauses), VT_copy(vt));
+                        frame->array[i] = Macro_init(var_name->data.String.v, (clauses), VT_copy(vt));
                         return;
                     }
                 }
@@ -1172,7 +1131,7 @@ void compiler(Instructions * insts,
                 }
                 
                 clauses->use_count+=1; // 必须+1
-                frame->array[frame->length] = Macro_init(/*var_name->data.String.v*/var_name_, (clauses), VT_copy(vt));
+                frame->array[frame->length] = Macro_init(var_name->data.String.v, (clauses), VT_copy(vt));
                 frame->length+=1;
                 return;
             }

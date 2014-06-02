@@ -77,6 +77,7 @@ void Walley_Repl(){
                            env,
                            mt);
     
+    
     int32_t run_eval = true;
     
     //Environment * env = NULL;

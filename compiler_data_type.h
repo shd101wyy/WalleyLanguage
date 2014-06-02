@@ -163,10 +163,10 @@ Variable_Table * VT_init(){
     VT_push(vt, 0, "/");
     VT_push(vt, 0, "vector!");
     VT_push(vt, 0, "vector");
-    VT_push(vt, 0, "vector-length");
+    VT_push(vt, 0, "vector/length");
     
-    VT_push(vt, 0, "vector-push!");
-    VT_push(vt, 0, "vector-pop!");
+    VT_push(vt, 0, "vector/push!");
+    VT_push(vt, 0, "vector/pop!");
     VT_push(vt, 0, "=");
     VT_push(vt, 0, "<");
     VT_push(vt, 0, "<=");
@@ -179,52 +179,52 @@ Variable_Table * VT_init(){
     VT_push(vt, 0, "parse"); // 20
     VT_push(vt, 0, "random"); // 21
     VT_push(vt, 0, "strcmp");
-    VT_push(vt, 0, "string-slice");
-    VT_push(vt, 0, "string-length");
-    VT_push(vt, 0, "string-append");
+    VT_push(vt, 0, "string/slice");
+    VT_push(vt, 0, "string/length");
+    VT_push(vt, 0, "string/append");
     VT_push(vt, 0, "table");
-    VT_push(vt, 0, "table-keys");
-    VT_push(vt, 0, "table-delete");
-    VT_push(vt, 0, "file-read");
+    VT_push(vt, 0, "table/keys");
+    VT_push(vt, 0, "table/delete");
+    VT_push(vt, 0, "file/read");
     
-    VT_push(vt, 0, "file-write");
-    VT_push(vt, 0, "sys-argv");
-    VT_push(vt, 0, "int->string");
-    VT_push(vt, 0, "float->string");
+    VT_push(vt, 0, "file/write");
+    VT_push(vt, 0, "sys/argv");
+    VT_push(vt, 0, "int/->string");
+    VT_push(vt, 0, "float/->string");
     VT_push(vt, 0, "input");
     VT_push(vt, 0, "display");
-    VT_push(vt, 0, "string->int");
-    VT_push(vt, 0, "string->float");
+    VT_push(vt, 0, "string/->int");
+    VT_push(vt, 0, "string/->float");
     VT_push(vt, 0, "ratio?");
     VT_push(vt, 0, "numer");
 
     VT_push(vt, 0, "denom");
     VT_push(vt, 0, "gensym");
-    VT_push(vt, 0, "table-add-tag");
-    VT_push(vt, 0, "table-tag");
+    VT_push(vt, 0, "table/add-tag");
+    VT_push(vt, 0, "table/tag");
     VT_push(vt, 0, "typeof");  // 44
-    VT_push(vt, 0, "math-cos");  // 45
-    VT_push(vt, 0, "math-sin");
-    VT_push(vt, 0, "math-tan");
-    VT_push(vt, 0, "math-acos");
-    VT_push(vt, 0, "math-asin");
+    VT_push(vt, 0, "math/cos");  // 45
+    VT_push(vt, 0, "math/sin");
+    VT_push(vt, 0, "math/tan");
+    VT_push(vt, 0, "math/acos");
+    VT_push(vt, 0, "math/asin");
     
-    VT_push(vt, 0, "math-atan");  // 50
-    VT_push(vt, 0, "math-cosh");  // 51
-    VT_push(vt, 0, "math-sinh");  // 52
-    VT_push(vt, 0, "math-tanh");  // 53
-    VT_push(vt, 0, "math-log");  // 54
-    VT_push(vt, 0, "math-exp");  // 55
-    VT_push(vt, 0, "math-log10");  // 56
-    VT_push(vt, 0, "math-pow");  // 57
-    VT_push(vt, 0, "math-sqrt");  // 58
-    VT_push(vt, 0, "math-ceil");  // 59
+    VT_push(vt, 0, "math/atan");  // 50
+    VT_push(vt, 0, "math/cosh");  // 51
+    VT_push(vt, 0, "math/sinh");  // 52
+    VT_push(vt, 0, "math/tanh");  // 53
+    VT_push(vt, 0, "math/log");  // 54
+    VT_push(vt, 0, "math/exp");  // 55
+    VT_push(vt, 0, "math/log10");  // 56
+    VT_push(vt, 0, "math/pow");  // 57
+    VT_push(vt, 0, "math/sqrt");  // 58
+    VT_push(vt, 0, "math/ceil");  // 59
 
-    VT_push(vt, 0, "math-floor");  // 60
-    VT_push(vt, 0, "string-find");  // 61
-    VT_push(vt, 0, "string-replace");  // 62
+    VT_push(vt, 0, "math/floor");  // 60
+    VT_push(vt, 0, "string/find");  // 61
+    VT_push(vt, 0, "string/replace");  // 62
     VT_push(vt, 0, "apply");   // 63
-    VT_push(vt, 0, "vector-slice"); // 64
+    VT_push(vt, 0, "vector/slice"); // 64
     VT_push(vt, 0, "set-car!"); // 65
     VT_push(vt, 0, "set-cdr!"); // 66
     VT_push(vt, 0, "system"); // 67
