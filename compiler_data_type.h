@@ -244,6 +244,9 @@ void VT_find(Variable_Table * vt, char * var_name, int32_t output[2]){
     for (i = vt->length - 1; i >= 0; i--) {
         frame = vt->frames[i];
         for (j = frame->length-1; j >= 0; j--) {
+            if (frame->var_names[j] == NULL) {
+                continue;
+            }
             if(str_eq(frame->var_names[j], var_name)){
                 output[0] = i;
                 output[1] = j;

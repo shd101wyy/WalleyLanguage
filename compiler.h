@@ -661,6 +661,9 @@ void compiler(Instructions * insts,
                 // var_index = -1;
                 frame = vt->frames[vt->length - 1];
                 for (j = frame->length - 1; j >= 0; j--) {
+                    if (frame->var_names[j] == NULL) {
+                        continue;
+                    }
                     if (str_eq(var_name->data.String.v,
                                frame->var_names[j])) {
                         printf("ERROR: variable: %s already defined\n", var_name->data.String.v);
@@ -828,15 +831,44 @@ void compiler(Instructions * insts,
                                 strcpy(ns_, string);
                                 free(string);
                             }
+                            
+                            // variable_frame start index
+                            uint32_t vfsi1 = vt->frames[0]->length; // save start index
+                            
+                            // init a new vt
+                            Variable_Table * temp_vt = VT_init();
+                            uint32_t vfsi2 = temp_vt->frames[0]->length; // save start index
+
+                            // copy empty
+                            for (i = 0; i < vfsi1 - vfsi2; i++) {
+                                VTF_push(temp_vt->frames[0], NULL);
+                            }
+                            
+                            i = temp_vt->frames[0]->length;
                             compiler_begin(insts,
                                            o,
-                                           vt,
+                                           temp_vt,
                                            NULL,
                                            NULL,
                                            0,
                                            env,
                                            mt,
                                            ns_);
+                            char var_name_[256];
+                            // copy back to vt
+                            for (; i < temp_vt->frames[0]->length; i++) {
+                                // check ns
+                                if (ns_ == NULL) {
+                                    strcpy(var_name_, temp_vt->frames[0]->var_names[i]);
+                                }
+                                else{
+                                    strcpy(var_name_, ns_);
+                                    strcat(var_name_, "/");
+                                    strcat(var_name_, temp_vt->frames[0]->var_names[i]);
+                                }
+                                VTF_push(vt->frames[0], var_name_);
+                            }
+                            VT_free(temp_vt);
                         }
                         else{
                             printf("ERROR: load invalid args\n");
@@ -845,7 +877,6 @@ void compiler(Instructions * insts,
                         }
                     }
                     else{
-
                         compiler_begin(insts,
                                        o,
                                        vt,
@@ -1383,7 +1414,7 @@ Object * compiler_begin(Instructions * insts,
         }
         l = cdr(l);
         
-        if (eval_flag == true) {
+        if (eval_flag) {
 #if COMPILER_DEBUG
             printInstructions(insts);
 #endif
