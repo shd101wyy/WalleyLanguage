@@ -122,7 +122,7 @@ struct Object {
             uint8_t resizable : 1;  // is this vector resizable
         } Vector;
         struct {          // builtin lambda
-            Object* (*func_ptr)(Object**, uint32_t, uint32_t); // function pointer
+            Object* (*func_ptr)(Object**, uint32_t); // function pointer
         } Builtin_Lambda;
     } data;
 };
@@ -236,7 +236,7 @@ Object * Object_initUserDefinedLambda(uint8_t param_num, int8_t variadic_place, 
     o->data.User_Defined_Lambda.frame_size = frame_length;
     return o;
 }
-Object * Object_initBuiltinLambda(Object* (*func_ptr)(Object **, uint32_t, uint32_t)){
+Object * Object_initBuiltinLambda(Object* (*func_ptr)(Object **, uint32_t)){
     Object * o = allocateObject();
     o->type = BUILTIN_LAMBDA;
     o->data.Builtin_Lambda.func_ptr = func_ptr;

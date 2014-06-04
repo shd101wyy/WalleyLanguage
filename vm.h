@@ -59,7 +59,7 @@ Object *VM(/*uint16_t * instructions,*/
     Environment_Frame * current_frame_pointer = NULL;
     Environment_Frame * temp_frame;
     Environment * new_env;
-    Object * (*func_ptr)(Object**, uint32_t, uint32_t); // function pointer
+    Object * (*func_ptr)(Object**, uint32_t); // function pointer
     Object * v;
     Object * temp; // temp use
     Object * temp2;
@@ -341,7 +341,7 @@ Object *VM(/*uint16_t * instructions,*/
 
                     case BUILTIN_LAMBDA: // builtin lambda
                         func_ptr = v->data.Builtin_Lambda.func_ptr;
-                        accumulator = (*func_ptr)(current_frame_pointer->array, param_num, current_frame_pointer->length - param_num); // call function
+                        accumulator = (*func_ptr)(&(current_frame_pointer->array[current_frame_pointer->length - param_num]), param_num); // call function
                     eval_builtin_lambda:
                         accumulator->use_count++; //必须在pop parameters之前运行这个 eg (car '((x))) 得到了 (x)， 但是如果 accumulator->use_count不加加的话 (x)会被free掉，
                         // 在 pop 完 parameters之后在 decrease accumulator->use_count
@@ -636,9 +636,8 @@ Object *VM(/*uint16_t * instructions,*/
                                             temp = cdr(temp);
                                             param_num++;
                                         }
-                                        accumulator = v->data.Builtin_Lambda.func_ptr(current_frame_pointer->array,
-                                                    param_num,
-                                                    current_frame_pointer->length - param_num);
+                                        accumulator = v->data.Builtin_Lambda.func_ptr(&(current_frame_pointer->array[current_frame_pointer->length - param_num]),
+                                                    param_num);
                                         param_num+=2; // include apply and temp
                                         goto eval_builtin_lambda;
                                         
