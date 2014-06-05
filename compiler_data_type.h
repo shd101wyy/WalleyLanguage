@@ -467,7 +467,17 @@ typedef struct Module{
     char * module_as_name;              // 但前所在的module的 as_name
     Module * children_modules_list;     // 当前module中load的所有modules
     Module * next;                      // 下一个 module
-    uint32_t vtf_start_offset;          // variable table frame的开始offset
+    /*
+     *  例如 (def x 2) (def y 3)
+     *  vtf_offset [1, 2]   length 2
+     *  例如 (def x 2) (def y 3) (load blabla后vtf断了) (def z 4)
+     *  vtf_offset [1, 2, 12]  length 3
+     *  找变量名的时候根据 vtf_offset 从 GLOBAL Variable Frame 中找
+     */
+    uint32_t vtf_offset[256];          // variable table frame的开始offset, 最多存256个？
+    uint16_t length;                   // length of vtf_offset
+    
+    
 } Module;
 
 /*
@@ -484,9 +494,9 @@ Module * Module_init(char * module_as_name, uint32_t vtf_start_offset){
         m->module_as_name = malloc(sizeof(char) * (strlen(module_as_name) + 1));
         strcpy(m->module_as_name, module_as_name);
     }
-    m->vtf_start_offset = vtf_start_offset;
     m->children_modules_list = NULL;
     m->next = NULL;
+    m->length = 0;
     return m;
 }
 
