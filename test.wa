@@ -17,6 +17,12 @@
 ;(display "Hello World")
 ;(def x 12)
 ;(times 1000000 (lambda [i] (display "Hi\n")))
+(def result 0)
+(def f 
+  (lambda [n r]
+          (if (= n 0)
+            r
+            (f (- n 1) (+ r (math/pow n (/ 1 3)))))))
 
 ;(def make-person 
 ;     (lambda []
@@ -32,6 +38,7 @@
 ;(def y (make-person))
 ;(y:print-age)
 
+(f 999999999 0);
 
 (def x 12)
 (def y 20)

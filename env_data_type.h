@@ -223,7 +223,7 @@ Environment_Frame * EF_init_with_size(int32_t size){
     frame->use_count = 0;
     return frame;
 }
-#define EF_set_builtin_lambda(v_, index, o_) ((v_)->array[(index)] = Object_initBuiltinLambda(o_))
+#define EF_set_builtin_lambda(v_, o_) ((v_)->array[(count)] = Object_initBuiltinLambda(o_)); count++;
 /*
  construct environment
  */
@@ -259,81 +259,87 @@ Environment_Frame *createFrame0(){
     frame->array = GLOBAL_FRAME;
     frame->use_count = 0;
     
-    // add builtin lambda
-    EF_set_builtin_lambda(frame, 0, &builtin_cons);
-    EF_set_builtin_lambda(frame, 1, &builtin_car);
-    EF_set_builtin_lambda(frame, 2, &builtin_cdr);
-    EF_set_builtin_lambda(frame, 3, &builtin_add);
-    EF_set_builtin_lambda(frame, 4, &builtin_sub);
-    EF_set_builtin_lambda(frame, 5, &builtin_mul);
-    EF_set_builtin_lambda(frame, 6, &builtin_div);
-    EF_set_builtin_lambda(frame, 7, &builtin_vector);
-    EF_set_builtin_lambda(frame, 8, &builtin_vector_with_unchangable_length);
-    EF_set_builtin_lambda(frame, 9, &builtin_vector_length);
-    EF_set_builtin_lambda(frame, 10, &builtin_vector_push);
-    EF_set_builtin_lambda(frame, 11, &builtin_vector_pop);
-    EF_set_builtin_lambda(frame, 12, &builtin_num_equal);
-    EF_set_builtin_lambda(frame, 13, &builtin_num_lt);
-    EF_set_builtin_lambda(frame, 14, &builtin_num_le);
-    EF_set_builtin_lambda(frame, 15, &builtin_eq);
-    frame->array[16] = Object_initInteger(1); // eval
-    frame->array[16]->use_count++;
-    EF_set_builtin_lambda(frame, 17, &builtin_exit);
-    EF_set_builtin_lambda(frame, 18, &builtin_gt);
-    EF_set_builtin_lambda(frame, 19, &builtin_ge);
-    EF_set_builtin_lambda(frame, 20, &builtin_parse);
-    EF_set_builtin_lambda(frame, 21, &builtin_random);
-    EF_set_builtin_lambda(frame, 22, &builtin_strcmp);
-    EF_set_builtin_lambda(frame, 23, &builtin_string_slice);
-    EF_set_builtin_lambda(frame, 24, &builtin_string_length);
-    EF_set_builtin_lambda(frame, 25, &builtin_string_append);
-    EF_set_builtin_lambda(frame, 26, &builtin_make_table);
-    EF_set_builtin_lambda(frame, 27, &builtin_table_keys);
-    EF_set_builtin_lambda(frame, 28, &builtin_table_delete);
-    EF_set_builtin_lambda(frame, 29, &builtin_file_read);
-    EF_set_builtin_lambda(frame, 30, &builtin_file_write);
-    // sys-argv
-    frame->array[31] = SYS_ARGV;
-    EF_set_builtin_lambda(frame, 32, &builtin_int_to_string);
-    EF_set_builtin_lambda(frame, 33, &builtin_float_to_string);
-    EF_set_builtin_lambda(frame, 34, &builtin_input);
-    EF_set_builtin_lambda(frame, 35, &builtin_display_string);
-    EF_set_builtin_lambda(frame, 36, &builtin_string_to_int);
-    EF_set_builtin_lambda(frame, 37, &builtin_string_to_float);
+    uint32_t count = 0;
     
-    EF_set_builtin_lambda(frame, 38, &builtin_ratio_type);
-    EF_set_builtin_lambda(frame, 39, &builtin_numer);
-    EF_set_builtin_lambda(frame, 40, &builtin_denom);
-    EF_set_builtin_lambda(frame, 41, &builtin_gensym);
-    EF_set_builtin_lambda(frame, 42, &builtin_table_add_tag);
-    EF_set_builtin_lambda(frame, 43, &builtin_table_tag);
-    EF_set_builtin_lambda(frame, 44, &builtin_typeof);
-    EF_set_builtin_lambda(frame, 45, &builtin_cos);
-    EF_set_builtin_lambda(frame, 46, &builtin_sin);
-    EF_set_builtin_lambda(frame, 47, &builtin_tan);
-    EF_set_builtin_lambda(frame, 48, &builtin_acos);
-    EF_set_builtin_lambda(frame, 49, &builtin_asin);
-    EF_set_builtin_lambda(frame, 50, &builtin_atan);
-    EF_set_builtin_lambda(frame, 51, &builtin_cosh);
-    EF_set_builtin_lambda(frame, 52, &builtin_sinh);
-    EF_set_builtin_lambda(frame, 53, &builtin_tanh);
-    EF_set_builtin_lambda(frame, 54, &builtin_log);
-    EF_set_builtin_lambda(frame, 55, &builtin_exp);
-    EF_set_builtin_lambda(frame, 56, &builtin_log10);
-    EF_set_builtin_lambda(frame, 57, &builtin_pow);
-    EF_set_builtin_lambda(frame, 58, &builtin_sqrt);
-    EF_set_builtin_lambda(frame, 59, &builtin_ceil);
-    EF_set_builtin_lambda(frame, 60, &builtin_floor);
-    EF_set_builtin_lambda(frame, 61, &builtin_string_find);
-    EF_set_builtin_lambda(frame, 62, &builtin_string_replace);
-    frame->array[63] = Object_initInteger(2); // apply
-    frame->array[63]->use_count++;
-    EF_set_builtin_lambda(frame, 64, builtin_vector_slice);
-    EF_set_builtin_lambda(frame, 65, builtin_set_car);
-    EF_set_builtin_lambda(frame, 66, builtin_set_cdr);
-    EF_set_builtin_lambda(frame, 67, builtin_system);
+    // add builtin lambda
+    EF_set_builtin_lambda(frame, &builtin_cons);
+    EF_set_builtin_lambda(frame, &builtin_car);
+    EF_set_builtin_lambda(frame, &builtin_cdr);
+    EF_set_builtin_lambda(frame, &builtin_add);
+    EF_set_builtin_lambda(frame, &builtin_sub);
+    EF_set_builtin_lambda(frame, &builtin_mul);
+    EF_set_builtin_lambda(frame, &builtin_div);
+    EF_set_builtin_lambda(frame, &builtin_vector);
+    EF_set_builtin_lambda(frame, &builtin_vector_with_unchangable_length);
+    EF_set_builtin_lambda(frame, &builtin_vector_length);
+    EF_set_builtin_lambda(frame, &builtin_vector_push);
+    EF_set_builtin_lambda(frame, &builtin_vector_pop);
+    EF_set_builtin_lambda(frame, &builtin_num_equal);
+    EF_set_builtin_lambda(frame, &builtin_num_lt);
+    EF_set_builtin_lambda(frame, &builtin_num_le);
+    EF_set_builtin_lambda(frame, &builtin_eq);
+    frame->array[count] = Object_initInteger(1); // eval
+    frame->array[count]->use_count++;
+    count++;
+    EF_set_builtin_lambda(frame, &builtin_exit);
+    EF_set_builtin_lambda(frame, &builtin_gt);
+    EF_set_builtin_lambda(frame, &builtin_ge);
+    EF_set_builtin_lambda(frame, &builtin_parse);
+    EF_set_builtin_lambda(frame, &builtin_random);
+    EF_set_builtin_lambda(frame, &builtin_strcmp);
+    EF_set_builtin_lambda(frame, &builtin_string_slice);
+    EF_set_builtin_lambda(frame, &builtin_string_length);
+    EF_set_builtin_lambda(frame, &builtin_string_append);
+    EF_set_builtin_lambda(frame, &builtin_make_table);
+    EF_set_builtin_lambda(frame, &builtin_table_keys);
+    EF_set_builtin_lambda(frame, &builtin_table_delete);
+    EF_set_builtin_lambda(frame, &builtin_file_read);
+    EF_set_builtin_lambda(frame, &builtin_file_write);
+    // sys-argv
+    frame->array[count] = SYS_ARGV;
+    frame->array[count]->use_count++;
+    count++;
+    EF_set_builtin_lambda(frame, &builtin_int_to_string);
+    EF_set_builtin_lambda(frame, &builtin_float_to_string);
+    EF_set_builtin_lambda(frame, &builtin_input);
+    EF_set_builtin_lambda(frame, &builtin_display_string);
+    EF_set_builtin_lambda(frame, &builtin_string_to_int);
+    EF_set_builtin_lambda(frame, &builtin_string_to_float);
+    
+    EF_set_builtin_lambda(frame, &builtin_ratio_type);
+    EF_set_builtin_lambda(frame, &builtin_numer);
+    EF_set_builtin_lambda(frame, &builtin_denom);
+    EF_set_builtin_lambda(frame, &builtin_gensym);
+    EF_set_builtin_lambda(frame, &builtin_table_add_tag);
+    EF_set_builtin_lambda(frame, &builtin_table_tag);
+    EF_set_builtin_lambda(frame, &builtin_typeof);
+    EF_set_builtin_lambda(frame, &builtin_cos);
+    EF_set_builtin_lambda(frame, &builtin_sin);
+    EF_set_builtin_lambda(frame, &builtin_tan);
+    EF_set_builtin_lambda(frame, &builtin_acos);
+    EF_set_builtin_lambda(frame, &builtin_asin);
+    EF_set_builtin_lambda(frame, &builtin_atan);
+    EF_set_builtin_lambda(frame, &builtin_cosh);
+    EF_set_builtin_lambda(frame, &builtin_sinh);
+    EF_set_builtin_lambda(frame, &builtin_tanh);
+    EF_set_builtin_lambda(frame, &builtin_log);
+    EF_set_builtin_lambda(frame, &builtin_exp);
+    EF_set_builtin_lambda(frame, &builtin_log10);
+    EF_set_builtin_lambda(frame, &builtin_pow);
+    EF_set_builtin_lambda(frame, &builtin_sqrt);
+    EF_set_builtin_lambda(frame, &builtin_ceil);
+    EF_set_builtin_lambda(frame, &builtin_floor);
+    EF_set_builtin_lambda(frame, &builtin_string_find);
+    EF_set_builtin_lambda(frame, &builtin_string_replace);
+    frame->array[count] = Object_initInteger(2); // apply
+    frame->array[count]->use_count++;
+    count++;
+    EF_set_builtin_lambda(frame, builtin_vector_slice);
+    EF_set_builtin_lambda(frame, builtin_set_car);
+    EF_set_builtin_lambda(frame, builtin_set_cdr);
+    EF_set_builtin_lambda(frame, builtin_system);
 
-    frame->length = 68; // set length
+    frame->length = count; // set length
     return frame;
 }
 /*

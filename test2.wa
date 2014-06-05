@@ -1,2 +1,3 @@
 (load 'test3 as 'test3)
 (display test3/x)
+(display test3/test4/x)

@@ -1,2 +1,3 @@
+(load 'test4 as 'test4)
 (def x 15)
 (def append 20)
