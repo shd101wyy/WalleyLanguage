@@ -590,7 +590,7 @@ Object *VM(/*uint16_t * instructions,*/
                                                              1,
                                                              original_env,
                                                              mt,
-                                                             NULL); // eval 的默认 namespace 名称是空
+                                                             GLOBAL_MODULE); // eval 的默认 namespace 名称是空
                                 // Object_free(temp); // compiler_begin 会给 free 掉
                                 
                                 // restore start-pc

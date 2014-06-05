@@ -19,7 +19,7 @@ void compiler(Instructions * insts,
               Lambda_for_Compilation * function_for_compilation,
               Environment * env,
               MacroTable * mt,
-              char * ns);
+              Module * module);
 
 Object * compiler_begin(Instructions * insts,
                         Object * l,
@@ -29,7 +29,7 @@ Object * compiler_begin(Instructions * insts,
                         int32_t eval_flag,
                         Environment * env,
                         MacroTable * mt,
-                        char * ns);
+                        Module * module);
 
 Object *VM(/*uint16_t * instructions,*/
            Instructions * instructions_,
@@ -225,7 +225,7 @@ Object * macro_expansion_replacement(Object * expanded_value,
     (defmacro square ([x] `(* ~x ~x)))
     (square 12) => (* 12 12)
  */
-Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable * mt, Environment * global_env, Instructions * insts, char *ns){
+Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable * mt, Environment * global_env, Instructions * insts, Module *module){
     Object * clauses = macro->clauses;
     Object * expanded_value_after_replacement;
     Object * temp;
@@ -346,7 +346,7 @@ Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable *
                           false,
                           new_env,
                           mt,
-                          ns);
+                          module);
             
             // cannot run in compiler_begin,
             // because the default insts->start_pc is wrong
@@ -417,7 +417,7 @@ void compiler(Instructions * insts,
               Lambda_for_Compilation * function_for_compilation,
               Environment * env,
               MacroTable * mt,
-              char * ns){
+              Module * module){
     /*if(l->type == PAIR){
         printf("\n##");
         parser_debug(l);
@@ -550,7 +550,7 @@ void compiler(Instructions * insts,
                                     function_for_compilation,
                                     env,
                                     mt,
-                                    ns);
+                                    module);
                 }
                 else if (v->type == PAIR){ // pair
                     temp = quote_list(v);
@@ -562,7 +562,7 @@ void compiler(Instructions * insts,
                                     function_for_compilation,
                                     env,
                                     mt,
-                                    ns);
+                                    module);
                     Object_free(temp);
                     return;
                 }
@@ -581,12 +581,12 @@ void compiler(Instructions * insts,
                              function_for_compilation,
                              env,
                              mt,
-                             ns);
+                             module);
                     Object_free(v);
                     free(string);
                     return;
                 }
-                return compiler(insts, v, vt, tail_call_flag, parent_func_name, function_for_compilation,env,mt,ns);
+                return compiler(insts, v, vt, tail_call_flag, parent_func_name, function_for_compilation,env,mt,module);
             }
             else if(str_eq(tag, "quasiquote")){
                 v = cadr(l);
@@ -600,7 +600,7 @@ void compiler(Instructions * insts,
                                     function_for_compilation,
                                     env,
                                     mt,
-                                    ns);
+                                    module);
                 }
                 else if (v->type == PAIR){ // pair
                     temp = quasiquote_list(v);
@@ -612,7 +612,7 @@ void compiler(Instructions * insts,
                                     function_for_compilation,
                                     env,
                                     mt,
-                                    ns);
+                                    module);
                     Object_free(temp);
                     return;
                 }
@@ -632,12 +632,12 @@ void compiler(Instructions * insts,
                             function_for_compilation,
                             env,
                             mt,
-                            ns);
+                            module);
                     Object_free(v);
                     free(string);
                     return;
                 }
-                return compiler(insts, v, vt, tail_call_flag, parent_func_name, function_for_compilation,env, mt, ns);
+                return compiler(insts, v, vt, tail_call_flag, parent_func_name, function_for_compilation,env, mt, module);
             }
             else if(str_eq(tag, "def")){
                 var_name = cadr(l);
@@ -686,7 +686,7 @@ void compiler(Instructions * insts,
                          function_for_compilation,
                          env,
                          mt,
-                         ns);
+                         module);
                 // add instruction
                 //Insts_push(insts, (SET << 12) | (vt->length - 1));
                 //Insts_push(insts, vt->frames[vt->length - 1]->length - 1);
@@ -725,7 +725,7 @@ void compiler(Instructions * insts,
                             function_for_compilation,
                             env,
                             mt,
-                            ns);
+                            module);
                     Object_free(temp_);
                     return;
                 }
@@ -752,7 +752,7 @@ void compiler(Instructions * insts,
                              function_for_compilation,
                              env,
                              mt,
-                             ns);
+                             module);
                     Insts_push(insts, SET << 12 | (0x0FFF & vt_find[0])); // frame_index
                     
                     Insts_push(insts, vt_find[1]); // value index
@@ -761,8 +761,8 @@ void compiler(Instructions * insts,
             }
             /*
              *  special builtin macro: load
-             *  (load "list") ; will load list.wa file with ns NULL
-             *  (load "list" as "list") load file with ns: list
+             *  (load "list") ; will load list.wa file with module NULL
+             *  (load "list" as "list") load file with module: list
              */
             else if (str_eq(tag, "load")){
                 if (vt->length != 1) {
@@ -817,58 +817,34 @@ void compiler(Instructions * insts,
                     p = lexer(content);
                     o = parser(p);
                     
+                    char module_as_name_[256];// module name max length = 255
+                    Module * load_module;
                     // check namespace
                     if (cddr(l) != GLOBAL_NULL) {
                         // (load 'test as 'test)
                         if (str_eq(caddr(l)->data.String.v, "as")) {
-                            char ns_[256]; // namespace max length = 255
-                            
+                            // get module name name
                             if (cadddr(l)->type == PAIR && str_eq(car(cadddr(l))->data.String.v, "quote")) {
-                                strcpy(ns_, cadr(cadddr(l))->data.String.v);
+                                strcpy(module_as_name_, cadr(cadddr(l))->data.String.v);
                             }
                             else{
                                 string = format_string(cadddr(l)->data.String.v);
-                                strcpy(ns_, string);
+                                strcpy(module_as_name_, string);
                                 free(string);
                             }
-                            
-                            // variable_frame start index
-                            uint32_t vfsi1 = vt->frames[0]->length; // save start index
-                            
-                            // init a new vt
-                            Variable_Table * temp_vt = VT_init();
-                            uint32_t vfsi2 = temp_vt->frames[0]->length; // save start index
-
-                            // copy empty
-                            for (i = 0; i < vfsi1 - vfsi2; i++) {
-                                VTF_push(temp_vt->frames[0], NULL);
-                            }
-                            
-                            i = temp_vt->frames[0]->length;
+                            load_module = Module_init(module_as_name_, vt->frames[0]->length); // init load module
+                            goto LOAD_MODULE;
+                        }
+                        else if (str_eq(caddr(l)->data.String.v, "all")){
                             compiler_begin(insts,
                                            o,
-                                           temp_vt,
+                                           vt,
                                            NULL,
                                            NULL,
                                            0,
                                            env,
                                            mt,
-                                           ns_);
-                            char var_name_[256];
-                            // copy back to vt
-                            for (; i < temp_vt->frames[0]->length; i++) {
-                                // check ns
-                                if (ns_ == NULL) {
-                                    strcpy(var_name_, temp_vt->frames[0]->var_names[i]);
-                                }
-                                else{
-                                    strcpy(var_name_, ns_);
-                                    strcat(var_name_, "/");
-                                    strcat(var_name_, temp_vt->frames[0]->var_names[i]);
-                                }
-                                VTF_push(vt->frames[0], var_name_);
-                            }
-                            VT_free(temp_vt);
+                                           module);
                         }
                         else{
                             printf("ERROR: load invalid args\n");
@@ -877,15 +853,52 @@ void compiler(Instructions * insts,
                         }
                     }
                     else{
+                        // module as name is file_name
+                        /*
+                         * todo: 这里以后得改， 不能是file_name， 而应该是 file_name 最后"/" 之后的
+                         */
+                        strcpy(module_as_name_, file_name);
+                        load_module = Module_init(module_as_name_, vt->frames[0]->length); // init load module
+
+                    LOAD_MODULE:;
+                        // variable_frame start index
+                        uint32_t vfsi1 = vt->frames[0]->length; // save start index
+                        
+                        // init a new vt
+                        Variable_Table * temp_vt = VT_init();
+                        uint32_t vfsi2 = temp_vt->frames[0]->length; // save start index
+                        
+                        // copy empty
+                        for (i = 0; i < vfsi1 - vfsi2; i++) {
+                            VTF_push(temp_vt->frames[0], NULL);
+                        }
+                        
+                        i = temp_vt->frames[0]->length;
                         compiler_begin(insts,
                                        o,
-                                       vt,
+                                       temp_vt,
                                        NULL,
                                        NULL,
                                        0,
                                        env,
                                        mt,
-                                       ns);
+                                       load_module);
+                        char var_name_[256];
+                        // copy back to vt
+                        for (; i < temp_vt->frames[0]->length; i++) {
+                            // check module
+                            if (module_as_name_ == NULL) {
+                                strcpy(var_name_, temp_vt->frames[0]->var_names[i]);
+                            }
+                            else{
+                                strcpy(var_name_, module_as_name_);
+                                strcat(var_name_, "/");
+                                strcat(var_name_, temp_vt->frames[0]->var_names[i]);
+                            }
+                            VTF_push(vt->frames[0], var_name_);
+                        }
+                        VT_free(temp_vt);
+
                     }
                     free(file_name);
                     free(content);
@@ -906,7 +919,7 @@ void compiler(Instructions * insts,
                          function_for_compilation,
                          env,
                          mt,
-                         ns);
+                         module);
                 // push test, but now we don't know jump steps
                 Insts_push(insts, TEST << 12); // jump over consequence
                 index1 = insts->length;
@@ -923,7 +936,7 @@ void compiler(Instructions * insts,
                                false, // cannot eval
                                env,
                                mt,
-                               ns);
+                               module);
                 //printf("\n@ %ld\n", insts->length);
                 
                 index2 = insts->length;
@@ -942,7 +955,7 @@ void compiler(Instructions * insts,
                                /*vt->length == 1 ? true :*/false,
                                env,
                                mt,
-                               ns);
+                               module);
                 
                 index3 = insts->length;
                 jump_steps = index3 - index2;
@@ -973,7 +986,7 @@ void compiler(Instructions * insts,
                                false,
                                env,
                                mt,
-                               ns);
+                               module);
                 return;
             }
             else if (str_eq(tag, "let")){
@@ -1023,7 +1036,7 @@ void compiler(Instructions * insts,
                          function_for_compilation,
                          env,
                          mt,
-                         ns);
+                         module);
                 Object_free(temp);
                 return;
             }
@@ -1090,7 +1103,7 @@ void compiler(Instructions * insts,
                                false,
                                env,
                                mt_,
-                               ns);
+                               module);
                 // return
                 Insts_push(insts, RETURN << 12);
                 index2 = insts->length;
@@ -1177,7 +1190,7 @@ void compiler(Instructions * insts,
                                                                        mt,
                                                                        env,
                                                                        insts,
-                                                                       ns);
+                                                                       module);
                         compiler(insts,
                                         expand,
                                         vt,
@@ -1186,7 +1199,7 @@ void compiler(Instructions * insts,
                                         function_for_compilation,
                                         env,
                                         mt,
-                                        ns);
+                                        module);
                         Object_free(expand);
                         return;
                     }
@@ -1220,7 +1233,7 @@ void compiler(Instructions * insts,
                                  function_for_compilation,
                                  env,
                                  mt,
-                                 ns); // compile that one parameter
+                                 module); // compile that one parameter
                         
                         // set tp current frame
                         Insts_push(insts, (SET << 12) | (vt->length - 1)); // frame index
@@ -1246,7 +1259,7 @@ void compiler(Instructions * insts,
                                      function_for_compilation,
                                      env,
                                      mt,
-                                     ns); // each argument is not tail call
+                                     module); // each argument is not tail call
                             
                             Object_free(p);
                             
@@ -1268,7 +1281,7 @@ void compiler(Instructions * insts,
                                      function_for_compilation,
                                      env,
                                      mt,
-                                     ns); // this argument is not tail call
+                                     module); // this argument is not tail call
                             // set to current frame
                             //Insts_push(insts, (SET << 12) | (vt->length - 1)); // frame index
                             // 这里不能用 SET_OP, 因为stack的size会一直增长。。。
@@ -1336,7 +1349,7 @@ void compiler(Instructions * insts,
                              function_for_compilation,
                              env,
                              mt,
-                             ns); // compile lambda, save to accumulator
+                             module); // compile lambda, save to accumulator
                     Insts_push(insts, NEWFRAME << 12); // create new frame
                     // compile paremeters
                     int32_t param_num = 0;
@@ -1357,7 +1370,7 @@ void compiler(Instructions * insts,
                                  function_for_compilation,
                                  env,
                                  mt,
-                                 ns);// each argument is not tail call
+                                 module);// each argument is not tail call
                         Insts_push(insts, PUSH_ARG << 12);
                     }
                     Insts_push(insts, (CALL << 12) | (0x0FFF & param_num));
@@ -1381,7 +1394,7 @@ Object * compiler_begin(Instructions * insts,
                     int32_t eval_flag,
                     Environment * env,
                     MacroTable * mt,
-                    char * ns){
+                    Module * module){
     
     Object * acc = GLOBAL_NULL;
     Object * l_ = l; // make a copy of l, so that we can free it later
@@ -1399,7 +1412,7 @@ Object * compiler_begin(Instructions * insts,
                      function_for_compilation,
                      env,
                      mt,
-                     ns);
+                     module);
         }
         else{
             compiler(insts,
@@ -1410,7 +1423,7 @@ Object * compiler_begin(Instructions * insts,
                      function_for_compilation,
                      env,
                      mt,
-                     ns);
+                     module);
         }
         l = cdr(l);
         

@@ -22,6 +22,8 @@ typedef struct Table_Pair Table_Pair;
 
 typedef struct Environment Environment;
 typedef struct Environment_Frame Environment_Frame;
+
+typedef struct Module Module;
 void Env_free(Environment * env);
 Environment * Env_init_with_size(int size);
 Environment_Frame * EF_init_with_size(int size);

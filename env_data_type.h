@@ -30,6 +30,8 @@ static Variable_Table * GLOBAL_VARIABLE_TABLE;
 static Environment * GLOBAL_ENVIRONMENT;
 static MacroTable * GLOBAL_MACRO_TABLE;
 
+static Module * GLOBAL_MODULE;
+
 Environment *createEnvironment(); // init env
 
 /*
@@ -154,6 +156,9 @@ void Walley_init(){
     GLOBAL_VARIABLE_TABLE = VT_init();
     GLOBAL_ENVIRONMENT = createEnvironment();
     GLOBAL_MACRO_TABLE = MT_init();
+    
+    // init global module
+    GLOBAL_MODULE = Module_initializeGlobalModule();
 }
 
 // end walley program

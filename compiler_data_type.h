@@ -457,6 +457,64 @@ MacroTable * MT_copy(MacroTable * mt){
     return return_mt;
 }
 
+
+/*
+ *   construct Module data structure
+ *   定义模块结构
+ *
+ */
+typedef struct Module{
+    char * module_as_name;              // 但前所在的module的 as_name
+    Module * children_modules_list;     // 当前module中load的所有modules
+    Module * next;                      // 下一个 module
+    uint32_t vtf_start_offset;          // variable table frame的开始offset
+} Module;
+
+/*
+ *
+ *  initialize Module data structure
+ *
+ */
+Module * Module_init(char * module_as_name, uint32_t vtf_start_offset){
+    Module * m = malloc(sizeof(Module));
+    if (module_as_name == NULL) {
+        m->module_as_name = NULL;
+    }
+    else{
+        m->module_as_name = malloc(sizeof(char) * (strlen(module_as_name) + 1));
+        strcpy(m->module_as_name, module_as_name);
+    }
+    m->vtf_start_offset = vtf_start_offset;
+    m->children_modules_list = NULL;
+    m->next = NULL;
+    return m;
+}
+
+
+/*
+ * init global module
+ */
+Module * Module_initializeGlobalModule(){
+    Module * m = Module_init(NULL, 0);
+    /*
+     *  todo : register string module, file module ...
+     *
+     */
+    
+    return m;
+}
+
+/*
+ *
+ *
+ *  free current module and all its children and brothers
+ *
+ *
+ */
+void Module_free(Module * m){
+    /* todo later */
+}
+
 #endif
 
 
