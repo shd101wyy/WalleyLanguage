@@ -1,4 +1,8 @@
 (load 'test4)
+(load 'test4 as 'test3)
 (def a 15)
 (def append 20)
+(print test4/x)
+(set! test4/x 15)
+(print test3/x)
 (print test4/x)

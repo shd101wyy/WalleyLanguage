@@ -14,6 +14,15 @@
 #include <ctype.h>
 #include <time.h>
 #include <stdint.h>
+/*
+#ifdef WIND32
+#include <dirent.h> // windows
+#else
+#include <unistd.h> // .nix
+#endif
+*/
+#include <unistd.h>
+
 
 #define RATIO_DEBUG 0   // ratio number debug
 #define LEXER_DEBUG 0   // lexer debug

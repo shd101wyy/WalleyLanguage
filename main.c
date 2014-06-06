@@ -11,7 +11,9 @@
 
 int main(int argc, char *argv[]){
     srand((unsigned int)time(NULL)); // set seed
-
+    
+    //printf("Current Working Directory %s\n", getcwd(NULL, 0));
+    
     // ######################################################
     // ######################################################
     // ######################################################
@@ -42,6 +44,8 @@ int main(int argc, char *argv[]){
     }
     // run file
     else if (argc == 2){
+        //char abs_path[256];
+        //printf("Absolute path %s\n", realpath(argv[1], abs_path));
         Walley_Run_File(argv[1]);
     }
     else if (argc == 3 && str_eq(argv[1], "compile")){ // run file

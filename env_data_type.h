@@ -160,6 +160,7 @@ void Walley_init(){
     // init global module
     GLOBAL_MODULE = Module_init("global"); //Module_initializeGlobalModule();
     GLOBAL_MODULE->next = NULL;
+    strcpy(GLOBAL_MODULE->module_abs_path, "global");
     // register global module
     Module_pushVarOffset(GLOBAL_MODULE, 0); // cons
     Module_pushVarOffset(GLOBAL_MODULE, 1); // car
@@ -193,6 +194,7 @@ void Walley_init(){
     
     // init string module
     Module * STRING_MODULE = Module_init("string");
+    strcpy(STRING_MODULE->module_abs_path, "string");
     // register string module
     Module_pushVarOffset(STRING_MODULE, 23); // slice
     Module_pushVarOffset(STRING_MODULE, 24); // length
@@ -206,6 +208,7 @@ void Walley_init(){
     
     // init vector module
     Module * VECTOR_MODULE = Module_init("vector");
+    strcpy(VECTOR_MODULE->module_abs_path, "vector");
     // register vector module
     Module_pushVarOffset(VECTOR_MODULE, 9); // length
     Module_pushVarOffset(VECTOR_MODULE, 10); // push!
@@ -216,6 +219,7 @@ void Walley_init(){
     
     // init table module
     Module * TABLE_MODULE = Module_init("table");
+    strcpy(TABLE_MODULE->module_abs_path, "table");
     // register table module
     Module_pushVarOffset(TABLE_MODULE, 27); // keys
     Module_pushVarOffset(TABLE_MODULE, 28); // delete
@@ -231,6 +235,7 @@ void Walley_init(){
      */
     // init file module
     Module * FILE_MODULE = Module_init("file");
+    strcpy(FILE_MODULE->module_abs_path, "file");
     // register file module
     Module_pushVarOffset(FILE_MODULE, 29); // read
     Module_pushVarOffset(FILE_MODULE, 30); // write
@@ -239,6 +244,7 @@ void Walley_init(){
     
     // init int module
     Module * INT_MODULE = Module_init("int"); // ->string
+    strcpy(FILE_MODULE->module_abs_path, "int");
     // register int module
     Module_pushVarOffset(INT_MODULE, 32);
     // add to global module
@@ -246,6 +252,7 @@ void Walley_init(){
     
     // init int module
     Module * FLOAT_MODULE = Module_init("float"); // ->string
+    strcpy(FLOAT_MODULE->module_abs_path, "float");
     // register float module
     Module_pushVarOffset(FLOAT_MODULE, 33);
     // add to global module
@@ -253,6 +260,7 @@ void Walley_init(){
     
     // init ratio module
     Module * RATIO_MODULE = Module_init("ratio");
+    strcpy(RATIO_MODULE->module_abs_path, "ratio");
     // register ratio module
     Module_pushVarOffset(RATIO_MODULE, 39); // numer
     Module_pushVarOffset(RATIO_MODULE, 40); // denom
@@ -261,6 +269,7 @@ void Walley_init(){
     
     // init sys module
     Module * SYS_MODULE = Module_init("sys");
+    strcpy(SYS_MODULE->module_abs_path, "sys");
     // register sys module
     Module_pushVarOffset(SYS_MODULE, 31); // argv
     Module_pushVarOffset(SYS_MODULE, 67);   // cmd
@@ -269,6 +278,7 @@ void Walley_init(){
     
     // init math module
     Module * MATH_MODULE = Module_init("math");
+    strcpy(MATH_MODULE->module_abs_path, "math");
     // register math module
     Module_pushVarOffset(MATH_MODULE, 45); // cos
     Module_pushVarOffset(MATH_MODULE, 46); // sin

@@ -713,7 +713,7 @@ void compiler(Instructions * insts,
                         }
                     }
                     if (var_existed) { // variable already defined in that module
-                        printf("ERROR: variable: %s already defined in module: %s\n", var_name->data.String.v, module->module_as_name);
+                        printf("ERROR: variable: %s already defined in module: %s\n", var_name->data.String.v, module->module_abs_path);
                         return;
 
                     }
@@ -814,11 +814,14 @@ void compiler(Instructions * insts,
              */
             else if (str_eq(tag, "load")){
                 if (vt->length != 1) {
-                    printf("ERROR: load invalid place");
+                    printf("ERROR: load invalid place\n");
                     return;
                 }
                 else{
                     char * file_name;
+                    char abs_path[256];
+                    Module * load_module;
+                    char module_loaded_flag = 0; // check module loaded or not
                     if (cadr(l)->type == PAIR && str_eq(car(cadr(l))->data.String.v, "quote")) {
                         file_name = malloc(sizeof(char) * (256)); // max 256
                         strcpy(file_name, cadr(cadr(l))->data.String.v);
@@ -835,6 +838,14 @@ void compiler(Instructions * insts,
                         file_name[file_name_length - 3] == '.') {
                         // read content from file
                         file = fopen(file_name,"r");
+                        
+                        if(file == NULL){
+                            printf("ERROR: Failed to load %s\n", file_name);
+                            return; // fail to read
+                        }
+                        
+                        // get absolute path
+                        realpath(file_name, abs_path);
                     }
                     else{
                         char temp_file_name[file_name_length + 5];
@@ -842,31 +853,33 @@ void compiler(Instructions * insts,
                         strcat(temp_file_name, ".wa");
                         // read content from file
                         file = fopen(temp_file_name, "r");
+                        
+                        if(file == NULL){
+                            printf("ERROR: Failed to load %s\n", file_name);
+                            return; // fail to read
+                        }
+                        
+                        // get absolute path
+                        realpath(temp_file_name, abs_path);
                     }
-                   
-                    if(file == NULL)
-                    {
-                        printf("ERROR: Failed to load %s\n", file_name);
-                        return; // fail to read
+                    
+                    /*
+                     * check module already loaded
+                     *
+                     */
+                    load_module = Module_loaded(GLOBAL_MODULE, abs_path); // check from global module
+                    if (load_module) {
+                        printf("Module Already Loaded %s\n", abs_path);
+                        module_loaded_flag = 1; // already loaded
+                    }
+                    else{
+                        printf("Module not loaded %s\n", abs_path);
+                        module_loaded_flag = 0; // not loaded
                     }
                     
-                    fseek(file, 0, SEEK_END);
-                    int64_t size = ftell(file);
-                    rewind(file);
-                    
-                    char* content = calloc(size + 1, 1);
-                    
-                    fread(content,1,size,file);
-                    
-                    fclose(file); // 不知道要不要加上这个
-                    
-                    Lexer * p;
-                    Object * o;
-                    p = lexer(content);
-                    o = parser(p);
+                    char * content = NULL;
                     
                     char module_as_name_[256];// module name max length = 255
-                    Module * load_module;
                     // check namespace
                     if (cddr(l) != GLOBAL_NULL) {
                         // (load 'test as 'test)
@@ -880,10 +893,29 @@ void compiler(Instructions * insts,
                                 strcpy(module_as_name_, string);
                                 free(string);
                             }
-                            load_module = Module_init(module_as_name_); // init load module
+                            if (module_loaded_flag == 0) { // not loaded
+                                load_module = Module_init(module_as_name_); // init load module
+                            }
+                            else{ // already loaded
+                                Module_addAsName(load_module, module_as_name_);
+                                goto LOAD_DONE;
+                            }
+                            
                             goto LOAD_MODULE;
                         }
                         else if (str_eq(caddr(l)->data.String.v, "all")){
+                            // read content
+                            fseek(file, 0, SEEK_END);
+                            int64_t size = ftell(file);
+                            rewind(file);
+                            content = calloc(size + 1, 1);
+                            fread(content,1,size,file);
+                            fclose(file); // 不知道要不要加上这个
+                            
+                            Lexer * p;
+                            Object * o;
+                            p = lexer(content);
+                            o = parser(p);
                             compiler_begin(insts,
                                            o,
                                            vt,
@@ -907,10 +939,32 @@ void compiler(Instructions * insts,
                         /*
                          * todo: 这里以后得改， 不能是file_name， 而应该是 file_name 最后"/" 之后的
                          */
-                        // strcpy(module_as_name_, file_name);
-                        load_module = Module_init(file_name); // init load module
+                        if (module_loaded_flag == 0) { // not loaded
+                            // strcpy(module_as_name_, file_name);
+                            load_module = Module_init(file_name); // init load module
+                        }
+                        else{ // already loaded
+                            Module_addAsName(load_module, file_name);
+                            goto LOAD_DONE;
+                        }
 
                     LOAD_MODULE:
+                        // set abs_path
+                        strcpy(load_module->module_abs_path, abs_path);
+                        
+                        // read content
+                        fseek(file, 0, SEEK_END);
+                        int64_t size = ftell(file);
+                        rewind(file);
+                        content = calloc(size + 1, 1);
+                        fread(content,1,size,file);
+                        fclose(file); // 不知道要不要加上这个
+                        
+                        
+                        Lexer * p;
+                        Object * o;
+                        p = lexer(content);
+                        o = parser(p);
                         compiler_begin(insts,
                                        o,
                                        vt,
@@ -922,8 +976,12 @@ void compiler(Instructions * insts,
                                        load_module);
                         Module_appendChild(module, load_module); // add to module children list
                     }
+                    
+                LOAD_DONE:
                     free(file_name);
-                    free(content);
+                    if (content) {
+                        free(content);
+                    }
                     return;
                 }
             }

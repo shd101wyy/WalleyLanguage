@@ -447,7 +447,15 @@ MacroTable * MT_copy(MacroTable * mt){
  *
  */
 struct Module{
-    char * module_as_name;              // 但前所在的module的 as_name
+    //char * module_as_name;              // 但前所在的module的 as_name
+    /*
+     * because a module can have lots of as name, so I make it an array
+     *
+     */
+    char ** module_as_name_array;         // char * array
+    uint16_t module_as_name_array_length;
+    uint16_t module_as_name_array_size;
+    
     Module * children_modules_list;     // 当前module中load的所有modules
     Module * next;                      // 下一个 module
     /*
@@ -460,6 +468,8 @@ struct Module{
     uint16_t * vtf_offset;          // variable table frame的开始offset, 最多存256个？
     uint16_t length;                   // length of vtf_offset
     uint16_t size;
+    
+    char module_abs_path[256]; // abs path
 };
 
 /*
@@ -469,12 +479,19 @@ struct Module{
  */
 Module * Module_init(char * module_as_name){
     Module * m = malloc(sizeof(Module));
+    
+    // init as name array
+    m->module_as_name_array_size = 4;
+    m->module_as_name_array_length = 0;
+    m->module_as_name_array = (char**)malloc(sizeof(char*) * m->module_as_name_array_size);
+    
     if (module_as_name == NULL) {
-        m->module_as_name = NULL;
+        m->module_as_name_array[0] = NULL;
     }
     else{
-        m->module_as_name = malloc(sizeof(char) * (strlen(module_as_name) + 1));
-        strcpy(m->module_as_name, module_as_name);
+        m->module_as_name_array[0] = malloc(sizeof(char) * (strlen(module_as_name) + 1));
+        strcpy(m->module_as_name_array[0], module_as_name);
+        m->module_as_name_array_length++;
     }
     m->children_modules_list = NULL;
     m->next = NULL;
@@ -485,18 +502,6 @@ Module * Module_init(char * module_as_name){
     return m;
 }
 
-/*
- * init global module
- */
-Module * Module_initializeGlobalModule(){
-    Module * m = Module_init("global");
-    /*
-     *  todo : register string module, file module ...
-     *
-     */
-    
-    return m;
-}
 
 /*
  * push offset
@@ -509,6 +514,19 @@ void Module_pushVarOffset(Module * m, uint16_t offset){
     m->vtf_offset[m->length] = offset;
     m->length++;
 }
+/*
+ * add as_name to module_as_name_array
+ */
+void Module_addAsName(Module * m, char * new_as_name){
+    if (m->module_as_name_array_size == m->module_as_name_array_length) {
+        m->module_as_name_array_size *= 2;
+        m->module_as_name_array = (char**)realloc(m->module_as_name_array, sizeof(char*) * (m->module_as_name_array_size));
+    }
+    m->module_as_name_array[m->module_as_name_array_length] = malloc(sizeof(char) * (1 + strlen(new_as_name)));
+    strcpy(m->module_as_name_array[m->module_as_name_array_length], new_as_name);
+    m->module_as_name_array_length++;
+}
+
 /*
  *
  * append child to children list
@@ -529,6 +547,34 @@ void Module_appendChild(Module * m, Module * child){
  */
 void Module_free(Module * m){
     /* todo later */
+}
+/*
+ *
+ *
+ * check module is already loaded
+ * if yes: return that module
+ * else  : return NULL
+ *
+ */
+Module * Module_loaded(Module * module, char * check_file_path){
+    if (module == NULL) {
+        return NULL;
+    }
+    if (str_eq(check_file_path, module->module_abs_path)) {
+        return module;
+    }
+    
+    // check children
+    Module * m = module->children_modules_list;
+    Module * r;
+    while (m != NULL) {
+        r = Module_loaded(m, check_file_path);
+        if (r) {
+            return r;
+        }
+        m = m->next;
+    }
+    return NULL;
 }
 
 void string_split_for_module(char * input_string, char * splitted_[128], int32_t * n_){
@@ -614,9 +660,15 @@ void VT_find(Variable_Table * vt, char * var_name, int32_t output[2], Module * m
         int find_module = 0;
         module = module->children_modules_list; // get children
         while (module != NULL) {
-            if (str_eq(splitted_[i], module->module_as_name)) {
-                // find module
-                find_module = true;
+            char ** module_as_name_array = module->module_as_name_array;
+            for (j = 0; j < module->module_as_name_array_length; j++) {
+                if (str_eq(splitted_[i], module_as_name_array[j])) {
+                    // find module
+                    find_module = true;
+                    break;
+                }
+            }
+            if (find_module) {
                 break;
             }
             module = module->next; // check next

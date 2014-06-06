@@ -10,6 +10,31 @@
 #define walley_walley_h
 #include "vm.h"
 
+/*
+ *
+ * switch working directory to the directory of run_file
+ *
+ */
+void SwitchWorkingDirectory(char * working_path){
+#ifdef WIN32   // windows
+    
+#else      // .nix
+    int32_t i = (uint32_t)strlen(working_path) - 1;
+    for (; i >= 0; i--) {
+        if (working_path[i] == '/') {
+            working_path[i] = 0;
+            break;
+        }
+        working_path[i] = 0;
+    }
+    //printf("working_path %s\n", working_path);
+    // now abs_path is the folder
+    chdir(working_path); // change working directory.
+    //printf("Current Working Directory %s\n", getcwd(NULL, 0));
+#endif
+    
+}
+
 Object * Walley_Run_File_for_VM(char * file_name,
                                 Instructions * insts,
                                 Variable_Table * vt,
@@ -141,21 +166,30 @@ void Walley_Repl(){
  */
 void Walley_Run_File(char * file_name){
     
+    // get abs_path of file_name
+    char abs_path[256];
+    char working_path[256];
+    realpath(file_name, abs_path);
+    strcpy(working_path, abs_path);
+    // change working directory
+    SwitchWorkingDirectory(working_path);
+    
+    
     // check .wac file
-    uint32_t file_name_length = (uint32_t)strlen(file_name);
+    uint32_t file_name_length = (uint32_t)strlen(abs_path);
     if (file_name_length >= 5 &&
-        file_name[file_name_length - 1] == 'c' &&
-        file_name[file_name_length - 2] == 'a' &&
-        file_name[file_name_length - 3] == 'w' &&
-        file_name[file_name_length - 4] == '.') {
-        return Walley_Run_Compiled_File(file_name);
+        abs_path[file_name_length - 1] == 'c' &&
+        abs_path[file_name_length - 2] == 'a' &&
+        abs_path[file_name_length - 3] == 'w' &&
+        abs_path[file_name_length - 4] == '.') {
+        return Walley_Run_Compiled_File(abs_path);
     }
     
     // read content from file
-    FILE* file = fopen(file_name,"r");
+    FILE* file = fopen(abs_path,"r");
     if(file == NULL)
     {
-        printf("Failed to read file %s\n", file_name);
+        printf("Failed to read file %s\n", abs_path);
         return; // fail to read
     }
     
@@ -366,12 +400,20 @@ Object * Walley_RunString(char * input_string){
 // compile to .wac file
 void Walley_Compile(char * file_name){
 
+    // get abs_path of file_name
+    char abs_path[256];
+    char working_path[256];
+    realpath(file_name, abs_path);
+    strcpy(working_path, abs_path);
+    // change working directory
+    SwitchWorkingDirectory(working_path);
+    
     COMPILATION_MODE = 1; // if under compilation mode, no print necessary
 
     // read content from file
-    FILE* file = fopen(file_name,"r");
+    FILE* file = fopen(abs_path, "r");
     if(file == NULL){
-        printf("Failed to read file %s\n", file_name);
+        printf("Failed to read file %s\n", abs_path);
         return; // fail to read
     }
     
@@ -436,9 +478,9 @@ void Walley_Compile(char * file_name){
     //printf("INSTS LENGTH %llu\n", insts->length);
     //printf("CONSTANT TABLE LENGTH %llu\n", CONSTANT_TABLE_INSTRUCTIONS->length);
     
-    char file_name_buffer[64];
+    char file_name_buffer[256];
     char inst_buffer[64];
-    strcpy(file_name_buffer, file_name);
+    strcpy(file_name_buffer, abs_path);
     strcat(file_name_buffer, "c");
     file = fopen(file_name_buffer, "w");
     uint64_t i;
