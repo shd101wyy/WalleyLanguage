@@ -202,7 +202,7 @@ void Walley_init(){
     Module_pushVarOffset(STRING_MODULE, 61); // find
     Module_pushVarOffset(STRING_MODULE, 62); // replace
     // add to global module
-    GLOBAL_MODULE->children_modules_list = STRING_MODULE;
+    Module_appendChild(GLOBAL_MODULE, STRING_MODULE);
     
     // init vector module
     Module * VECTOR_MODULE = Module_init("vector");
@@ -287,8 +287,7 @@ void Walley_init(){
     Module_pushVarOffset(MATH_MODULE, 59); // ceil
     Module_pushVarOffset(MATH_MODULE, 60); // floor
     // add to global module
-    Module_appendChild(GLOBAL_MODULE, SYS_MODULE);
-
+    Module_appendChild(GLOBAL_MODULE, MATH_MODULE);
 }
 
 // end walley program

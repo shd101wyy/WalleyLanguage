@@ -478,10 +478,10 @@ Module * Module_init(char * module_as_name){
     }
     m->children_modules_list = NULL;
     m->next = NULL;
-    m->length = 0;
     m->size = 8;
     m->length = 0;
     m->vtf_offset = malloc(sizeof(uint16_t) * m->size);
+    
     return m;
 }
 
@@ -515,17 +515,6 @@ void Module_pushVarOffset(Module * m, uint16_t offset){
  *
  */
 void Module_appendChild(Module * m, Module * child){
-    /*
-    if (m->children_modules_list == NULL) {
-        m->children_modules_list = child;
-        return;
-    }
-    else{
-        child->next = m->children_modules_list;
-        m->children_modules_list = child;
-        return;
-    }
-     */
     child->next = m->children_modules_list;
     m->children_modules_list = child;
     return;
