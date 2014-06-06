@@ -898,6 +898,7 @@ void compiler(Instructions * insts,
                             }
                             else{ // already loaded
                                 load_module = Module_copyWithNewAsName(load_module, module_as_name_);
+                                strcpy(load_module->module_abs_path, abs_path);
                                 Module_appendChild(module, load_module); // append to current module.
                                 goto LOAD_DONE;
                             }
@@ -946,6 +947,7 @@ void compiler(Instructions * insts,
                         }
                         else{ // already loaded
                             load_module = Module_copyWithNewAsName(load_module, file_name);
+                            strcpy(load_module->module_abs_path, abs_path);
                             Module_appendChild(module, load_module); // append to current module.
                             goto LOAD_DONE;
                         }
@@ -967,6 +969,10 @@ void compiler(Instructions * insts,
                         Object * o;
                         p = lexer(content);
                         o = parser(p);
+
+                        // 必须放在 compiler_begin 之前
+                        Module_appendChild(module, load_module); // add to module children list
+
                         compiler_begin(insts,
                                        o,
                                        vt,
@@ -976,7 +982,6 @@ void compiler(Instructions * insts,
                                        env,
                                        mt,
                                        load_module);
-                        Module_appendChild(module, load_module); // add to module children list
                     }
                     
                 LOAD_DONE:

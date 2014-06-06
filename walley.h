@@ -17,7 +17,19 @@
  */
 void SwitchWorkingDirectory(char * working_path){
 #ifdef WIN32   // windows
-    
+    int32_t i = (uint32_t)strlen(working_path) - 1;
+    for (; i >= 0; i--) {
+        if (working_path[i] == '\\') {
+            working_path[i] = 0;
+            break;
+        }
+        working_path[i] = 0;
+    }
+    //printf("working_path %s\n", working_path);
+    // now abs_path is the folder
+    chdir(working_path); // change working directory.
+    //printf("Current Working Directory %s\n", getcwd(NULL, 0));
+
 #else      // .nix
     int32_t i = (uint32_t)strlen(working_path) - 1;
     for (; i >= 0; i--) {
