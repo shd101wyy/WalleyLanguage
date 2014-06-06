@@ -1,0 +1,12 @@
+;; check data type
+(def int? (lambda [v] (eq? (typeof v) 'integer)))
+(def integer? int?)
+(def float? (lambda [v] (eq? (typeof v) 'float)))
+(def pair? (lambda [v] (eq? (typeof v) 'pair)))
+(def list? pair?)
+;(defn ratio? [v] (eq? (typeof v) 'ratio))
+(def null? (lambda [v] (eq? v ())))
+(def vector? (lambda [v] (eq? (typeof v) 'vector)))
+(def lambda? (lambda [v] (eq? (typeof v) 'lambda)))
+(def table? (lambda [v] (eq? (typeof v) 'table)))
+(def string? (lambda [v] (eq? (typeof v) 'string)))

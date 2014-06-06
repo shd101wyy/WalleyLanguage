@@ -89,7 +89,7 @@
 ;; slice
 (def slice 
   (lambda [l start end]
-          (set! end (or end (length l)))
+          (set! end (if end end (length l)))
           (list-slice-helper (list-slice-remove-head l start)
                              (- end start))))
 

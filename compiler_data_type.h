@@ -447,15 +447,7 @@ MacroTable * MT_copy(MacroTable * mt){
  *
  */
 struct Module{
-    //char * module_as_name;              // 但前所在的module的 as_name
-    /*
-     * because a module can have lots of as name, so I make it an array
-     *
-     */
-    char ** module_as_name_array;         // char * array
-    uint16_t module_as_name_array_length;
-    uint16_t module_as_name_array_size;
-    
+    char * module_as_name;              // 但前所在的module的 as_name
     Module * children_modules_list;     // 当前module中load的所有modules
     Module * next;                      // 下一个 module
     /*
@@ -466,8 +458,9 @@ struct Module{
      *  找变量名的时候根据 vtf_offset 从 GLOBAL Variable Frame 中找
      */
     uint16_t * vtf_offset;          // variable table frame的开始offset, 最多存256个？
-    uint16_t length;                   // length of vtf_offset
-    uint16_t size;
+    // use pointer because they might be shared by the same module with different as name
+    uint16_t * length;                   // length of vtf_offset
+    uint16_t * size;
     
     char module_abs_path[256]; // abs path
 };
@@ -479,25 +472,20 @@ struct Module{
  */
 Module * Module_init(char * module_as_name){
     Module * m = malloc(sizeof(Module));
-    
-    // init as name array
-    m->module_as_name_array_size = 4;
-    m->module_as_name_array_length = 0;
-    m->module_as_name_array = (char**)malloc(sizeof(char*) * m->module_as_name_array_size);
-    
     if (module_as_name == NULL) {
-        m->module_as_name_array[0] = NULL;
+        m->module_as_name = NULL;
     }
     else{
-        m->module_as_name_array[0] = malloc(sizeof(char) * (strlen(module_as_name) + 1));
-        strcpy(m->module_as_name_array[0], module_as_name);
-        m->module_as_name_array_length++;
+        m->module_as_name = malloc(sizeof(char) * (strlen(module_as_name) + 1));
+        strcpy(m->module_as_name, module_as_name);
     }
     m->children_modules_list = NULL;
     m->next = NULL;
-    m->size = 8;
-    m->length = 0;
-    m->vtf_offset = malloc(sizeof(uint16_t) * m->size);
+    m->size = malloc(sizeof(uint16_t));
+    *(m->size) = 8;
+    m->length = malloc(sizeof(uint16_t));
+    *(m->length) = 0;
+    m->vtf_offset = malloc(sizeof(uint16_t) * (*(m->size)));
     
     return m;
 }
@@ -507,24 +495,32 @@ Module * Module_init(char * module_as_name){
  * push offset
  */
 void Module_pushVarOffset(Module * m, uint16_t offset){
-    if (m->size == m->length) {
-        m->size *= 2;
-        m->vtf_offset = (uint16_t*)realloc(m->vtf_offset, sizeof(uint16_t)*m->size);
+    if (*(m->size) == *(m->length)) { // reach max size
+        *(m->size) *= 2;
+        m->vtf_offset = (uint16_t*)realloc(m->vtf_offset, sizeof(uint16_t)* (*(m->size)));
     }
-    m->vtf_offset[m->length] = offset;
-    m->length++;
+    m->vtf_offset[*(m->length)] = offset;
+    (*(m->length))++;
 }
 /*
- * add as_name to module_as_name_array
+ * copy module with new as name
+ * attention: module_abs_path is not initialized here
  */
-void Module_addAsName(Module * m, char * new_as_name){
-    if (m->module_as_name_array_size == m->module_as_name_array_length) {
-        m->module_as_name_array_size *= 2;
-        m->module_as_name_array = (char**)realloc(m->module_as_name_array, sizeof(char*) * (m->module_as_name_array_size));
+Module * Module_copyWithNewAsName(Module * module, char * new_as_name){
+    Module * copy = malloc(sizeof(Module));
+    if (new_as_name == NULL) { // setup module_as_name
+        copy->module_as_name = NULL;
     }
-    m->module_as_name_array[m->module_as_name_array_length] = malloc(sizeof(char) * (1 + strlen(new_as_name)));
-    strcpy(m->module_as_name_array[m->module_as_name_array_length], new_as_name);
-    m->module_as_name_array_length++;
+    else{
+        copy->module_as_name = malloc(sizeof(char) * (strlen(new_as_name) + 1));
+        strcpy(copy->module_as_name, new_as_name);
+    }
+    copy->children_modules_list = module->children_modules_list; // point to same children
+    copy->next = module->next; // same next
+    copy->size = module->size; // same size
+    copy->length = module->length; // same length
+    copy->vtf_offset = module->vtf_offset; // same vtf_offset
+    return copy;
 }
 
 /*
@@ -620,10 +616,12 @@ void VT_find(Variable_Table * vt, char * var_name, int32_t output[2], Module * m
      */
     string_split_for_module(var_name, splitted_, &n);
     
+    /*
     printf("# VT_find\n");
     for (i = 0; i < n; i++) {
         printf("%s \n", splitted_[i]);
     }
+    */
     
     /*
      *   get index
@@ -660,15 +658,8 @@ void VT_find(Variable_Table * vt, char * var_name, int32_t output[2], Module * m
         int find_module = 0;
         module = module->children_modules_list; // get children
         while (module != NULL) {
-            char ** module_as_name_array = module->module_as_name_array;
-            for (j = 0; j < module->module_as_name_array_length; j++) {
-                if (str_eq(splitted_[i], module_as_name_array[j])) {
-                    // find module
-                    find_module = true;
-                    break;
-                }
-            }
-            if (find_module) {
+            if (str_eq(splitted_[i], module->module_as_name)) {
+                find_module = true; // find module
                 break;
             }
             module = module->next; // check next
@@ -690,7 +681,7 @@ void VT_find(Variable_Table * vt, char * var_name, int32_t output[2], Module * m
 check_variable_in_module:;
     // find module.
     Variable_Table_Frame * f = vt->frames[0]; // get global frames
-    for (i = 0; i < module->length; i++) {
+    for (i = 0; i < *(module->length); i++) {
         if (str_eq(f->var_names[module->vtf_offset[i]], splitted_[n - 1])) {
             // find corresponding variable
             output[0] = 0;

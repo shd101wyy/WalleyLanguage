@@ -706,7 +706,7 @@ void compiler(Instructions * insts,
                     // check current module to see whether that variable exists
                     var_existed = false;
                     Variable_Table_Frame * f = vt->frames[0]; // get global frame
-                    for (i = 0; i < module->length; i++) { // 查看变量是否在当前模块中存在
+                    for (i = 0; i < *(module->length); i++) { // 查看变量是否在当前模块中存在
                         if (str_eq(var_name->data.String.v, f->var_names[module->vtf_offset[i]])) {
                             var_existed = true;
                             break;
@@ -818,10 +818,13 @@ void compiler(Instructions * insts,
                     return;
                 }
                 else{
-                    char * file_name;
+                    char * file_name = NULL;
                     char abs_path[256];
                     Module * load_module;
                     char module_loaded_flag = 0; // check module loaded or not
+                    char * content = NULL;
+                    char module_as_name_[256];// module name max length = 255
+
                     if (cadr(l)->type == PAIR && str_eq(car(cadr(l))->data.String.v, "quote")) {
                         file_name = malloc(sizeof(char) * (256)); // max 256
                         strcpy(file_name, cadr(cadr(l))->data.String.v);
@@ -841,7 +844,7 @@ void compiler(Instructions * insts,
                         
                         if(file == NULL){
                             printf("ERROR: Failed to load %s\n", file_name);
-                            return; // fail to read
+                            goto LOAD_DONE; // fail to read
                         }
                         
                         // get absolute path
@@ -856,7 +859,7 @@ void compiler(Instructions * insts,
                         
                         if(file == NULL){
                             printf("ERROR: Failed to load %s\n", file_name);
-                            return; // fail to read
+                            goto LOAD_DONE; // fail to read
                         }
                         
                         // get absolute path
@@ -869,17 +872,14 @@ void compiler(Instructions * insts,
                      */
                     load_module = Module_loaded(GLOBAL_MODULE, abs_path); // check from global module
                     if (load_module) {
-                        printf("Module Already Loaded %s\n", abs_path);
+                        // printf("Module Already Loaded %s\n", abs_path);
                         module_loaded_flag = 1; // already loaded
                     }
                     else{
-                        printf("Module not loaded %s\n", abs_path);
+                        // printf("Module not loaded %s\n", abs_path);
                         module_loaded_flag = 0; // not loaded
                     }
                     
-                    char * content = NULL;
-                    
-                    char module_as_name_[256];// module name max length = 255
                     // check namespace
                     if (cddr(l) != GLOBAL_NULL) {
                         // (load 'test as 'test)
@@ -897,7 +897,8 @@ void compiler(Instructions * insts,
                                 load_module = Module_init(module_as_name_); // init load module
                             }
                             else{ // already loaded
-                                Module_addAsName(load_module, module_as_name_);
+                                load_module = Module_copyWithNewAsName(load_module, module_as_name_);
+                                Module_appendChild(module, load_module); // append to current module.
                                 goto LOAD_DONE;
                             }
                             
@@ -944,7 +945,8 @@ void compiler(Instructions * insts,
                             load_module = Module_init(file_name); // init load module
                         }
                         else{ // already loaded
-                            Module_addAsName(load_module, file_name);
+                            load_module = Module_copyWithNewAsName(load_module, file_name);
+                            Module_appendChild(module, load_module); // append to current module.
                             goto LOAD_DONE;
                         }
 
@@ -978,7 +980,9 @@ void compiler(Instructions * insts,
                     }
                     
                 LOAD_DONE:
-                    free(file_name);
+                    if (file_name) {
+                        free(file_name);
+                    }
                     if (content) {
                         free(content);
                     }
