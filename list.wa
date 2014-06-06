@@ -1,14 +1,11 @@
 ;; list module
 ;; get the length of the list
-(def null? 
-  (lambda [n] (eq? n ())))
-(def pair?
-  (lambda [n] (eq? typeof[n] 'pair)))
+(load './type? as 'type)
 (def length
   (lambda [n]
           (def list-length-iter
             (lambda [n r]
-                    (if (null? n)
+                    (if (type/null? n)
                       r
                       (list-length-iter (cdr n)
                                         (+ r 1)))))
@@ -18,7 +15,7 @@
 (def reverse 
   (def reverse_iter 
     (lambda (a result)
-            (if (null? a)
+            (if (type/null? a)
               result
               (reverse_iter (cdr a)
                             (cons (car a)
@@ -40,11 +37,11 @@
   (lambda [l0 l1]
           (def list-append-iter0 
             (lambda [l0]
-                    (if (null? l0)
+                    (if (type/null? l0)
                       l1
                       (cons (car l0) 
                             (list-append-iter0 (cdr l0))))))
-          (if (pair? l1)
+          (if (type/pair? l1)
             (list-append-iter0 l0)
             (begin (set! l1 (cons l1 '()))
                    (list-append-iter0 l0)))))
@@ -55,7 +52,7 @@
   (lambda [l]
           (def list->vector-iter
             (lambda [l output]
-                    (if (null? l)
+                    (if (type/null? l)
                       output
                       (list->vector-iter (cdr l) 
                                          (vector/push! output (car l))))))
@@ -65,7 +62,7 @@
 ;; (foreach '(1 2 3 4) (lambda [n] (display n)))
 (def foreach
   (lambda [l fn]
-          (if (null? l)
+          (if (type/null? l)
             ()
             (if (eq? (fn (car l)) 'break)
               ()

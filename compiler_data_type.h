@@ -643,6 +643,21 @@ void VT_find(Variable_Table * vt, char * var_name, int32_t output[2], Module * m
                 }
             }
         }
+        /*
+         *  必须得先检查自己， 在检查 global 。。。
+         *
+         */
+        // check current module
+        Variable_Table_Frame * f = vt->frames[0]; // get global frames
+        for (i = 0; i < *(module->length); i++) {
+            if (str_eq(f->var_names[module->vtf_offset[i]], splitted_[n - 1])) {
+                // find corresponding variable
+                output[0] = 0;
+                output[1] = module->vtf_offset[i];
+                goto free_splitted;
+            }
+        }
+        
         // check global
         module = GLOBAL_MODULE;
         goto check_variable_in_module;
