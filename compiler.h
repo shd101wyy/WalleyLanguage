@@ -185,7 +185,10 @@ Object * macro_expansion_replacement(Object * expanded_value,
                             macro_expansion_replacement(cdr(expanded_value), vt, false));
             }
             int32_t find[2];
-            VT_find(vt, v->data.String.v, find);
+            /*
+             todo: change this VT_find later
+             */
+            VT_find(vt, v->data.String.v, find, NULL);
             if (find[0] != -1) { // find
                 return cons(cons(Object_initInteger(0),
                                  cons(Object_initInteger(find[0]),
@@ -418,11 +421,6 @@ void compiler(Instructions * insts,
               Environment * env,
               MacroTable * mt,
               Module * module){
-    /*if(l->type == PAIR){
-        printf("\n##");
-        parser_debug(l);
-        printf("##\n");
-    }*/
     int32_t i, j;
     uint64_t index1, index2, index3, jump_steps, start_pc;
     char * string;
@@ -519,7 +517,7 @@ void compiler(Instructions * insts,
                 return;
             }
             else{
-                VT_find(vt, l->data.String.v, vt_find);
+                VT_find(vt, l->data.String.v, vt_find, module);
                 if(vt_find[0] == -1){
                     // variable doesn't exist
                     printf("ERROR: undefined variable %s\n", l->data.String.v);
@@ -652,47 +650,93 @@ void compiler(Instructions * insts,
                     printf("ERROR: Invalid variable name %s\n", var_name->data.String.v);
                     return;
                 }
-                // 暂不支持 (def (add a b) (+ a b))
+                // 不支持 scheme 类似的 (def (add a b) (+ a b))
                 if (cddr(l)->type == NULL_)
                     var_value = GLOBAL_NULL;
                 else
                     var_value = caddr(l);
-                var_existed = false;
-                // var_index = -1;
-                frame = vt->frames[vt->length - 1];
-                for (j = frame->length - 1; j >= 0; j--) {
-                    if (frame->var_names[j] == NULL) {
-                        continue;
+                
+                if(vt->length > 1){ // local def
+                    var_existed = false;
+                    // var_index = -1;
+                    frame = vt->frames[vt->length - 1];
+                    for (j = frame->length - 1; j >= 0; j--) {
+                        if (frame->var_names[j] == NULL) {
+                            continue;
+                        }
+                        if (str_eq(var_name->data.String.v,
+                                   frame->var_names[j])) {
+                            printf("ERROR: variable: %s already defined\n", var_name->data.String.v);
+                            return;
+                        }
                     }
-                    if (str_eq(var_name->data.String.v,
-                               frame->var_names[j])) {
-                        printf("ERROR: variable: %s already defined\n", var_name->data.String.v);
+                    if(var_existed == false)
+                        VT_push(vt, vt->length-1, var_name->data.String.v);
+                    if (var_value->type == PAIR &&
+                        str_eq(car(var_value)->data.String.v,
+                               "lambda")) {
+                            parent_func_name = var_name->data.String.v;
+                        }
+                    // compile value
+                    compiler(insts,
+                             var_value,
+                             vt,
+                             tail_call_flag,
+                             parent_func_name,
+                             function_for_compilation,
+                             env,
+                             mt,
+                             module);
+                    // add instruction
+                    Insts_push(insts, SET_TOP << 12);
+                    Insts_push(insts, vt->frames[vt->length - 1]->length - 1);
+                    return;
+                }
+                /*
+                 * todo: 定义 不存在的module. eg (def 不存在的module/x 20)
+                 *
+                 */
+                else{ // global def
+                    // 检查当前的模块
+                    // check current module to see whether that variable exists
+                    var_existed = false;
+                    Variable_Table_Frame * f = vt->frames[0]; // get global frame
+                    for (i = 0; i < module->length; i++) { // 查看变量是否在当前模块中存在
+                        if (str_eq(var_name->data.String.v, f->var_names[module->vtf_offset[i]])) {
+                            var_existed = true;
+                            break;
+                        }
+                    }
+                    if (var_existed) { // variable already defined in that module
+                        printf("ERROR: variable: %s already defined in module %s\n", var_name->data.String.v, module->module_as_name);
+                        return;
+
+                    }
+                    else{ // add that variable
+                        Module_pushVarOffset(module, f->length); // save offset to module
+                        VT_push(vt, vt->length-1, var_name->data.String.v); // push to vt
+                        
+                        if (var_value->type == PAIR &&
+                            str_eq(car(var_value)->data.String.v,
+                                   "lambda")) {
+                                parent_func_name = var_name->data.String.v;
+                            }
+                        // compile value
+                        compiler(insts,
+                                 var_value,
+                                 vt,
+                                 tail_call_flag,
+                                 parent_func_name,
+                                 function_for_compilation,
+                                 env,
+                                 mt,
+                                 module);
+                        // add instruction
+                        Insts_push(insts, SET_TOP << 12);
+                        Insts_push(insts, vt->frames[vt->length - 1]->length - 1);
                         return;
                     }
                 }
-                if(var_existed == false)
-                    VT_push(vt, vt->length-1, var_name->data.String.v);
-                if (var_value->type == PAIR &&
-                    str_eq(car(var_value)->data.String.v,
-                           "lambda")) {
-                        parent_func_name = var_name->data.String.v;
-                }
-                // compile value
-                compiler(insts,
-                         var_value,
-                         vt,
-                         tail_call_flag,
-                         parent_func_name,
-                         function_for_compilation,
-                         env,
-                         mt,
-                         module);
-                // add instruction
-                //Insts_push(insts, (SET << 12) | (vt->length - 1));
-                //Insts_push(insts, vt->frames[vt->length - 1]->length - 1);
-                Insts_push(insts, SET_TOP << 12);
-                Insts_push(insts, vt->frames[vt->length - 1]->length - 1);
-                return;
             }
             else if(str_eq(tag, "set!")){
                 // check eg (set! x 0 12) case
@@ -707,7 +751,6 @@ void compiler(Instructions * insts,
                                     env,
                                     mt);
                 }*/
-                
                 // eg (def x #[1,2,3])
                 //    (set! x[0] 14)  => (x 0 3)
                 //    (def z #[#[1,2] 3])
@@ -733,7 +776,7 @@ void compiler(Instructions * insts,
                 // change value of a variable
                 var_name = cadr(l);
                 var_value = caddr(l);
-                VT_find(vt, var_name->data.String.v, vt_find);
+                VT_find(vt, var_name->data.String.v, vt_find, module);
                 if (vt_find[0] == -1) {
                     printf("ERROR: undefined variable %s \n", var_name->data.String.v);
                     return;
@@ -832,7 +875,7 @@ void compiler(Instructions * insts,
                                 strcpy(module_as_name_, string);
                                 free(string);
                             }
-                            load_module = Module_init(module_as_name_, vt->frames[0]->length); // init load module
+                            load_module = Module_init(module_as_name_); // init load module
                             goto LOAD_MODULE;
                         }
                         else if (str_eq(caddr(l)->data.String.v, "all")){
@@ -849,6 +892,8 @@ void compiler(Instructions * insts,
                         else{
                             printf("ERROR: load invalid args\n");
                             printf("%s\n", to_string(l));
+                            free(file_name);
+                            free(content);
                             return;
                         }
                     }
@@ -857,48 +902,20 @@ void compiler(Instructions * insts,
                         /*
                          * todo: 这里以后得改， 不能是file_name， 而应该是 file_name 最后"/" 之后的
                          */
-                        strcpy(module_as_name_, file_name);
-                        load_module = Module_init(module_as_name_, vt->frames[0]->length); // init load module
+                        // strcpy(module_as_name_, file_name);
+                        load_module = Module_init(file_name); // init load module
 
-                    LOAD_MODULE:;
-                        // variable_frame start index
-                        uint32_t vfsi1 = vt->frames[0]->length; // save start index
-                        
-                        // init a new vt
-                        Variable_Table * temp_vt = VT_init();
-                        uint32_t vfsi2 = temp_vt->frames[0]->length; // save start index
-                        
-                        // copy empty
-                        for (i = 0; i < vfsi1 - vfsi2; i++) {
-                            VTF_push(temp_vt->frames[0], NULL);
-                        }
-                        
-                        i = temp_vt->frames[0]->length;
+                    LOAD_MODULE:
                         compiler_begin(insts,
                                        o,
-                                       temp_vt,
+                                       vt,
                                        NULL,
                                        NULL,
                                        0,
                                        env,
                                        mt,
                                        load_module);
-                        char var_name_[256];
-                        // copy back to vt
-                        for (; i < temp_vt->frames[0]->length; i++) {
-                            // check module
-                            if (module_as_name_ == NULL) {
-                                strcpy(var_name_, temp_vt->frames[0]->var_names[i]);
-                            }
-                            else{
-                                strcpy(var_name_, module_as_name_);
-                                strcat(var_name_, "/");
-                                strcat(var_name_, temp_vt->frames[0]->var_names[i]);
-                            }
-                            VTF_push(vt->frames[0], var_name_);
-                        }
-                        VT_free(temp_vt);
-
+                        Module_appendChild(module, load_module); // add to module children list
                     }
                     free(file_name);
                     free(content);
