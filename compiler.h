@@ -697,6 +697,11 @@ void compiler(Instructions * insts,
                  *
                  */
                 else{ // global def
+                    /*
+                     *
+                     * todo: 支持 (def 已存在module/x 12)
+                     *
+                     */
                     // 检查当前的模块
                     // check current module to see whether that variable exists
                     var_existed = false;
@@ -708,7 +713,7 @@ void compiler(Instructions * insts,
                         }
                     }
                     if (var_existed) { // variable already defined in that module
-                        printf("ERROR: variable: %s already defined in module %s\n", var_name->data.String.v, module->module_as_name);
+                        printf("ERROR: variable: %s already defined in module: %s\n", var_name->data.String.v, module->module_as_name);
                         return;
 
                     }

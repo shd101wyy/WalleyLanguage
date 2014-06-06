@@ -230,7 +230,7 @@ Variable_Table * VT_init(){
     VT_push(vt, 0, "slice"); // 64          // vector 64
     VT_push(vt, 0, "set-car!"); // 65       // global 65
     VT_push(vt, 0, "set-cdr!"); // 66       // global 66
-    VT_push(vt, 0, "system"); // 67         // global 67
+    VT_push(vt, 0, "cmd"); // 67            // sys 67
     return vt;
 }
 
@@ -515,18 +515,20 @@ void Module_pushVarOffset(Module * m, uint16_t offset){
  *
  */
 void Module_appendChild(Module * m, Module * child){
+    /*
     if (m->children_modules_list == NULL) {
         m->children_modules_list = child;
         return;
     }
     else{
-        Module * children_modules_list = m->children_modules_list;
-        while (children_modules_list->next!=NULL) {
-            children_modules_list = children_modules_list->next;
-        }
-        children_modules_list->next = child;
+        child->next = m->children_modules_list;
+        m->children_modules_list = child;
         return;
     }
+     */
+    child->next = m->children_modules_list;
+    m->children_modules_list = child;
+    return;
 }
 
 /*

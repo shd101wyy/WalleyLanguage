@@ -190,7 +190,6 @@ void Walley_init(){
     Module_pushVarOffset(GLOBAL_MODULE, 63); // apply
     Module_pushVarOffset(GLOBAL_MODULE, 65); // set-car!
     Module_pushVarOffset(GLOBAL_MODULE, 66); // set-cdr!
-    Module_pushVarOffset(GLOBAL_MODULE, 67); // system
     
     // init string module
     Module * STRING_MODULE = Module_init("string");
@@ -204,6 +203,92 @@ void Walley_init(){
     Module_pushVarOffset(STRING_MODULE, 62); // replace
     // add to global module
     GLOBAL_MODULE->children_modules_list = STRING_MODULE;
+    
+    // init vector module
+    Module * VECTOR_MODULE = Module_init("vector");
+    // register vector module
+    Module_pushVarOffset(VECTOR_MODULE, 9); // length
+    Module_pushVarOffset(VECTOR_MODULE, 10); // push!
+    Module_pushVarOffset(VECTOR_MODULE, 11); // pop!
+    Module_pushVarOffset(VECTOR_MODULE, 64); // slice
+    // add to global module
+    Module_appendChild(GLOBAL_MODULE, VECTOR_MODULE);
+    
+    // init table module
+    Module * TABLE_MODULE = Module_init("table");
+    // register table module
+    Module_pushVarOffset(TABLE_MODULE, 27); // keys
+    Module_pushVarOffset(TABLE_MODULE, 28); // delete
+    Module_pushVarOffset(TABLE_MODULE, 42); // add-tag
+    Module_pushVarOffset(TABLE_MODULE, 43); // tag
+    // add to global module
+    Module_appendChild(GLOBAL_MODULE, TABLE_MODULE);
+    
+    /*
+     * todo: (def x (file "test1.wa" "r")) do something like that
+     *       (file/read x)
+     *
+     */
+    // init file module
+    Module * FILE_MODULE = Module_init("file");
+    // register file module
+    Module_pushVarOffset(FILE_MODULE, 29); // read
+    Module_pushVarOffset(FILE_MODULE, 30); // write
+    // add to global module
+    Module_appendChild(GLOBAL_MODULE, FILE_MODULE);
+    
+    // init int module
+    Module * INT_MODULE = Module_init("int"); // ->string
+    // register int module
+    Module_pushVarOffset(INT_MODULE, 32);
+    // add to global module
+    Module_appendChild(GLOBAL_MODULE, INT_MODULE);
+    
+    // init int module
+    Module * FLOAT_MODULE = Module_init("float"); // ->string
+    // register float module
+    Module_pushVarOffset(FLOAT_MODULE, 33);
+    // add to global module
+    Module_appendChild(GLOBAL_MODULE, FLOAT_MODULE);
+    
+    // init ratio module
+    Module * RATIO_MODULE = Module_init("ratio");
+    // register ratio module
+    Module_pushVarOffset(RATIO_MODULE, 39); // numer
+    Module_pushVarOffset(RATIO_MODULE, 40); // denom
+    // add to global module
+    Module_appendChild(GLOBAL_MODULE, RATIO_MODULE);
+    
+    // init sys module
+    Module * SYS_MODULE = Module_init("sys");
+    // register sys module
+    Module_pushVarOffset(SYS_MODULE, 31); // argv
+    Module_pushVarOffset(SYS_MODULE, 67);   // cmd
+    // add to global module
+    Module_appendChild(GLOBAL_MODULE, SYS_MODULE);
+    
+    // init math module
+    Module * MATH_MODULE = Module_init("math");
+    // register math module
+    Module_pushVarOffset(MATH_MODULE, 45); // cos
+    Module_pushVarOffset(MATH_MODULE, 46); // sin
+    Module_pushVarOffset(MATH_MODULE, 47); // tan
+    Module_pushVarOffset(MATH_MODULE, 48); // acos
+    Module_pushVarOffset(MATH_MODULE, 49); // asin
+    Module_pushVarOffset(MATH_MODULE, 50); // atan
+    Module_pushVarOffset(MATH_MODULE, 51); // cosh
+    Module_pushVarOffset(MATH_MODULE, 52); // sinh
+    Module_pushVarOffset(MATH_MODULE, 53); // tanh
+    Module_pushVarOffset(MATH_MODULE, 54); // log
+    Module_pushVarOffset(MATH_MODULE, 55); // exp
+    Module_pushVarOffset(MATH_MODULE, 56); // log10
+    Module_pushVarOffset(MATH_MODULE, 57); // pow
+    Module_pushVarOffset(MATH_MODULE, 58); // sqrt
+    Module_pushVarOffset(MATH_MODULE, 59); // ceil
+    Module_pushVarOffset(MATH_MODULE, 60); // floor
+    // add to global module
+    Module_appendChild(GLOBAL_MODULE, SYS_MODULE);
+
 }
 
 // end walley program
