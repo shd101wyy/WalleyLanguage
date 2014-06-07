@@ -133,8 +133,7 @@ void Walley_Repl(){
         fgets(buffer, 512, stdin);
         p = lexer(buffer);
         o = parser(p);
-        
-        
+                
         // compile
         v = compiler_begin(insts,
                        o,

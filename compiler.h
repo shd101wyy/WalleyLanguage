@@ -88,10 +88,10 @@ Object * quasiquote_list(Object * l){
 }
 
 /*
-    macro_match
-    return length of var_names
-   (defmacro test [(x) x] [(#hi x) y] [(x y) x])
-
+ macro_match
+ return length of var_names
+ (defmacro test [(x) x] [(#hi x) y] [(x y) x])
+ 
  */
 int32_t macro_match(Object * a, Object * b, char **var_names, Object **var_values, int32_t count){
 #if MACRO_DEBUG
@@ -157,8 +157,8 @@ int32_t macro_match(Object * a, Object * b, char **var_names, Object **var_value
 }
 
 Object * macro_expansion_replacement(Object * expanded_value,
-                                Variable_Table * vt,
-                                 int32_t is_head){
+                                     Variable_Table * vt,
+                                     int32_t is_head){
     if (expanded_value == GLOBAL_NULL) {
         return GLOBAL_NULL;
     }
@@ -195,7 +195,7 @@ Object * macro_expansion_replacement(Object * expanded_value,
                                       cons(Object_initInteger(find[1]),
                                            GLOBAL_NULL))),
                             macro_expansion_replacement(cdr(expanded_value),
-                                vt, false));
+                                                        vt, false));
             }
             else
                 return cons(v, macro_expansion_replacement(cdr(expanded_value), vt, false));
@@ -214,19 +214,19 @@ Object * macro_expansion_replacement(Object * expanded_value,
 }
 
 /*
-    I need to think about it
+ I need to think about it
  
-    (defn test []
-        (defn hi [] (display "Hi"))
-        (defmacro t [] '(hi))
-        (t)
-        )
-    (t) => cause error because hi is defined inside test
+ (defn test []
+ (defn hi [] (display "Hi"))
+ (defmacro t [] '(hi))
+ (t)
+ )
+ (t) => cause error because hi is defined inside test
  */
 /*
-    展开 macro
-    (defmacro square ([x] `(* ~x ~x)))
-    (square 12) => (* 12 12)
+ 展开 macro
+ (defmacro square ([x] `(* ~x ~x)))
+ (square 12) => (* 12 12)
  */
 Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable * mt, Environment * global_env, Instructions * insts, Module *module){
     Object * clauses = macro->clauses;
@@ -337,26 +337,26 @@ Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable *
             // save start-pc and length
             start_pc = insts->start_pc;
             insts_length = insts->length;
-          
-          
+            
+            
             // compile and run
             compiler_begin(insts,
-                          cons(cadr(car(clauses)), GLOBAL_NULL)
-                          ,
-                          new_vt,
-                          NULL,
-                          NULL,
-                          false,
-                          new_env,
-                          mt,
-                          module);
+                           cons(cadr(car(clauses)), GLOBAL_NULL)
+                           ,
+                           new_vt,
+                           NULL,
+                           NULL,
+                           false,
+                           new_env,
+                           mt,
+                           module);
             
             // cannot run in compiler_begin,
             // because the default insts->start_pc is wrong
             // should use insts_length as start_pc;
             expanded_value = VM(insts, insts_length, insts->length, new_env, NULL, NULL);
             
-           
+            
 #if MACRO_DEBUG
             printf("\n");
             printInstructions(insts);
@@ -369,16 +369,16 @@ Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable *
             // restore start-pc and length
             insts->start_pc = start_pc;
             insts->length = insts_length;
-
+            
             // 一改还得free其他的, var_names和var_values不用free
             // 因为 var_names 是保存在 macro 里面的
             //     var_values 会随着 parser 而free掉
             // free new_vt
             free(new_vt);
             /*
-            for (i = 0; i < new_vt_top_frame->length; i++) {
-                free(new_vt_top_frame->var_names[i]);
-            }*/
+             for (i = 0; i < new_vt_top_frame->length; i++) {
+             free(new_vt_top_frame->var_names[i]);
+             }*/
             free(new_vt_top_frame->var_names);
             free(new_vt_top_frame);
             
@@ -394,7 +394,7 @@ Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable *
             expanded_value_after_replacement = macro_expansion_replacement(expanded_value, macro->vt, true);
             Object_free(expanded_value);
             return expanded_value_after_replacement;
-             
+            
         }
         clauses = cdr(clauses);
         continue;
@@ -410,7 +410,7 @@ Object * list_append(Object * a, Object * b){
 }
 
 /*
-    Compiler 暂不支持 Macro
+ Compiler 暂不支持 Macro
  */
 void compiler(Instructions * insts,
               Object * l,
@@ -465,9 +465,9 @@ void compiler(Instructions * insts,
             Insts_push(insts, (0x00000000FFFF0000 & (*unsigned_int_)) >> 16);
             Insts_push(insts, 0xFFFF & (*unsigned_int_));
             return;
-        /*
-            关于 string, 存在于 CONSTANT_TABLE_INSTRUCTIONS 而不是 insts
-         */
+            /*
+             关于 string, 存在于 CONSTANT_TABLE_INSTRUCTIONS 而不是 insts
+             */
         case STRING:
             if (l->data.String.v[0] == '"') { // string
                 char * s = format_string(l->data.String.v);
@@ -475,7 +475,7 @@ void compiler(Instructions * insts,
                 length = strlen(s);
                 v = Object_initString(s, length);
                 var_value = Table_getval(CONSTANT_TABLE_FOR_COMPILATION,
-                                        v);
+                                         v);
                 // check s in CONSTANT_TABLE_FOR_COMPILATION
                 if(var_value!= GLOBAL_NULL){ // already exist
                     Insts_push(insts, CONST_LOAD); // load from table
@@ -527,7 +527,7 @@ void compiler(Instructions * insts,
                 Insts_push(insts, vt_find[1]); // value index
                 return;
             }
-
+            
         case PAIR:
             if(car(l)->type == INTEGER && car(l)->data.Integer.v == 0){
                 // set
@@ -553,14 +553,14 @@ void compiler(Instructions * insts,
                 else if (v->type == PAIR){ // pair
                     temp = quote_list(v);
                     compiler(insts,
-                                    temp,
-                                    vt,
-                                    tail_call_flag,
-                                    parent_func_name,
-                                    function_for_compilation,
-                                    env,
-                                    mt,
-                                    module);
+                             temp,
+                             vt,
+                             tail_call_flag,
+                             parent_func_name,
+                             function_for_compilation,
+                             env,
+                             mt,
+                             module);
                     Object_free(temp);
                     return;
                 }
@@ -603,14 +603,14 @@ void compiler(Instructions * insts,
                 else if (v->type == PAIR){ // pair
                     temp = quasiquote_list(v);
                     compiler(insts,
-                                    temp,
-                                    vt,
-                                    tail_call_flag,
-                                    parent_func_name,
-                                    function_for_compilation,
-                                    env,
-                                    mt,
-                                    module);
+                             temp,
+                             vt,
+                             tail_call_flag,
+                             parent_func_name,
+                             function_for_compilation,
+                             env,
+                             mt,
+                             module);
                     Object_free(temp);
                     return;
                 }
@@ -623,14 +623,14 @@ void compiler(Instructions * insts,
                     v = Object_initString(string,
                                           strlen(string));
                     compiler(insts,
-                            v,
-                            vt,
-                            tail_call_flag,
-                            parent_func_name,
-                            function_for_compilation,
-                            env,
-                            mt,
-                            module);
+                             v,
+                             vt,
+                             tail_call_flag,
+                             parent_func_name,
+                             function_for_compilation,
+                             env,
+                             mt,
+                             module);
                     Object_free(v);
                     free(string);
                     return;
@@ -647,80 +647,44 @@ void compiler(Instructions * insts,
                         str_eq(var_name->data.String.v, "lambda") ||
                         str_eq(var_name->data.String.v, "def") ||
                         str_eq(var_name->data.String.v, "set!"))) {
-                    printf("ERROR: Invalid variable name %s\n", var_name->data.String.v);
-                    return;
-                }
+                        printf("DEFINITION ERROR: Invalid variable name %s\n", var_name->data.String.v);
+                        return;
+                    }
                 // 不支持 scheme 类似的 (def (add a b) (+ a b))
                 if (cddr(l)->type == NULL_)
                     var_value = GLOBAL_NULL;
                 else
                     var_value = caddr(l);
                 
-                if(vt->length > 1){ // local def
-                    var_existed = false;
-                    // var_index = -1;
-                    frame = vt->frames[vt->length - 1];
-                    for (j = frame->length - 1; j >= 0; j--) {
-                        if (frame->var_names[j] == NULL) {
-                            continue;
-                        }
-                        if (str_eq(var_name->data.String.v,
-                                   frame->var_names[j])) {
-                            printf("ERROR: variable: %s already defined\n", var_name->data.String.v);
-                            return;
-                        }
-                    }
-                    if(var_existed == false)
-                        VT_push(vt, vt->length-1, var_name->data.String.v);
-                    if (var_value->type == PAIR &&
-                        str_eq(car(var_value)->data.String.v,
-                               "lambda")) {
-                            parent_func_name = var_name->data.String.v;
-                        }
-                    // compile value
-                    compiler(insts,
-                             var_value,
-                             vt,
-                             tail_call_flag,
-                             parent_func_name,
-                             function_for_compilation,
-                             env,
-                             mt,
-                             module);
-                    // add instruction
-                    Insts_push(insts, SET_TOP << 12);
-                    Insts_push(insts, vt->frames[vt->length - 1]->length - 1);
-                    return;
-                }
                 /*
-                 * todo: 定义 不存在的module. eg (def 不存在的module/x 20)
+                 * 考虑 (def test/x 12) in both local and global
                  *
                  */
-                else{ // global def
-                    /*
-                     *
-                     * todo: 支持 (def 已存在module/x 12)
-                     *
-                     */
-                    // 检查当前的模块
-                    // check current module to see whether that variable exists
-                    var_existed = false;
-                    Variable_Table_Frame * f = vt->frames[0]; // get global frame
-                    for (i = 0; i < *(module->length); i++) { // 查看变量是否在当前模块中存在
-                        if (str_eq(var_name->data.String.v, f->var_names[module->vtf_offset[i]])) {
-                            var_existed = true;
-                            break;
+                char * splitted_[128];
+                int32_t n = 0; // split length
+                Module * current_module = NULL;
+            
+                /*
+                 *  split var_name. eg string/add splits to ["string", "add"]
+                 */
+                string_split_for_module(var_name->data.String.v, splitted_, &n);
+                if (n == 1) { // not module
+                    if(vt->length > 1){ // local def
+                        var_existed = false;
+                        // var_index = -1;
+                        frame = vt->frames[vt->length - 1];
+                        for (j = frame->length - 1; j >= 0; j--) {
+                            if (frame->var_names[j] == NULL) {
+                                continue;
+                            }
+                            if (str_eq(var_name->data.String.v,
+                                       frame->var_names[j])) {
+                                printf("DEFINITION ERROR: variable: %s already defined\n", var_name->data.String.v);
+                                return;
+                            }
                         }
-                    }
-                    if (var_existed) { // variable already defined in that module
-                        printf("ERROR: variable: %s already defined in module: %s\n", var_name->data.String.v, module->module_abs_path);
-                        return;
-
-                    }
-                    else{ // add that variable
-                        Module_pushVarOffset(module, f->length); // save offset to module
-                        VT_push(vt, vt->length-1, var_name->data.String.v); // push to vt
-                        
+                        if(var_existed == false)
+                            VT_push(vt, vt->length-1, var_name->data.String.v);
                         if (var_value->type == PAIR &&
                             str_eq(car(var_value)->data.String.v,
                                    "lambda")) {
@@ -739,23 +703,91 @@ void compiler(Instructions * insts,
                         // add instruction
                         Insts_push(insts, SET_TOP << 12);
                         Insts_push(insts, vt->frames[vt->length - 1]->length - 1);
-                        return;
+                        goto def_free_splitted;
+                    }
+                    else{ // global. so use current module to store that variable
+                        current_module = module;
+                        goto def_check_variable_in_module;
                     }
                 }
+                else{ /* module */
+                    Module * m = module;
+                    for (i = 0; i < n - 1; i++) {
+                        int find_module = 0;
+                        m = m->children_modules_list; // get children
+                        while (m != NULL) {
+                            if (str_eq(splitted_[i], m->module_as_name)) {
+                                find_module = true; // find module
+                                break;
+                            }
+                            m = m->next; // check next
+                        }
+                        if (find_module) {
+                            continue;
+                        }
+                        // didn't find corresponding module
+                        printf("DEFINITION ERROR: didn't find corresponding module: %s in: %s\n", splitted_[i], var_name->data.String.v);
+                        goto def_free_splitted;
+                    }
+                    
+                    // save variable to module
+                    current_module = m;
+                    
+                def_check_variable_in_module:;
+                    // find module.
+                    Variable_Table_Frame * f = vt->frames[0]; // get global frames
+                    /* check variable existed */
+                    for (i = 0; i < *(current_module->length); i++) {
+                        if (str_eq(f->var_names[current_module->vtf_offset[i]], splitted_[n - 1])) {
+                            // find corresponding variable
+                            printf("DEFINITION ERRROR: variable: %s in: %s is already defined\n", splitted_[n - 1], var_name->data.String.v);
+                            goto def_free_splitted;
+                        }
+                    }
+                    
+                    // save that variable to that module
+                    Module_pushVarOffset(current_module, f->length); // save offset to module
+                    VT_push(vt, 0, splitted_[n - 1]); // push to vt
+                    
+                    if (var_value->type == PAIR &&
+                        str_eq(car(var_value)->data.String.v,
+                               "lambda")) {
+                            parent_func_name = var_name->data.String.v;
+                        }
+                    // compile value
+                    compiler(insts,
+                             var_value,
+                             vt,
+                             tail_call_flag,
+                             parent_func_name,
+                             function_for_compilation,
+                             env,
+                             mt,
+                             module);
+                    // add instruction
+                    Insts_push(insts, SET_TOP << 12);
+                    Insts_push(insts, vt->frames[vt->length - 1]->length - 1);
+                    
+                }
+            def_free_splitted: // free char* in splitted_ and return.
+                for (i = 0; i < n; i++) {
+                    free(splitted_[i]);
+                }
+                return;
             }
             else if(str_eq(tag, "set!")){
                 // check eg (set! x 0 12) case
                 /*
-                if (cdddr(l) != GLOBAL_NULL) {
-                    return compiler(insts,
-                                    cdr(l),
-                                    vt,
-                                    tail_call_flag,
-                                    parent_func_name,
-                                    function_for_compilation,
-                                    env,
-                                    mt);
-                }*/
+                 if (cdddr(l) != GLOBAL_NULL) {
+                 return compiler(insts,
+                 cdr(l),
+                 vt,
+                 tail_call_flag,
+                 parent_func_name,
+                 function_for_compilation,
+                 env,
+                 mt);
+                 }*/
                 // eg (def x #[1,2,3])
                 //    (set! x[0] 14)  => (x 0 3)
                 //    (def z #[#[1,2] 3])
@@ -766,14 +798,14 @@ void compiler(Instructions * insts,
                     Object * temp_ = list_append(cadr(l), cddr(l));
                     //printf("%s\n", to_string(temp));
                     compiler(insts,
-                            temp_,
-                            vt,
-                            tail_call_flag,
-                            parent_func_name,
-                            function_for_compilation,
-                            env,
-                            mt,
-                            module);
+                             temp_,
+                             vt,
+                             tail_call_flag,
+                             parent_func_name,
+                             function_for_compilation,
+                             env,
+                             mt,
+                             module);
                     Object_free(temp_);
                     return;
                 }
@@ -824,7 +856,7 @@ void compiler(Instructions * insts,
                     char module_loaded_flag = 0; // check module loaded or not
                     char * content = NULL;
                     char module_as_name_[256];// module name max length = 255
-
+                    
                     if (cadr(l)->type == PAIR && str_eq(car(cadr(l))->data.String.v, "quote")) {
                         file_name = malloc(sizeof(char) * (256)); // max 256
                         strcpy(file_name, cadr(cadr(l))->data.String.v);
@@ -951,7 +983,7 @@ void compiler(Instructions * insts,
                             Module_appendChild(module, load_module); // append to current module.
                             goto LOAD_DONE;
                         }
-
+                        
                     LOAD_MODULE:
                         // set abs_path
                         strcpy(load_module->module_abs_path, abs_path);
@@ -969,10 +1001,10 @@ void compiler(Instructions * insts,
                         Object * o;
                         p = lexer(content);
                         o = parser(p);
-
+                        
                         // 必须放在 compiler_begin 之前
                         Module_appendChild(module, load_module); // add to module children list
-
+                        
                         compiler_begin(insts,
                                        o,
                                        vt,
@@ -1055,13 +1087,13 @@ void compiler(Instructions * insts,
                 /*
                  // cannot set acc,
                  // so this way doesn't work
-                if (vt->length == 1) {
-                    VM(insts->array,
-                       insts->start_pc,
-                       insts->length,
-                       env);
-                    insts->start_pc = insts->length;
-                }
+                 if (vt->length == 1) {
+                 VM(insts->array,
+                 insts->start_pc,
+                 insts->length,
+                 env);
+                 insts->start_pc = insts->length;
+                 }
                  */
                 return;
             }
@@ -1161,7 +1193,7 @@ void compiler(Instructions * insts,
                     counter++;
                     params = cdr(params);
                 }
-                                
+                
                 // make lambda
                 Insts_push(insts,
                            (MAKELAMBDA << 12)
@@ -1237,7 +1269,7 @@ void compiler(Instructions * insts,
                 return;
             }
             /*
-               (defmacro macro_name [var0 pattern0] [var1 pattern1] ...)
+             (defmacro macro_name [var0 pattern0] [var1 pattern1] ...)
              */
             else if (str_eq(tag, "defmacro")){
                 var_name = cadr(l);
@@ -1281,14 +1313,14 @@ void compiler(Instructions * insts,
                                                                        insts,
                                                                        module);
                         compiler(insts,
-                                        expand,
-                                        vt,
-                                        tail_call_flag,
-                                        parent_func_name,
-                                        function_for_compilation,
-                                        env,
-                                        mt,
-                                        module);
+                                 expand,
+                                 vt,
+                                 tail_call_flag,
+                                 parent_func_name,
+                                 function_for_compilation,
+                                 env,
+                                 mt,
+                                 module);
                         Object_free(expand);
                         return;
                     }
@@ -1418,7 +1450,7 @@ void compiler(Instructions * insts,
                             //Insts_push(insts, (TAIL_CALL_PUSH << 12) | i );
                         }
                     }
-        tail_call_function_compilation_jmp_back:
+                tail_call_function_compilation_jmp_back:
                     // jump back
                     start_pc = function_for_compilation->start_pc;
                     Insts_push(insts, JMP << 12);
@@ -1473,17 +1505,17 @@ void compiler(Instructions * insts,
     }
 }
 /*
-    compile a series of expression
+ compile a series of expression
  */
 Object * compiler_begin(Instructions * insts,
-                    Object * l,
-                    Variable_Table * vt,
-                    char * parent_func_name,
-                    Lambda_for_Compilation * function_for_compilation,
-                    int32_t eval_flag,
-                    Environment * env,
-                    MacroTable * mt,
-                    Module * module){
+                        Object * l,
+                        Variable_Table * vt,
+                        char * parent_func_name,
+                        Lambda_for_Compilation * function_for_compilation,
+                        int32_t eval_flag,
+                        Environment * env,
+                        MacroTable * mt,
+                        Module * module){
     
     Object * acc = GLOBAL_NULL;
     Object * l_ = l; // make a copy of l, so that we can free it later
@@ -1532,7 +1564,7 @@ Object * compiler_begin(Instructions * insts,
             printf("\n### COMPILER_BEGIN VM ####");
             printf("\nGLOBAL FRAME => length %d", env->frames[0]->length);
 #endif
-
+            
         }
     }
     
