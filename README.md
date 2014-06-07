@@ -4,6 +4,8 @@ Walley Language
 >  All Rights Reserved
 
 -----------------------------------  
+#### This language is not finished yet...
+
 <strong>
  Walley Language (Beta Version 0.3) is a simple lisp dialect written in C.
  Both Compiler and Virtual Machine are implemented in C.
@@ -61,10 +63,10 @@ we call those functions => <strong>lambda</strong>
 ----------------------------------
 ### Hello World  
 
- <strong>display</strong> is a <strong>lambda</strong>, which can print out its parameter.  
+ <strong>print</strong> is a <strong>lambda</strong>, which can print out its parameter.  
  for example  
 ```lisp
- (display "Hello World")
+ (print "Hello World")
 ```
  will print out
 ```lisp
@@ -72,7 +74,7 @@ we call those functions => <strong>lambda</strong>
 ```
 -----------------------------------
 ### How to run your program
- now u already know how the display lambda works, but how do we run it in walley language?
+ now u already know how the print lambda works, but how do we run it in walley language?
 
  after installation, open ur terminal,  
  type  
@@ -88,9 +90,9 @@ All Rights Reserved
 walley>
 ```
 This is Walley Language repl environment,  
-try to type (display "Hello World") after walley> and then press "enter"
+try to type (print "Hello World") after walley> and then press "enter"
 ```sh
-walley > (display "Hello World")
+walley > (print "Hello World")
 ```
 you will see the string Hello World print out.  
 also, try to type something like (+ 3 4), (- 3 4 5) (* 1 2 3)  to see what u can get  
@@ -169,12 +171,12 @@ In fact, in walley language, you can also bind any other values to a variable.
 for example
 ```lisp
 (def a 12)
-(display a)
+(print a)
 ```
 will print out a's value, which is 12  
 ```lisp
 (def b (+ 3 4))
-(display b)
+(print b)
 ```
 will print out b's value, which is 7  
 
@@ -209,7 +211,7 @@ Furthermore, walley language supports lot's of data types.
 we can bind a string to a variable like  
 ```lisp
 (def x "Hello World")
-(display x) ; this will print out Hello World
+(print x) ; this will print out Hello World
 ```
 however, I am too lazy to type "" all the time, so I <strong>"choose"</strong> to use '(single quote) to help me
 reduce the "workload"  
@@ -251,7 +253,7 @@ are the same, they both stopped the evaluation of the S expression <strong>(+ 3 
 Now try to run the following code in walley repl and see that u can get
 ```lisp
 (def x '(x 4 5))
-(display x)
+(print x)
 ```
 -------------------------------------------
 ### Quote?
@@ -259,7 +261,7 @@ Now try to run the following code in walley repl and see that u can get
 the code below
 ```lisp
 (def x '(x 4 5))
-(display x)
+(print x)
 ```
 will print out
 ```lisp
@@ -271,19 +273,19 @@ the value of x is a <strong>pair</strong>.
 Do u still remember the <strong>single quote string </strong>that we talked about before?
 ```lisp
 (def x 'hi)
-(display x)
+(print x)
 ```
 it is actually the same as
 ```lisp
 (def x (quote hi))
-(display x)
+(print x)
 ```
 the <strong>quote</strong> lambda stopped the evaluation of the variable <strong>hi</strong>.
 Now consider the following code, which doesn't use <strong>quote</strong> lambda.
 ```lisp
 (def hi 12)
 (def x hi)
-(display x)
+(print x)
 ```
 will print out the value <strong>12</strong>.
 In this case, without <strong>quote</strong>
@@ -307,7 +309,7 @@ for example
 ```lisp
 (def x '(a b c))
 (def y (car x))
-(display y)
+(print y)
 ```
 will print out string <strong> a </strong>.
 here <strong>(car x) </strong> gets the first element of the pair <strong>x</strong>,  
@@ -317,7 +319,7 @@ another example
 ```lisp
 (def x '(a b c))
 (def y (cdr x))
-(display y)
+(print y)
 ```
 will print output pair <strong>(b c) </strong>.  
 here <strong>(cdr x) </strong> gives us the rest elements of the pair <strong>x</strong>,
@@ -445,8 +447,8 @@ In C we check whether <strong>test</strong> is <strong>0</strong> to decide the 
 In Walley Language, we check whether <strong>test</strong> is <strong>()</strong> to decide the branch.
 For example  
 ```lisp
-(if 1 (display "do-if") (display "do-else"))  ;; print do-if
-(if () (display "do-if") (display "do-else")) ;; print do-else
+(if 1 (print "do-if") (print "do-else"))  ;; print do-if
+(if () (print "do-if") (print "do-else")) ;; print do-else
 ```
 That's it, very easy ;)  
 
@@ -456,9 +458,9 @@ To do this, we need to use a new lambda called <strong>begin</strong>.
 For Instance
 ```lisp
 (if 1
-    (begin (display "do-if1")
-           (display "do-if2"))  ;; will print do-if1do-if2
-    (display "do-else")) ;; wont print out
+    (begin (print "do-if1")
+           (print "do-if2"))  ;; will print do-if1do-if2
+    (print "do-else")) ;; wont print out
 ```
 -----------------------------------------
 ### The better use of If
