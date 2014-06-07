@@ -109,13 +109,15 @@ void Walley_Repl(){
     Module * gm = GLOBAL_MODULE;
     
     /*
+     * todo: windows platform
+     *
+     */
     // run walley_core.wa
     Walley_Run_File_for_VM("/usr/local/lib/walley/walley_core.wa", // assume is this folder
                            insts,
                            vt,
                            env,
                            mt);
-     */
     
     
     int32_t run_eval = true;
@@ -233,14 +235,14 @@ void Walley_Run_File(char * file_name){
     MacroTable * mt = GLOBAL_MACRO_TABLE;
     Module * gm = GLOBAL_MODULE;
     
-    /*
+    
     // run walley_core.wa
     Walley_Run_File_for_VM("/usr/local/lib/walley/walley_core.wa", // assume is this folder
                            insts,
                            vt,
                            env,
                            mt);
-     */
+    
     int32_t run_eval = true;
     
     //Environment * env = NULL;

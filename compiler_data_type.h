@@ -577,6 +577,12 @@ void string_split_for_module(char * input_string, char * splitted_[128], int32_t
     uint32_t n = 0; // split length
     int32_t j, start, k;
     char * t;
+    if (str_eq(input_string, "/")) { // check "/"  eg: (/ 3 4)
+        *n_ = 1;
+        splitted_[0] = malloc(sizeof(char) * 2);
+        strcpy(splitted_[0], "/");
+        return;
+    }
     /*
      *  split var_name. eg string/add splits to ["string", "add"]
      */
@@ -683,7 +689,7 @@ void VT_find(Variable_Table * vt, char * var_name, int32_t output[2], Module * m
             continue;
         }
         // didn't find corresponding module
-        printf("ERROR: didn't find corresponding module: %s in: %s\n", splitted_[i], var_name);
+        // printf("ERROR: didn't find corresponding module: %s in: %s\n", splitted_[i], var_name);
         output[0] = -1;
         output[1] = -1;
         goto free_splitted;
@@ -705,7 +711,7 @@ check_variable_in_module:;
         }
     }
     // didn't find corresponding module
-    printf("ERROR: didn't find corresponding variable: %s in: %s\n", splitted_[n - 1], var_name);
+    // printf("ERROR: didn't find corresponding variable: %s in: %s\n", splitted_[n - 1], var_name);
     output[0] = -1;
     output[1] = -1;
     

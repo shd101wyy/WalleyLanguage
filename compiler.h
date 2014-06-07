@@ -158,7 +158,8 @@ int32_t macro_match(Object * a, Object * b, char **var_names, Object **var_value
 
 Object * macro_expansion_replacement(Object * expanded_value,
                                      Variable_Table * vt,
-                                     int32_t is_head){
+                                     int32_t is_head,
+                                     Module * module){
     if (expanded_value == GLOBAL_NULL) {
         return GLOBAL_NULL;
     }
@@ -167,9 +168,9 @@ Object * macro_expansion_replacement(Object * expanded_value,
     }
     Object * v = car(expanded_value);
     if (v->type == PAIR) {
-        return cons(macro_expansion_replacement(v, vt, true),
+        return cons(macro_expansion_replacement(v, vt, true, module),
                     macro_expansion_replacement(cdr(expanded_value),
-                                                vt, false));
+                                                vt, false, module));
     }
     else{
         if (v->type == STRING && is_head) { // check in vt
@@ -182,29 +183,29 @@ Object * macro_expansion_replacement(Object * expanded_value,
                 strcpy(buffer, &v->data.String.v[1]);
                 // printf("BUFFER! %s\n", buffer);
                 return cons(Object_initString(buffer, strlen(buffer)),
-                            macro_expansion_replacement(cdr(expanded_value), vt, false));
+                            macro_expansion_replacement(cdr(expanded_value), vt, false, module));
             }
             int32_t find[2];
             /*
              todo: change this VT_find later
              */
-            VT_find(vt, v->data.String.v, find, NULL);
+            VT_find(vt, v->data.String.v, find, module);
             if (find[0] != -1) { // find
                 return cons(cons(Object_initInteger(0),
                                  cons(Object_initInteger(find[0]),
                                       cons(Object_initInteger(find[1]),
                                            GLOBAL_NULL))),
                             macro_expansion_replacement(cdr(expanded_value),
-                                                        vt, false));
+                                                        vt, false, module));
             }
             else
-                return cons(v, macro_expansion_replacement(cdr(expanded_value), vt, false));
+                return cons(v, macro_expansion_replacement(cdr(expanded_value), vt, false, module));
         }
         else if(v->type == STRING ||
                 v->type == INTEGER ||
                 v->type == DOUBLE ||
                 v->type == NULL_)
-            return cons(v, macro_expansion_replacement(cdr(expanded_value), vt, false));
+            return cons(v, macro_expansion_replacement(cdr(expanded_value), vt, false, module));
         else{
             printf("ERROR: Macro expansion failed. Invalid Data Type\n");
             printf("     :%s\n", to_string(v));
@@ -391,7 +392,7 @@ Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable *
             
             // 假设运行完了得到了 expanded_value
             // 根据 macro->vt 替换首项
-            expanded_value_after_replacement = macro_expansion_replacement(expanded_value, macro->vt, true);
+            expanded_value_after_replacement = macro_expansion_replacement(expanded_value, macro->vt, true, module);
             Object_free(expanded_value);
             return expanded_value_after_replacement;
             
@@ -711,6 +712,10 @@ void compiler(Instructions * insts,
                     }
                 }
                 else{ /* module */
+                    if (vt->length > 1) {
+                        printf("DEFINITION ERROR: it is not allowed to define module variable in local scope ;( \n");
+                        goto def_free_splitted;
+                    }
                     Module * m = module;
                     for (i = 0; i < n - 1; i++) {
                         int find_module = 0;
