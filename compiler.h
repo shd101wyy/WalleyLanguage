@@ -925,6 +925,19 @@ void compiler(Instructions * insts,
                                 strcpy(module_as_name_, string);
                                 free(string);
                             }
+                            /*
+                             * check as_name existed to prevent repeat
+                             */
+                            Module * children = module->children_modules_list;
+                            while (children!=NULL) {
+                                if (str_eq(module_as_name_, children->module_as_name)) {
+                                    printf("LOAD ERROR: module as name %s is already used\n", children->module_as_name);
+                                    printf("You are tring to load module %s\n", abs_path);
+                                    goto LOAD_DONE;
+                                }
+                                children = children->next;
+                            }
+                            
                             if (module_loaded_flag == 0) { // not loaded
                                 load_module = Module_init(module_as_name_); // init load module
                             }
@@ -973,6 +986,18 @@ void compiler(Instructions * insts,
                         /*
                          * todo: 这里以后得改， 不能是file_name， 而应该是 file_name 最后"/" 之后的
                          */
+                        /*
+                         * check as_name existed to prevent repeat
+                         */
+                        Module * children = module->children_modules_list;
+                        while (children!=NULL) {
+                            if (str_eq(file_name, children->module_as_name)) {
+                                printf("LOAD ERROR: module as name %s is already used\n", children->module_as_name);
+                                printf("You are tring to load module %s\n", abs_path);
+                                goto LOAD_DONE;
+                            }
+                            children = children->next;
+                        }
                         if (module_loaded_flag == 0) { // not loaded
                             // strcpy(module_as_name_, file_name);
                             load_module = Module_init(file_name); // init load module
@@ -1298,6 +1323,32 @@ void compiler(Instructions * insts,
                 clauses->use_count+=1; // 必须+1
                 frame->array[frame->length] = Macro_init(var_name->data.String.v, (clauses), VT_copy(vt));
                 frame->length+=1;
+                return;
+            }
+            /* 
+             * define module 
+             * eg : (defmodule list)
+             *    : (def list/module_version 0.01)
+             *    : (def list/module_author 0.02)
+             *
+             */
+            else if(str_eq(tag, "defmodule")){
+                char * module_name = cadr(l)->data.String.v;
+                /*
+                 *  check whether module_name already existed in current module
+                 */
+                Module * children = module->children_modules_list;
+                while (children!=NULL) {
+                    if (str_eq(module_name, children->module_as_name)) {
+                        printf("DEFMODULE ERROR: you are trying to define module: %s, which is already existed\n", module_name);
+                        return;
+                    }
+                    children = children->next;
+                }
+                Module * new_module = Module_init(module_name);
+                strcpy(new_module->module_abs_path, module->module_abs_path);
+                // add to current module children list
+                Module_appendChild(module, new_module);
                 return;
             }
             // call function
