@@ -526,6 +526,12 @@ void compiler(Instructions * insts,
                 }
                 Insts_push(insts, GET<<12 | vt_find[0]); // frame index
                 Insts_push(insts, vt_find[1]); // value index
+                
+                // check continue and break
+                if (str_eq(l->data.String.v, "break") || str_eq(l->data.String.v, "continue")) {
+                    Insts_push(insts, RETURN << 12);
+                }
+                
                 return;
             }
             
