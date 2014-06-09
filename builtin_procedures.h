@@ -1256,5 +1256,20 @@ Object * builtin_system(Object ** params, uint32_t param_num){
     return GLOBAL_NULL;
 }
 
-
+// 68 object
+//  :clone property
+/*
+ *  第一个是self
+ */
+Object * builtin_object_clone(Object ** params, uint32_t param_num){
+    Object * o = Object_initObject();
+    uint16_t i, size;
+    size = params[0]->data.Object_.size;
+    for (i = 0; i < size; i++) {
+        Object * msg = params[0]->data.Object_.msgs[i];
+        Object * action = params[0]->data.Object_.actions[i];
+        object_addProto(o, msg, action);
+    }
+    return o;
+}
 #endif

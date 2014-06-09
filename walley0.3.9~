@@ -1,0 +1,9 @@
+;; walley language 0.3.9
+;; prototype based
+;; dynamic language
+
+(def Dog (Object:clone))
+(def Dog:bark (fn [] ("Hello World":print)))
+(def Dog:age 12)
+;; Dog:proto => Object
+

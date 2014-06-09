@@ -55,6 +55,7 @@ static Object * STRING_STRING;
 static Object * PAIR_STRING;
 static Object * VECTOR_STRING;
 static Object * TABLE_STRING;
+static Object * CLONE_STRING;
 
 static Object * SYS_ARGV;
 
@@ -72,7 +73,8 @@ typedef enum {
 	USER_DEFINED_LAMBDA,
 	BUILTIN_LAMBDA,
 	VECTOR,
-	TABLE
+	TABLE,
+    OBJECT
 } DataType;
 struct  Table_Pair{ // used for table
     Object * key;          // key
@@ -126,6 +128,12 @@ struct Object {
         struct {          // builtin lambda
             Object* (*func_ptr)(Object**, uint32_t); // function pointer
         } Builtin_Lambda;
+        struct {
+            Object ** msgs;
+            Object ** actions;
+            uint16_t size;
+            uint16_t length;
+        } Object_;
     } data;
 };
 
@@ -423,6 +431,45 @@ Object * table_getKeys(Object * t){
         }
     }
     return keys;
+}
+
+
+/*
+ *
+ *  Object_
+ *
+ */
+Object * Object_initObject(){
+    Object * o = allocateObject();
+    o->type = OBJECT;
+    o->use_count = 0;
+    uint16_t size = 4;
+    o->data.Object_.actions = malloc(sizeof(Object*) * size);
+    o->data.Object_.msgs = malloc(sizeof(Object*) * size);
+    
+    o->data.Object_.length = 0;
+    o->data.Object_.size = size;
+    return o;
+}
+/*
+ * 
+ * 为 object 添加 property
+ *
+ */
+void object_addProto(Object * o, Object * msg, Object * action){
+    if (o->data.Object_.length == o->data.Object_.size) { // realloc if necessary
+        o->data.Object_.size*=2;
+        o->data.Object_.actions = realloc(o->data.Object_.actions, sizeof(Object*)*o->data.Object_.size);
+        o->data.Object_.msgs = realloc(o->data.Object_.msgs, sizeof(Object*)*o->data.Object_.size);
+    }
+    o->data.Object_.actions[o->data.Object_.length] = action;
+    o->data.Object_.msgs[o->data.Object_.length] = msg;
+    o->data.Object_.length++;
+    
+    action->use_count++;
+    msg->use_count++;
+    
+    return;
 }
 
 

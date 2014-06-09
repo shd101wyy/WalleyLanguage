@@ -277,7 +277,7 @@ Object *VM(/*uint16_t * instructions,*/
                         
                         pc++;
                         continue;
-                    case STRING: case BUILTIN_LAMBDA: case VECTOR: case TABLE: case  INTEGER:// builtin lambda or vector or table
+                    case STRING: case BUILTIN_LAMBDA: case VECTOR: case TABLE: case  INTEGER: case OBJECT: // builtin lambda or vector or table
                         current_frame_pointer = BUILTIN_PRIMITIVE_PROCEDURE_STACK; // get top frame
                         
                         // save to frame list
@@ -678,6 +678,70 @@ Object *VM(/*uint16_t * instructions,*/
                                 accumulator = GLOBAL_NULL;
                                 goto VM_END;
                         }
+                    case OBJECT:
+                        printf("Object");
+                        pc = pc + 1;
+                        switch(param_num){
+                            case 1: // vector get
+                                printf("Object get");
+                                temp = current_frame_pointer->array[current_frame_pointer->length - 1];
+                                integer_ = temp->data.Integer.v; // get index
+                                accumulator = v->data.Vector.v[integer_]; // get value
+                                
+                                temp->use_count--; // pop parameters
+                                Object_free(temp);
+                                current_frame_pointer->length--; // decrease length
+                                
+                                // free current_frame_pointer
+                                free_current_frame_pointer(current_frame_pointer);
+                                
+                                frames_list_length--; // pop frame list
+                                current_frame_pointer = frames_list[frames_list_length - 1];
+                                
+                                // free lambda
+                                Object_free(v);
+                                
+                                continue;
+                            case 2: // vector set
+                                printf("Object set");
+                                temp = current_frame_pointer->array[current_frame_pointer->length - 2]; // index
+                                temp2 = current_frame_pointer->array[current_frame_pointer->length - 1]; // value
+                                integer_ = temp->data.Integer.v;
+                                
+                                // decrease use_count of old_value
+                                v->data.Vector.v[integer_]->use_count--;
+                                Object_free(v->data.Vector.v[integer_]);
+                                
+                                // set to vector
+                                v->data.Vector.v[integer_] = temp2;
+                                temp2->use_count++; // in use
+                                
+                                // pop parameters
+                                for(i = 0; i < param_num; i++){
+                                    temp = current_frame_pointer->array[current_frame_pointer->length - 1];
+                                    temp->use_count--; // －1 因为在push的时候加1了
+                                    Object_free(temp);
+                                    
+                                    current_frame_pointer->length--; // decrease length
+                                }
+                                
+                                // free current_frame_pointer
+                                free_current_frame_pointer(current_frame_pointer);
+                                
+                                frames_list_length--; // pop frame list
+                                current_frame_pointer = frames_list[frames_list_length - 1];
+                                
+                                // free lambda
+                                Object_free(v);
+                                
+                                continue;
+                            default: // wrong parameters
+                                printf("ERROR: Invalid vector operation\n");
+                                Object_free(accumulator);
+                                accumulator = GLOBAL_NULL;
+                                goto VM_END;
+                        }
+                        exit(0);
                     default:
                         printf("ERROR: Invalid Lambda\n");
                         Object_free(accumulator);

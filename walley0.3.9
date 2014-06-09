@@ -1,0 +1,188 @@
+;; walley language 0.3.9
+;; prototype based
+;; dynamic language
+
+(def Dog (Object:clone))
+(def Dog:bark (fn [] ("Hello World":print)))
+(def Dog:age 12)
+(def Dog:set-age (fn [a] (set! self:age 15)))
+(def Dog:print-age (fn [] (self:age:print)))
+;; Dog:proto => Object
+
+(def x 12) ;; <==> (def Object:x 12)
+(def y 20) ;; <==> (def Object:y 20)
+(set! x 20) ;; <==> (set! Object:x 20)
+
+;;   Object attributes
+;;   proto  <=> None
+;;   type   <=> "Object"
+;;
+
+;;   Null attributes
+;;   proto  <=> Object
+;;   type   <=> "Null"
+
+;;   String attributes
+;;   proto  <=> Object
+;;   type   <=> "String"
+;;   length <=> ; length of string
+;;   append <=> ; append [string]
+;;   find   <=> ; find [string]
+;;;  special
+;;   val    <=> ; string content   
+
+;;   Number attributes
+;;   proto  <=> Object
+;;   type   <=> "Number"
+
+;;   Integer attributes
+;;   proto  <=> Number
+;;   type   <=> "Integer"
+;;   ->float <=> ; convert to float
+;;   special
+;;   val    <=> ; number content
+
+;;   Float attributes
+;;   proto  <=> Number
+;;   type   <=> "Float"
+;;   ->int <=> ; convert to int
+;;   special
+;;   val    <=> ; number content
+
+;;   Ratio attributes
+;;   proto   <=> Integer
+;;   type    <=> "Ratio"
+;;   ->int   <=> ; convert to int
+;;   ->float <=> ; convert to float
+;;   numer   <=> ; get numer
+;;   denom   <=> ; get denom
+
+;;   List attributes
+;;   proto   <=> Object
+;;   special
+;;   car     <=> ; car
+;;   cdr     <=> ; cdr
+
+
+;;   Vector attributes
+;;   proto   <=> Object
+;;   type    <=> "Vector"
+;;   length  <=> ; length of vector
+;;   push    <=> ; push element
+;;   pop     <=> ; pop element
+;;   at      <=> ; get element
+;;   special
+;;   val     <=> ; vector contetn
+
+
+
+;; to add a method to Integer Object
+(def Integer:square (fn []
+                      (* self self)))
+(12:square) => 144
+
+;; to add to another number
+(def Integer:+ (fn [n] (+ n self))) 
+
+;; to add a method to String Object, eg get first char
+(def String:first_char (fn [] (self:at 0)))
+(def x "Hello World")
+(def y (x:first_char)) ;; => "H"
+
+
+
+
+;; about fn
+(def x 12)    ;; (def Object:x 12)
+(def test (fn [n] 
+           (def y 12) ;; Local
+           ;; Local attributes
+           ;; proto <=> Object
+           ;; self  <=> Null
+           ;; n     <=> ;; pass as arguments
+           ;; y     <=> ;; 12
+           (+ x y)  ;; <=> (+ Object:x Local:y)
+           ))
+;; after calling the function, release Local
+
+(def test2 (fn [])
+  (def x 13) 
+  ;; Local1 attributes
+  ;; proto <=> Object
+  ;; type  <=> "Local"
+  ;; self  <=> Null
+  ;; super <=> Null
+  ;; x     <=> 13
+
+  (def test3 
+    (fn []
+      (def y 30)
+      ;; Local2 attributes
+      ;; proto <=> Object
+      ;; type <=> "Local"
+      ;; self <=> Null
+      ;; super <=> 
+      ;; y  <=> 30
+
+      (+ x y) ;; <=> (+ Local1:x Local2:y)
+      ))
+  (test3))
+;; after calling the function, release Local1 and Local 2
+
+
+;; 所以closure就是保存Local Object
+
+
+;; Opcode
+;; eg
+(def x 12) ;; <=> (def Object:x 12)
+;; 假设已经load 完了Constant Table ...这个时候 "x"已经存了
+
+;; make integer       12
+;; save to global variable   "x"  x
+;;; 这里检查 global 的 msgs, 如果"x" 存在，则set, otherwise push!
+
+(defn test []
+  (def x 20))
+
+;; make fn      ;;; create Local object
+;; make number               20
+;; save to local variable   "x"
+;; return 
+
+(def x 20)
+(defn test []
+  (set! x 25))
+
+;; make integer 20
+;; save to         "x"
+
+;; make fn
+;; make integer 25
+;; change to         "x"
+;; return
+
+;; if I call test here
+(test)
+
+;; make local
+;;; 因为没有self, 所以push Null
+;; make Null
+;; save to local "self"
+;; 因为没有super
+;; make Null
+;; save to local "super"
+;; get "test"
+;; call 
+
+;; then enter the exps above.
+;; after we finish running that fn
+;; we change the original code
+
+;; make integer 25
+;; save to   known index
+
+
+
+
+

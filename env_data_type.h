@@ -91,6 +91,9 @@ void Walley_init(){
     TABLE_STRING = Object_initString("table", 5); // 15
     TABLE_STRING->use_count = 1;
     
+    CLONE_STRING = Object_initString("clone", 5); // 16
+    CLONE_STRING->use_count = 1;
+    
     
     
     CONSTANT_TABLE_FOR_COMPILATION = Object_initTable(1024); // init constant table
@@ -111,8 +114,8 @@ void Walley_init(){
     Table_setval(CONSTANT_TABLE_FOR_COMPILATION, PAIR_STRING, Object_initInteger(263));
     Table_setval(CONSTANT_TABLE_FOR_COMPILATION, VECTOR_STRING, Object_initInteger(264));
     Table_setval(CONSTANT_TABLE_FOR_COMPILATION, TABLE_STRING, Object_initInteger(265));
-    
-    CONSTANT_TABLE_FOR_COMPILATION_LENGTH = 266; // set length
+    Table_setval(CONSTANT_TABLE_FOR_COMPILATION, CLONE_STRING, Object_initInteger(266));
+    CONSTANT_TABLE_FOR_COMPILATION_LENGTH = 267; // set length
     
     // init Constant_Pool
     Constant_Pool = (Object**)malloc(sizeof(Object*)*1024);
@@ -144,8 +147,9 @@ void Walley_init(){
     Constant_Pool[263] = PAIR_STRING;
     Constant_Pool[264] = VECTOR_STRING;
     Constant_Pool[265] = TABLE_STRING;
+    Constant_Pool[266] = CLONE_STRING;
     
-    Constant_Pool_Length = 266; // set length
+    Constant_Pool_Length = 267; // set length
     
     // init CONSTANT_TABLE_INSTRUCTIONS for compiler
     CONSTANT_TABLE_INSTRUCTIONS = Insts_init();
@@ -191,6 +195,7 @@ void Walley_init(){
     Module_pushVarOffset(GLOBAL_MODULE, 63); // apply
     Module_pushVarOffset(GLOBAL_MODULE, 65); // set-car!
     Module_pushVarOffset(GLOBAL_MODULE, 66); // set-cdr!
+    Module_pushVarOffset(GLOBAL_MODULE, 68); // object
     
     // init string module
     Module * STRING_MODULE = Module_init("string");
@@ -478,11 +483,17 @@ Environment_Frame *createFrame0(){
     frame->array[count] = Object_initInteger(2); // apply    // global
     frame->array[count]->use_count++;
     count++;
-    EF_set_builtin_lambda(frame, builtin_vector_slice);      // vector
-    EF_set_builtin_lambda(frame, builtin_set_car);           // global
-    EF_set_builtin_lambda(frame, builtin_set_cdr);           // global
-    EF_set_builtin_lambda(frame, builtin_system);            // global
-
+    EF_set_builtin_lambda(frame, &builtin_vector_slice);      // vector
+    EF_set_builtin_lambda(frame, &builtin_set_car);           // global
+    EF_set_builtin_lambda(frame, &builtin_set_cdr);           // global
+    EF_set_builtin_lambda(frame, &builtin_system);            // global
+    
+    Object * object = Object_initObject();
+    frame->array[count] = object;               // global object
+    object->use_count++;
+    count++;
+    object_addProto(object, CLONE_STRING, Object_initBuiltinLambda(&builtin_object_clone));
+    
     frame->length = count; // set length
     return frame;
 }

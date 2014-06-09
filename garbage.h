@@ -84,6 +84,9 @@ void Object_free(Object * o){
                 free(o->data.Table.vec); // free table vector
                 free(o);
                 return;
+            case OBJECT:
+                printf("free object");
+                return;
             default:
                 printf("ERROR: Object_free invalid data type\n");
                 return;
