@@ -19,8 +19,7 @@
  *  proto : Object
  *  type  : "List"
  */
-Data * Data_initList(){
-    Data * o = malloc(sizeof(Data));
+Data * Data_initList(Data * o){ // pass GLOBAL_LIST as param
     o->size = 8;
     o->length = 0;
     o->msgs = malloc(sizeof(Data*) * o->size);
@@ -66,6 +65,14 @@ Data * cons(Data * car, Data * cdr){
     o->type = LIST;
     return o;
 }
+
+#define car(v) ((v)->data.List.car)
+#define cdr(v) ((v)->data.List.cdr)
+#define cadr(v) (car(cdr((v))))
+#define caddr(v) (car(cdr(cdr((v)))))
+#define cadddr(v) (car(cdr(cdr(cdr((v))))))
+#define cdddr(v) (cdr(cdr(cdr((v)))))
+#define cddr(v) (cdr(cdr((v))))
 
 
 

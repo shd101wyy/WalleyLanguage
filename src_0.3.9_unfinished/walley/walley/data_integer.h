@@ -166,8 +166,7 @@ Data * builtin_integer_div(Data * self, Data ** params, uint16_t param_num){
  *  /     : builtin_fn /
  *
  */
-Data * Data_initInteger(){
-    Data * o = malloc(sizeof(Data));
+Data * Data_initInteger(Data * o){ // pass GLOBAL_INTEGER as parameter
     o->size = 8;
     o->length = 0;
     o->msgs = malloc(sizeof(Data*) * o->size);

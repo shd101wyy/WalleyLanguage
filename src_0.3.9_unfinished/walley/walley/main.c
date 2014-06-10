@@ -6,11 +6,16 @@
 //  Copyright (c) 2014 WangYiyi. All rights reserved.
 //
 
-#include "data_list.h"
+#include "walley.h"
 int main(int argc, const char * argv[])
 {
 
-    // insert code here...
+    Walley_initGlobal();
+    
+    // Data_initNULL();
+    
+    // printf("%s\n", to_string(o));
+    
     return 0;
 }
 

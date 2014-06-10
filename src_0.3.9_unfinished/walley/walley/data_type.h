@@ -45,7 +45,16 @@ Data * GLOBAL_NULL,
 * GLOBAL_FLOAT,
 * GLOBAL_STRING,
 * GLOBAL_LIST,
+* GLOBAL_VECTOR,
+* GLOBAL_FN,
 * GLOBAL_BUILTIN_FN;
+
+/*
+ * 
+ * global offset
+ *
+ */
+uint16_t STRING_LENGTH_OFFSET = 2; // length
 
 typedef enum{
     INTEGER,
@@ -99,11 +108,6 @@ struct Data{
     Data_Type type;
 };
 
-Data * allocateData(){
-    Data * d = malloc(sizeof(Data));
-    return d;
-}
-
 void Object_setNewSlot(Data * object, Data * msg, Data * action){
     if (object->length == object->size) { // realloc
         object->size *= 2;
@@ -114,8 +118,27 @@ void Object_setNewSlot(Data * object, Data * msg, Data * action){
     object->actions[object->length] = action;
     object->length++;
     
+    // 这个得手动
     msg->use_count++;
     action->use_count++;
+}
+/*
+ * get slot according to msg... if not found return () GLOBAL_NULL
+ *
+ */
+Data * Object_getSlot(Data * object, Data * msg){
+    if (object == GLOBAL_NULL) {
+        return GLOBAL_NULL;
+    }
+    Data * proto = object->actions[0]; // get proto
+    uint16_t length = object->length;
+    uint16_t i;
+    for (i = 0; i < length; i++) {
+        if (msg == object->msgs[i]) {
+            return object->actions[i];
+        }
+    }
+    return Object_getSlot(proto, msg);
 }
 
 uint8_t Object_checkMsgExist(Data * object, Data * msg){
@@ -135,8 +158,7 @@ uint8_t Object_checkMsgExist(Data * object, Data * msg){
  *
  *
  */
-Data * Data_initNULL(){
-    Data * d = malloc(sizeof(Data));
+Data * Data_initNULL(Data * d){
     d->actions = NULL;
     d->msgs = NULL;
     d->size = 0;
@@ -154,10 +176,18 @@ Data * Data_initNULL(){
  * properties
  * proto : () Null
  * type : "Object"
- : clone :
+ * Object : Object
+ 
+ * Integer : GLOBAL_INTEGER
+ * Float : GLOBAL_FLOAT
+ * List  : GLOBAL_LIST
+ * Vector : GLOBAL_VECTOR
+ * Fn     : GLOBAL_FN
+ * String  : GLOBAL_STRING
+ 
+ * clone :
  */
-Data * Data_initObject(){
-    Data * o = malloc(sizeof(Data));
+Data * Data_initObject(Data * o){
     o->size = 8;
     o->length = 0;
     o->msgs = malloc(sizeof(Data*) * o->size);
@@ -166,6 +196,7 @@ Data * Data_initObject(){
     
     Object_setNewSlot(o, STRING_proto, GLOBAL_NULL);  // set proto
     Object_setNewSlot(o, STRING_type, STRING_Object); // set type
+    Object_setNewSlot(o, STRING_Object, o); // set Object
     /*
      * TODO : implement builtin functions ... like clone
      */

@@ -99,8 +99,7 @@ Data * builtin_float_div(Data * self, Data ** params, uint16_t param_num){
  *  *     : buitlin *
  *  /     : builtin /
  */
-Data * Data_initFloat(){
-    Data * o = malloc(sizeof(Data));
+Data * Data_initFloat(Data * o){
     o->size = 8;
     o->length = 0;
     o->msgs = malloc(sizeof(Data*) * o->size);

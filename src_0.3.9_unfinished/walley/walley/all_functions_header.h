@@ -23,7 +23,7 @@ Data * builtin_integer_add(Data * self, Data ** params, uint16_t param_num);
 Data * builtin_integer_sub(Data * self, Data ** params, uint16_t param_num);
 Data * builtin_integer_mul(Data * self, Data ** params, uint16_t param_num);
 Data * builtin_integer_div(Data * self, Data ** params, uint16_t param_num);
-Data * Data_initInteger();
+Data * Data_initInteger(Data * o);
 Data * Integer_initInstance(int64_t v);
 
 // float
@@ -31,17 +31,23 @@ Data * builtin_float_add(Data * self, Data ** params, uint16_t param_num);
 Data * builtin_float_sub(Data * self, Data ** params, uint16_t param_num);
 Data * builtin_float_mul(Data * self, Data ** params, uint16_t param_num);
 Data * builtin_float_div(Data * self, Data ** params, uint16_t param_num);
-Data * Data_initFloat();
+Data * Data_initFloat(Data * o);
 Data * Float_initInstance(double v);
 
 
 // builtin fn
-Data * Data_initBuiltinFn();
+Data * Data_initBuiltinFn(Data * o);
 Data * BuiltinFn_initInstance(Data* (*func_ptr)(Data*, Data **, uint16_t));
 
 
 // string
-Data * Data_initString();
+Data * Data_initString(Data * o);
 Data * String_initInstance(char * v);
+Data * String_initInstanceGlobal(Data * o, char * v);
+// list
+Data * Data_initList(Data * o);
+Data * cons(Data * car, Data * cdr);
 
+// to_string
+char * to_string(Data * v);
 #endif

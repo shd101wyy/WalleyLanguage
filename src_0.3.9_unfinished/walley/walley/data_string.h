@@ -24,8 +24,7 @@
  *  replace :
  *  at      :
  */
-Data * Data_initString(){
-    Data * o = malloc(sizeof(Data));
+Data * Data_initString(Data * o){ // pass GLOBAL_STRING as parameter
     o->size = 8;
     o->length = 0;
     o->msgs = malloc(sizeof(Data*) * o->size);
@@ -72,7 +71,28 @@ Data * String_initInstance(char * v){
     Object_setNewSlot(o, STRING_type, STRING_String);
     Object_setNewSlot(o, STRING_length, Integer_initInstance(length));
     
-    o->type = INTEGER;
+    o->type = STRING;
     return o;
+}
+
+Data * String_initInstanceHelper(Data * o, char * v){
+    // o->use_count = use_count;
+    o->size = 4;
+    o->length = 0;
+    o->msgs = malloc(sizeof(Data*) * o->size);
+    o->actions = malloc(sizeof(Data*) * o->size);
+    
+    uint64_t length =  strlen(v);
+    o->data.String.v = malloc(sizeof(char) * (length + 1));
+    strcpy(o->data.String.v, v);
+    
+    
+    Object_setNewSlot(o, STRING_proto, GLOBAL_STRING);
+    Object_setNewSlot(o, STRING_type, STRING_String);
+    Object_setNewSlot(o, STRING_length, Integer_initInstance(length));
+    
+    o->type = STRING;
+    return o;
+
 }
 #endif

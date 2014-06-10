@@ -20,8 +20,7 @@
  *  proto : Object
  *  type  : "Fn"
  */
-Data * Data_initBuiltinFn(){
-    Data * o = malloc(sizeof(Data));
+Data * Data_initBuiltinFn(Data * o){
     o->size = 8;
     o->length = 0;
     o->msgs = malloc(sizeof(Data*) * o->size);
