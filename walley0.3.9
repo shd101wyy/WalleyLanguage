@@ -8,6 +8,7 @@
 (def Dog:set-age (fn [a] (set! self:age 15)))
 (def Dog:print-age (fn [] (self:age:print)))
 ;; Dog:proto => Object
+(Dog:bark)
 
 (def x 12) ;; <==> (def Object:x 12)
 (def y 20) ;; <==> (def Object:y 20)
@@ -30,6 +31,7 @@
 ;;   find   <=> ; find [string]
 ;;;  special
 ;;   val    <=> ; string content   
+;;   length <=> ; string length
 
 ;;   Number attributes
 ;;   proto  <=> Object
@@ -73,6 +75,14 @@
 ;;   at      <=> ; get element
 ;;   special
 ;;   val     <=> ; vector contetn
+
+
+;;   Fn attributes
+;;   proto    <=> Object
+;;   type     <=> "Fn"
+;;   
+;;   special
+;;   start_pc
 
 
 
