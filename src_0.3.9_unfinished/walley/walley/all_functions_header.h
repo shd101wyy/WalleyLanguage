@@ -38,4 +38,10 @@ Data * Float_initInstance(double v);
 // builtin fn
 Data * Data_initBuiltinFn();
 Data * BuiltinFn_initInstance(Data* (*func_ptr)(Data*, Data **, uint16_t));
+
+
+// string
+Data * Data_initString();
+Data * String_initInstance(char * v);
+
 #endif

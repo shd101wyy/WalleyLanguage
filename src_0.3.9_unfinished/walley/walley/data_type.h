@@ -17,7 +17,7 @@
  * several global strings
  *
  */
-Data * STRING_proto,
+Data * STRING_proto, 
      * STRING_type,
      * STRING_Integer,
      * STRING_Float,
@@ -29,7 +29,8 @@ Data * STRING_proto,
      * STRING_num_add, // +
      * STRING_num_sub, // -
      * STRING_num_mul, // *
-     * STRING_num_div  // /
+     * STRING_num_div,  // /
+     * STRING_length
 ;
 
 
@@ -42,6 +43,8 @@ Data * GLOBAL_NULL,
 * GLOBAL_OBJECT,
 * GLOBAL_INTEGER,
 * GLOBAL_FLOAT,
+* GLOBAL_STRING,
+* GLOBAL_LIST,
 * GLOBAL_BUILTIN_FN;
 
 typedef enum{
@@ -151,6 +154,7 @@ Data * Data_initNULL(){
  * properties
  * proto : () Null
  * type : "Object"
+ : clone :
  */
 Data * Data_initObject(){
     Data * o = malloc(sizeof(Data));
@@ -162,6 +166,9 @@ Data * Data_initObject(){
     
     Object_setNewSlot(o, STRING_proto, GLOBAL_NULL);  // set proto
     Object_setNewSlot(o, STRING_type, STRING_Object); // set type
+    /*
+     * TODO : implement builtin functions ... like clone
+     */
     
     o->type = OBJECT;
     return o;
@@ -170,29 +177,7 @@ Data * Data_initObject(){
 
 
 
-/*
- *
- *  initialize List GLOBAL_LIST
- *  cannot be freed
- *############################
- *  properties
- *  proto : Object
- *  type  : "List"
- */
-Data * Data_initList(){
-    Data * o = malloc(sizeof(Data));
-    o->size = 8;
-    o->length = 0;
-    o->msgs = malloc(sizeof(Data*) * o->size);
-    o->actions = malloc(sizeof(Data*) * o->size);
-    o->use_count = 1; // cannot be freed
-    
-    Object_setNewSlot(o, STRING_proto, GLOBAL_OBJECT);  // set proto
-    Object_setNewSlot(o, STRING_type, STRING_List);    // set type
-    
-    o->type = OBJECT;
-    return o;
-}
+
 
 /*
  *
@@ -243,29 +228,7 @@ Data * Data_initFn(){
     return o;
 }
 
-/*
- *
- *  initialize String GLOBAL_STRING
- *  cannot be freed
- *############################
- *  properties
- *  proto : Object
- *  type  : "String"
- */
-Data * Data_initString(){
-    Data * o = malloc(sizeof(Data));
-    o->size = 8;
-    o->length = 0;
-    o->msgs = malloc(sizeof(Data*) * o->size);
-    o->actions = malloc(sizeof(Data*) * o->size);
-    o->use_count = 1; // cannot be freed
-    
-    Object_setNewSlot(o, STRING_proto, GLOBAL_OBJECT);  // set proto
-    Object_setNewSlot(o, STRING_type, STRING_String);    // set type
-    
-    o->type = OBJECT;
-    return o;
-}
+
 
 
 

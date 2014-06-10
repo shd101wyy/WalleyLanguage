@@ -33,6 +33,8 @@
 		F6BC054A1946C6A000FBA85A /* all_functions_header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = all_functions_header.h; sourceTree = "<group>"; };
 		F6BC054B1946CAD100FBA85A /* data_float.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = data_float.h; sourceTree = "<group>"; };
 		F6BC054C1946CC7500FBA85A /* data_builtin_fn.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = data_builtin_fn.h; sourceTree = "<group>"; };
+		F6BC054D1946CEA500FBA85A /* data_string.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = data_string.h; sourceTree = "<group>"; };
+		F6BC054E1946D42C00FBA85A /* data_list.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = data_list.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -68,7 +70,9 @@
 				F6BC053F1946BC9C00FBA85A /* main.c */,
 				F6BC05411946BC9C00FBA85A /* walley.1 */,
 				F6BC05481946BCAC00FBA85A /* data_type.h */,
+				F6BC054E1946D42C00FBA85A /* data_list.h */,
 				F6BC05491946C3CE00FBA85A /* data_integer.h */,
+				F6BC054D1946CEA500FBA85A /* data_string.h */,
 				F6BC054A1946C6A000FBA85A /* all_functions_header.h */,
 				F6BC054C1946CC7500FBA85A /* data_builtin_fn.h */,
 				F6BC054B1946CAD100FBA85A /* data_float.h */,

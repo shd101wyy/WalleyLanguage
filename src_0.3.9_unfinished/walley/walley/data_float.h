@@ -133,8 +133,8 @@ Data * Float_initInstance(double v){
     o->use_count = 0;
     o->size = 2;
     o->length = 0;
-    o->msgs = malloc(sizeof(Data*));
-    o->actions = malloc(sizeof(Data*));
+    o->msgs = malloc(sizeof(Data*) * o->size);
+    o->actions = malloc(sizeof(Data*) * o->size);
     
     o->data.Float.v = v;
     
