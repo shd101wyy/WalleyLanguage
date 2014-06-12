@@ -140,6 +140,12 @@ struct Object {
             uint16_t length;
             uint32_t object_id;
         } Object_;
+        
+        struct{
+            int64_t v;           // value
+            Object * msgs[1];    // used to save proto
+            Object * actions[1];
+        } Integer_Object; // use this in the future?
     } data;
 };
 

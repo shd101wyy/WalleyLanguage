@@ -509,6 +509,7 @@ Environment_Frame *createFrame0(){
     count++;
     object_addNewSlot(object, STRING_proto, GLOBAL_NULL);  // proto : NULL
     object_addNewSlot(object, STRING_type, STRING_Object); // type : Object
+    object_addNewSlot(object,  CLONE_STRING, Object_initBuiltinLambda(&builtin_object_clone));
     // set object ID
     object->data.Object_.object_id = (uint32_t)object; // 这个设置为他的地址
     

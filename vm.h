@@ -759,7 +759,7 @@ Object *VM(/*uint16_t * instructions,*/
                              * 1000 44       c xxxx           xxxx xxxx             xxxx
                              * get_obj        get property     not used       action offset
                              */
-                            case 1: // vector get
+                            case 1: // Object get
                                 // printf("Object get");
                                 temp = current_frame_pointer->array[current_frame_pointer->length - 1]; // this temp should be string...
                                 
@@ -777,8 +777,45 @@ Object *VM(/*uint16_t * instructions,*/
                                 frames_list_length--; // pop frame list
                                 current_frame_pointer = frames_list[frames_list_length - 1];
                                 
-                                // free lambda
-                                Object_free(v);
+                                // 这里是要call object method
+                                if (instructions[pc] == NEWFRAME << 12 &&
+                                    (accumulator->type == USER_DEFINED_LAMBDA ||
+                                     (accumulator->type == BUILTIN_LAMBDA &&
+                                      accumulator->data.Builtin_Lambda.func_ptr == &builtin_object_clone))) {
+                                         // exit(0);
+                                    // create new frame with length 64
+                                    //
+                                         if (accumulator->type == USER_DEFINED_LAMBDA) {
+                                             current_frame_pointer = EF_init_with_size(accumulator->data.User_Defined_Lambda.frame_size);
+                                         }
+                                         else{
+                                             current_frame_pointer = BUILTIN_PRIMITIVE_PROCEDURE_STACK;
+                                         }
+                                    
+                                     
+                                        // save to frames_list
+                                        frames_list[frames_list_length] = current_frame_pointer;
+                                        frames_list_length+=1;
+                                        current_frame_pointer->use_count++; // current frame pointer is used
+                                         
+                                        // save to function list
+                                        functions_list[functions_list_length] = accumulator;
+                                        functions_list_length++;
+                                        accumulator->use_count++;
+                                         
+                                        // push self
+                                        current_frame_pointer->array[current_frame_pointer->length] = v; // push to env frame
+                                        current_frame_pointer->length++;
+                                        v->use_count++;
+                                             
+                                        pc++;
+                                        continue;
+
+                                }
+                                else{
+                                    // free lambda
+                                    Object_free(v);
+                                }
                                 continue;
                             case 2: // Object set
                                 /*
@@ -835,7 +872,7 @@ Object *VM(/*uint16_t * instructions,*/
                                 
                                 // free lambda
                                 Object_free(v);
-                                
+                                accumulator = GLOBAL_NULL;
                                 continue;
                             default: // wrong parameters
                                 printf("ERROR: Invalid vector operation\n");
