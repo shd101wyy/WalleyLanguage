@@ -693,8 +693,10 @@ void compiler(Instructions * insts,
                         if(var_existed == false)
                             VT_push(vt, vt->length-1, var_name->data.String.v);
                         if (var_value->type == PAIR &&
-                            str_eq(car(var_value)->data.String.v,
-                                   "lambda")) {
+                            (str_eq(car(var_value)->data.String.v,
+                                   "lambda")
+                             || str_eq(car(var_value)->data.String.v,
+                                       "fn"))) {
                                 parent_func_name = var_name->data.String.v;
                             }
                         // compile value
@@ -761,8 +763,10 @@ void compiler(Instructions * insts,
                     VT_push(vt, 0, splitted_[n - 1]); // push to vt
                     
                     if (var_value->type == PAIR &&
-                        str_eq(car(var_value)->data.String.v,
-                               "lambda")) {
+                        (str_eq(car(var_value)->data.String.v,
+                                "lambda")
+                         || str_eq(car(var_value)->data.String.v,
+                                   "fn"))) {
                             parent_func_name = var_name->data.String.v;
                         }
                     // compile value
@@ -831,8 +835,10 @@ void compiler(Instructions * insts,
                 }
                 else{
                     if(var_value->type == PAIR &&
-                       str_eq(car(var_value)->data.String.v,
-                              "lambda"))
+                       (str_eq(car(var_value)->data.String.v,
+                               "lambda")
+                        || str_eq(car(var_value)->data.String.v,
+                                  "fn")))
                         parent_func_name = var_name->data.String.v;
                     // compile value
                     compiler(insts,
@@ -1197,7 +1203,7 @@ void compiler(Instructions * insts,
                 Object_free(temp);
                 return;
             }
-            else if (str_eq(tag, "lambda")){
+            else if (str_eq(tag, "lambda") || str_eq(tag, "fn")){ // I am too lazy
                 Object * params = cadr(l); // get parameters
                 int32_t variadic_place = -1; // variadic place
                 int32_t counter = 0; // count of parameter num
