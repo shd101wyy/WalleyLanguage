@@ -198,12 +198,12 @@ Object *VM(/*uint16_t * instructions,*/
     }
     CONSTANT_TABLE_INSTRUCTIONS_TRACK_INDEX = CONSTANT_TABLE_INSTRUCTIONS->length; // update track index for constant table instructions.
 
-    
+    /*
     for (i = start_pc; i < end_pc; i++) {
         printf("%x ", instructions[i]);
     }
     printf("\n");
-    
+    */
     
     pc = start_pc;
     while(pc != end_pc){
@@ -742,7 +742,7 @@ Object *VM(/*uint16_t * instructions,*/
                                 goto VM_END;
                         }
                     case OBJECT:
-                        printf("Object");
+                        // printf("Object");
                         pc = pc + 1;
                         switch(param_num){
                             /*
@@ -760,7 +760,7 @@ Object *VM(/*uint16_t * instructions,*/
                              * get_obj        get property     not used       action offset
                              */
                             case 1: // vector get
-                                printf("Object get");
+                                // printf("Object get");
                                 temp = current_frame_pointer->array[current_frame_pointer->length - 1]; // this temp should be string...
                                 
                                 // check message to update accumulator
@@ -784,7 +784,7 @@ Object *VM(/*uint16_t * instructions,*/
                                 /*
                                  * TODO : change hidden_class (id) value
                                  */
-                                printf("Object set");
+                                // printf("Object set");
                                 temp = current_frame_pointer->array[current_frame_pointer->length - 2]; // msg
                                 temp2 = current_frame_pointer->array[current_frame_pointer->length - 1]; // value
                                 msgs = v->data.Object_.msgs;         // get msgs
