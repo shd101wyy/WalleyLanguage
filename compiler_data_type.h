@@ -30,7 +30,8 @@
 #define TEST 0x9
 #define SET_TOP 0xA
 #define TAIL_CALL_PUSH 0xB
-
+#define OBJECT_GET_SELF 0xC
+#define OBJECT_GET_PARENT 0xD
 
 static Module * GLOBAL_MODULE;
 
@@ -50,7 +51,7 @@ Instructions * Insts_init(){
     Instructions * insts = (Instructions*)malloc(sizeof(Instructions));
     insts->length = 0;
     insts->size = 1024;
-    insts->array = (uint16_t*)malloc(sizeof(uint16_t)*(insts->size));
+    insts->array = /*(uint16_t*)*/malloc(sizeof(uint16_t)*(insts->size));
     insts->start_pc = 0;
     return insts;
 }
@@ -231,7 +232,7 @@ Variable_Table * VT_init(){
     VT_push(vt, 0, "set-car!"); // 65       // global 65
     VT_push(vt, 0, "set-cdr!"); // 66       // global 66
     VT_push(vt, 0, "cmd"); // 67            // sys 67
-    VT_push(vt, 0, "object"); // 68         // global 68
+    VT_push(vt, 0, "Object"); // 68         // global 68
     return vt;
 }
 

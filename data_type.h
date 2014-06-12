@@ -57,6 +57,11 @@ static Object * VECTOR_STRING;
 static Object * TABLE_STRING;
 static Object * CLONE_STRING;
 
+// for object
+static Object * STRING_proto;
+static Object * STRING_type;
+static Object * STRING_Object;
+
 static Object * SYS_ARGV;
 
 //static int * INSTRUCTIONS;
@@ -133,6 +138,7 @@ struct Object {
             Object ** actions;
             uint16_t size;
             uint16_t length;
+            uint32_t object_id;
         } Object_;
     } data;
 };
@@ -446,6 +452,7 @@ Object * Object_initObject(){
     uint16_t size = 4;
     o->data.Object_.actions = malloc(sizeof(Object*) * size);
     o->data.Object_.msgs = malloc(sizeof(Object*) * size);
+    o->data.Object_.object_id = 0;
     
     o->data.Object_.length = 0;
     o->data.Object_.size = size;
@@ -456,7 +463,7 @@ Object * Object_initObject(){
  * 为 object 添加 property
  *
  */
-void object_addProto(Object * o, Object * msg, Object * action){
+void object_addNewSlot(Object * o, Object * msg, Object * action){
     if (o->data.Object_.length == o->data.Object_.size) { // realloc if necessary
         o->data.Object_.size*=2;
         o->data.Object_.actions = realloc(o->data.Object_.actions, sizeof(Object*)*o->data.Object_.size);

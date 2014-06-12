@@ -652,6 +652,7 @@ void compiler(Instructions * insts,
                         str_eq(var_name->data.String.v, "quasiquote") ||
                         str_eq(var_name->data.String.v, "unquote-splice") ||
                         str_eq(var_name->data.String.v, "lambda") ||
+                        str_eq(var_name->data.String.v, "fn") ||
                         str_eq(var_name->data.String.v, "def") ||
                         str_eq(var_name->data.String.v, "set!"))) {
                         printf("DEFINITION ERROR: Invalid variable name %s\n", var_name->data.String.v);
@@ -1549,6 +1550,10 @@ void compiler(Instructions * insts,
                         param_num++;
                         p = cdr(p);
                     }
+                    /*
+                     * TODO : check param name valid? here
+                     *
+                     */
                     // compile params from left to right
                     for (i = 0; i < param_num; i++) {
                         compiler(insts,

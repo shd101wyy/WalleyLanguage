@@ -1268,7 +1268,7 @@ Object * builtin_object_clone(Object ** params, uint32_t param_num){
     for (i = 0; i < size; i++) {
         Object * msg = params[0]->data.Object_.msgs[i];
         Object * action = params[0]->data.Object_.actions[i];
-        object_addProto(o, msg, action);
+        object_addNewSlot(o, msg, action);
     }
     return o;
 }

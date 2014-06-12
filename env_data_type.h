@@ -94,6 +94,15 @@ void Walley_init(){
     CLONE_STRING = Object_initString("clone", 5); // 16
     CLONE_STRING->use_count = 1;
     
+    STRING_proto = Object_initString("proto", 5); // 17
+    STRING_proto->use_count = 1;
+    
+    STRING_type = Object_initString("type", 4); // 18
+    STRING_type->use_count = 1;
+    
+    STRING_Object = Object_initString("Object", 6); // 19
+    STRING_Object->use_count = 1;
+    
     
     
     CONSTANT_TABLE_FOR_COMPILATION = Object_initTable(1024); // init constant table
@@ -115,7 +124,10 @@ void Walley_init(){
     Table_setval(CONSTANT_TABLE_FOR_COMPILATION, VECTOR_STRING, Object_initInteger(264));
     Table_setval(CONSTANT_TABLE_FOR_COMPILATION, TABLE_STRING, Object_initInteger(265));
     Table_setval(CONSTANT_TABLE_FOR_COMPILATION, CLONE_STRING, Object_initInteger(266));
-    CONSTANT_TABLE_FOR_COMPILATION_LENGTH = 267; // set length
+    Table_setval(CONSTANT_TABLE_FOR_COMPILATION, STRING_proto, Object_initInteger(267));
+    Table_setval(CONSTANT_TABLE_FOR_COMPILATION, STRING_type, Object_initInteger(268));
+    Table_setval(CONSTANT_TABLE_FOR_COMPILATION, STRING_Object, Object_initInteger(269));
+    CONSTANT_TABLE_FOR_COMPILATION_LENGTH = 270; // set length
     
     // init Constant_Pool
     Constant_Pool = (Object**)malloc(sizeof(Object*)*1024);
@@ -148,8 +160,11 @@ void Walley_init(){
     Constant_Pool[264] = VECTOR_STRING;
     Constant_Pool[265] = TABLE_STRING;
     Constant_Pool[266] = CLONE_STRING;
+    Constant_Pool[267] = STRING_proto;
+    Constant_Pool[268] = STRING_type;
+    Constant_Pool[269] = STRING_Object;
     
-    Constant_Pool_Length = 267; // set length
+    Constant_Pool_Length = 270; // set length
     
     // init CONSTANT_TABLE_INSTRUCTIONS for compiler
     CONSTANT_TABLE_INSTRUCTIONS = Insts_init();
@@ -489,10 +504,15 @@ Environment_Frame *createFrame0(){
     EF_set_builtin_lambda(frame, &builtin_system);            // global
     
     Object * object = Object_initObject();
-    frame->array[count] = object;               // global object
+    frame->array[count] = object;                             // global object
     object->use_count++;
     count++;
-    object_addProto(object, CLONE_STRING, Object_initBuiltinLambda(&builtin_object_clone));
+    object_addNewSlot(object, STRING_proto, GLOBAL_NULL);  // proto : NULL
+    object_addNewSlot(object, STRING_type, STRING_Object); // type : Object
+    // set object ID
+    object->data.Object_.object_id = (uint32_t)object; // 这个设置为他的地址
+    
+    // object_addNewSlot(object, CLONE_STRING, Object_initBuiltinLambda(&builtin_object_clone));
     
     frame->length = count; // set length
     return frame;

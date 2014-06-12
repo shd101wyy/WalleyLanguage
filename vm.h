@@ -28,6 +28,67 @@ Object * Walley_Run_File_for_VM(char * file_name,
                                 Environment * env,
                                 MacroTable * mt);
 /*
+ * 如果没找到，返回-1, otherwise return 0
+ */
+int8_t Object_get_for_vm(uint16_t * instructions, Object * v, Object ** accumulator, Object * check_symbol, uint64_t pc){
+    uint32_t i;
+    Object ** msgs = v->data.Object_.msgs;
+    Object ** actions = v->data.Object_.actions;
+    char is_self = true; // 是从自己的actions里面拿到的property，而不是从proto里面拿到的property
+NOT_FOUND:
+    for (i = 0; i < v->data.Object_.length; i++) {
+        if (msgs[i] == check_symbol) {
+            *accumulator = actions[i];  // get required actions.
+            goto FOUND;
+        }
+    }
+    // didn't find from that object
+    if (actions[0] == GLOBAL_NULL) { // check prototype
+        printf("OBJECT ERROR: Cannot find message %s from Object\n", check_symbol->data.String.v);
+        return -1;
+    }
+    else{
+        // check proto ...
+        msgs = actions[0]->data.Object_.msgs;
+        actions = actions[0]->data.Object_.actions;
+        is_self = false;
+        goto NOT_FOUND; // go above
+    }
+    
+    /*
+     * TODO : 1 . Change instructions here
+     *        2 . if call object function next, push self.
+     */
+FOUND:
+    /*
+     * change instructions here. 看上面的信息怎么变instructions
+     */
+    
+    if (is_self) {
+        instructions[pc - 5] = OBJECT_GET_SELF << 12;
+        instructions[pc - 4] = instructions[pc - 3]; // // 存下 symbol(string)在 constant table里面的offset
+        // instructions[pc - 3] = (v->data.Object_.object_id & 0xFFFF0000) >> 16;
+        // instructions[pc - 2] = v->data.Object_.object_id & 0x0000FFFF;
+        // save offset
+        instructions[pc - 1] = i;
+    }
+    else{ // 从proto里面拿到的property
+        if (instructions[pc - 3] > 0x0FFF) {
+            printf("ERROR: Cannot save more messages\n");
+            return -1;
+        }
+        instructions[pc - 5] = (OBJECT_GET_PARENT << 12) || instructions[pc - 3]; // 存下 symbol(string)在 constant table里面的offset
+        // save object_id
+        instructions[pc - 4] = (v->data.Object_.object_id & 0xFFFF0000) >> 16;
+        instructions[pc - 3] = v->data.Object_.object_id & 0x0000FFFF;
+        // save action address
+        instructions[pc - 2] = ((uint32_t)(*accumulator) & 0xFFFF0000) >> 16;
+        instructions[pc - 1] = (uint32_t)(*accumulator) & 0x0000FFFF;
+    }
+    return 0;
+}
+
+/*
  Walley Language Virtual Machine
  */
 Object *VM(/*uint16_t * instructions,*/
@@ -51,6 +112,7 @@ Object *VM(/*uint16_t * instructions,*/
     char * created_string;
     int32_t s;
     char s1, s2;
+    uint16_t offset;
     
     int64_t integer_;
     // double double_;
@@ -63,6 +125,7 @@ Object *VM(/*uint16_t * instructions,*/
     Object * v;
     Object * temp; // temp use
     Object * temp2;
+    Object ** msgs, ** actions;
     
     Environment_Frame *BUILTIN_PRIMITIVE_PROCEDURE_STACK = EF_init_with_size(MAX_STACK_SIZE); // for builtin primitive procedure calculation
     BUILTIN_PRIMITIVE_PROCEDURE_STACK->use_count = 1; // cannot free it
@@ -135,12 +198,12 @@ Object *VM(/*uint16_t * instructions,*/
     }
     CONSTANT_TABLE_INSTRUCTIONS_TRACK_INDEX = CONSTANT_TABLE_INSTRUCTIONS->length; // update track index for constant table instructions.
 
-    /*
+    
     for (i = start_pc; i < end_pc; i++) {
         printf("%x ", instructions[i]);
     }
     printf("\n");
-    */
+    
     
     pc = start_pc;
     while(pc != end_pc){
@@ -682,12 +745,28 @@ Object *VM(/*uint16_t * instructions,*/
                         printf("Object");
                         pc = pc + 1;
                         switch(param_num){
+                            /*
+                             * 这种情况就是第一次查找property
+                             * 例如 Object:type
+                             * 1000 44   5000           2500 10c       6000     7001
+                             *  get_obj  make_frame     get :type    push     call
+                             *
+                             * 改变 instructions 为
+                             * 如果是从protos里面拿到的properties:
+                             * 1000 44       bXXX          xxxx xxxx      xxxx xxxx
+                             * get_obj  get_property       object_id       action address
+                             * 如果是从自己拿到的properties:
+                             * 1000 44       c xxxx           xxxx xxxx             xxxx
+                             * get_obj        get property     not used       action offset
+                             */
                             case 1: // vector get
                                 printf("Object get");
-                                temp = current_frame_pointer->array[current_frame_pointer->length - 1];
-                                integer_ = temp->data.Integer.v; // get index
-                                accumulator = v->data.Vector.v[integer_]; // get value
+                                temp = current_frame_pointer->array[current_frame_pointer->length - 1]; // this temp should be string...
                                 
+                                // check message to update accumulator
+                                if (Object_get_for_vm(instructions, v, &accumulator, temp, pc)< 0) {
+                                    goto VM_END; // error
+                                }
                                 temp->use_count--; // pop parameters
                                 Object_free(temp);
                                 current_frame_pointer->length--; // decrease length
@@ -700,22 +779,45 @@ Object *VM(/*uint16_t * instructions,*/
                                 
                                 // free lambda
                                 Object_free(v);
-                                
                                 continue;
-                            case 2: // vector set
+                            case 2: // Object set
+                                /*
+                                 * TODO : change hidden_class (id) value
+                                 */
                                 printf("Object set");
-                                temp = current_frame_pointer->array[current_frame_pointer->length - 2]; // index
+                                temp = current_frame_pointer->array[current_frame_pointer->length - 2]; // msg
                                 temp2 = current_frame_pointer->array[current_frame_pointer->length - 1]; // value
-                                integer_ = temp->data.Integer.v;
+                                msgs = v->data.Object_.msgs;         // get msgs
+                                actions = v->data.Object_.actions;   // get actions
+                                for (i = 0; i < v->data.Object_.length; i++) {
+                                    if (temp == msgs[i]) { // already existed
+                                        actions[i]->use_count--;
+                                        Object_free(actions[i]); // free old
+                                        actions[i] = temp2;
+                                        temp2->use_count++;      // set new
+                                        /*
+                                         * TODO : change instructions here
+                                         *
+                                         */
+                                        goto OBJECT_FIRST_TIME_SET_POP_PARAMS; // 2 below
+                                    }
+                                }
+                                // didn't existed
+                                object_addNewSlot(v, temp, temp2);
+                                // check whether need to update object_id
+                                if (v->data.Object_.object_id != actions[0]->data.Object_.object_id) {
+                                     // update object id
+                                    /* eg (def Dog (Object:clone))
+                                     * 这里 Dog 和 Object 有一样的id
+                                     * (set! Dog:age 12) 这里添加了一个property给Dog
+                                     * 所以改变 Dog 的 object_id
+                                     * (set! Dog:name "hi") 因为object_id已经变过了，所以不用再变
+                                     *
+                                     */
+                                    v->data.Object_.object_id = (uint32_t)v; 
+                                }
                                 
-                                // decrease use_count of old_value
-                                v->data.Vector.v[integer_]->use_count--;
-                                Object_free(v->data.Vector.v[integer_]);
-                                
-                                // set to vector
-                                v->data.Vector.v[integer_] = temp2;
-                                temp2->use_count++; // in use
-                                
+                            OBJECT_FIRST_TIME_SET_POP_PARAMS:  // 2
                                 // pop parameters
                                 for(i = 0; i < param_num; i++){
                                     temp = current_frame_pointer->array[current_frame_pointer->length - 1];
@@ -741,7 +843,6 @@ Object *VM(/*uint16_t * instructions,*/
                                 accumulator = GLOBAL_NULL;
                                 goto VM_END;
                         }
-                        exit(0);
                     default:
                         printf("ERROR: Invalid Lambda\n");
                         Object_free(accumulator);
@@ -778,6 +879,49 @@ Object *VM(/*uint16_t * instructions,*/
                 // 不用增加use count因为最后会被free掉
                 pc++;
                 accumulator = GLOBAL_NULL; // 必须set为global null， 要不然会出错， 因为GET的时候会free掉accumulator, 而此时的accumulator的use count正好是0
+                continue;
+            case OBJECT_GET_SELF:
+                offset = instructions[pc + 4]; // get offset
+                temp = Constant_Pool[instructions[pc + 1]]; // get symbol(string)
+                pc = pc + 5; // 不要移动这个pc的位置
+                msgs = accumulator->data.Object_.msgs; // get msgs
+                actions = accumulator->data.Object_.actions; // get actions
+                // find
+                if(temp == msgs[offset]){ // 这里可能错了, 没有free accumulator. eg (object:clone):type
+                    temp = accumulator;
+                    accumulator = actions[offset];
+                    Object_free(temp);
+                    continue;
+                }
+                /*
+                 * TODO : 这里的代码和上面的重复了
+                 */
+                // didn't find
+                v = accumulator;
+                if(Object_get_for_vm(instructions, v, &accumulator, temp, pc) < 0){
+                    goto VM_END; // error
+                }
+                // free original accumulator
+                Object_free(v);
+                continue;
+            case OBJECT_GET_PARENT:
+                exit(0);
+                // check object_id.
+                temp = Constant_Pool[0x0FFF & instructions[pc]]; // get symbol(string) msg
+                if (accumulator->data.Object_.object_id == ((instructions[pc + 1] << 16) | instructions[pc + 2])) {
+                    temp = accumulator;
+                    accumulator = (Object*)((uint32_t)((int32_t)(instructions[pc + 3] << 16) | instructions[pc + 4]));
+                    pc = pc + 5;
+                }
+                else{ // didn't find...
+                    v = accumulator;
+                    pc = pc + 5;
+                    if(Object_get_for_vm(instructions, v, &accumulator, temp, pc) < 0){
+                        goto VM_END; // error
+                    }
+                    // free original accumulator
+                    Object_free(v);
+                }
                 continue;
             default:
                 printf("ERROR: Invalid opcode %d\n", opcode);
