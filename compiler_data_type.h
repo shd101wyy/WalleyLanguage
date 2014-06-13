@@ -51,7 +51,7 @@ Instructions * Insts_init(){
     Instructions * insts = (Instructions*)malloc(sizeof(Instructions));
     insts->length = 0;
     insts->size = 1024;
-    insts->array = /*(uint16_t*)*/malloc(sizeof(uint16_t)*(insts->size));
+    insts->array = (uint16_t*)malloc(sizeof(uint16_t)*(insts->size));
     insts->start_pc = 0;
     return insts;
 }

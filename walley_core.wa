@@ -3,8 +3,8 @@
 ;; created by Yiyi Wang 
 ;; Copyright (c) Yiyi Wang. All rights reserved.
 (def walley-core-author 'Yiyi-Wang)
-(def walley-core-version "0.00023")
-(def walley-language-version "0.3.8471")
+(def walley-core-version "0.00025")
+(def walley-language-version "0.3.8472")
 
 (def break 'break)          ;; for foreach function
 (def continue 'continue)
@@ -33,14 +33,15 @@
            b)))))
 ;; reverse the list
 (def reverse 
-     (def reverse_iter 
-        (lambda (a result)
-        (if (null? a)
-                    result
-                    (reverse_iter (cdr a)
-                                  (cons (car a)
-                                        result)))))
-     (reverse_iter a ()))
+  (fn [a]
+    (def reverse_iter 
+      (fn (a result)
+              (if (null? a)
+                result
+                (reverse_iter (cdr a)
+                              (cons (car a)
+                                    result)))))
+    (reverse_iter a ())))
 
 
 (def error (lambda [s] (print "ERROR: ") (print s)))
@@ -363,13 +364,14 @@
 ;; (filter f l)
 ;; where f must return true or false
 
-(defn filter [f l]
-  (if (null? l)
-    '()
-    (if (f (car l))
-      (cons (car l)
-            (filter f (cdr l)))
-      (filter f (cdr l)))))
+(def filter
+  (fn [func l]
+    (if (null? l)	       
+      '()
+      (if (func (car l))
+        (cons (car l)
+              (filter func (cdr l)))
+        (filter func (cdr l))))))
 ;; test filter function
 ;; (print (filter (lambda [n] (if (> n 0) 'true '())) '(-1 2 -3 4 -5 6))) => (2 4 6)
 ;; pass

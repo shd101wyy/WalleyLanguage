@@ -199,6 +199,11 @@ Object *VM(/*uint16_t * instructions,*/
     CONSTANT_TABLE_INSTRUCTIONS_TRACK_INDEX = CONSTANT_TABLE_INSTRUCTIONS->length; // update track index for constant table instructions.
 
     /*
+     * 曾经的错误代码
+     * bug code: (def test (fn [l n] (if (= n 0) (car l) (test (cdr l) (- n 1)))))
+     * fixed:     tail call error. forget to free object
+     */
+    /*
     for (i = start_pc; i < end_pc; i++) {
         printf("%x ", instructions[i]);
     }
@@ -742,7 +747,7 @@ Object *VM(/*uint16_t * instructions,*/
                                 goto VM_END;
                         }
                     case OBJECT:
-                        // printf("Object");
+                        printf("UNFINISHED IMPLEMENTATION Object\n");
                         pc = pc + 1;
                         switch(param_num){
                             /*
@@ -912,12 +917,19 @@ Object *VM(/*uint16_t * instructions,*/
             // tail call push parameters
             // opcode index
             case TAIL_CALL_PUSH:
-                env->frames[env->length-1]->array[instructions[pc] & 0x0FFF] = accumulator;
-                // 不用增加use count因为最后会被free掉
+                offset = instructions[pc] & 0x0FFF;
+                temp = env->frames[env->length-1]->array[offset]; // get original
+                accumulator->use_count++;
+                if (temp) {   // free old if necessary
+                    temp->use_count--;
+                    Object_free(temp); // free old
+                }
+                env->frames[env->length-1]->array[offset] = accumulator; // set new
                 pc++;
                 accumulator = GLOBAL_NULL; // 必须set为global null， 要不然会出错， 因为GET的时候会free掉accumulator, 而此时的accumulator的use count正好是0
                 continue;
             case OBJECT_GET_SELF:
+                printf("UNFINISHED IMPLEMENTATION Object\n");
                 offset = instructions[pc + 4]; // get offset
                 temp = Constant_Pool[instructions[pc + 1]]; // get symbol(string)
                 pc = pc + 5; // 不要移动这个pc的位置
@@ -942,12 +954,14 @@ Object *VM(/*uint16_t * instructions,*/
                 Object_free(v);
                 continue;
             case OBJECT_GET_PARENT:
+                printf("UNFINISHED IMPLEMENTATION Object\n");
                 exit(0);
                 // check object_id.
                 temp = Constant_Pool[0x0FFF & instructions[pc]]; // get symbol(string) msg
                 if (accumulator->data.Object_.object_id == ((instructions[pc + 1] << 16) | instructions[pc + 2])) {
                     temp = accumulator;
-                    accumulator = (Object*)((uint32_t)((int32_t)(instructions[pc + 3] << 16) | instructions[pc + 4]));
+                    // 下面这个exp要改
+                    //accumulator = (Object*)((uint32_t)((int32_t)(instructions[pc + 3] << 16) | instructions[pc + 4]));
                     pc = pc + 5;
                 }
                 else{ // didn't find...

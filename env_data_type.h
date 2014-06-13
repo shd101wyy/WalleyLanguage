@@ -383,7 +383,8 @@ void EF_free(Environment_Frame * ef){
 Environment_Frame * EF_init_with_size(int32_t size){
     Environment_Frame * frame = malloc(sizeof(Environment_Frame));
     frame->length = 0;
-    frame->array = malloc(sizeof(Object*)*size);
+    /* array 必须初始化为 0, 所以用calloc */
+    frame->array = calloc(size, sizeof(Object*));//malloc(sizeof(Object*)*size);
     frame->use_count = 0;
     return frame;
 }
