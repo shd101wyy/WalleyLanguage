@@ -1,5 +1,5 @@
 all:
-	gcc main.c -o walley -lm
+	gcc -O1 main.c -o walley -lm
 install:
 	rm -rf /usr/local/bin/walley
 	rm -rf /usr/local/include/walley
@@ -15,7 +15,7 @@ uninstall:
 	rm -rf /usr/local/include/walley
 	rm -rf /usr/local/lib/walley
 fast:
-	gcc main.c -O3 -o walley -lm
+	gcc -O3 main.c -o walley -lm
 test:
 	gcc main.c -g -Wall -Werror -o walley -lm
 clean:
