@@ -210,7 +210,7 @@ void Walley_init(){
     Module_pushVarOffset(GLOBAL_MODULE, 63); // apply
     Module_pushVarOffset(GLOBAL_MODULE, 65); // set-car!
     Module_pushVarOffset(GLOBAL_MODULE, 66); // set-cdr!
-    Module_pushVarOffset(GLOBAL_MODULE, 68); // object
+    // Module_pushVarOffset(GLOBAL_MODULE, 68); // object
     
     // init string module
     Module * STRING_MODULE = Module_init("string");
@@ -503,7 +503,7 @@ Environment_Frame *createFrame0(){
     EF_set_builtin_lambda(frame, &builtin_set_car);           // global
     EF_set_builtin_lambda(frame, &builtin_set_cdr);           // global
     EF_set_builtin_lambda(frame, &builtin_system);            // global
-    
+    /*
     Object * object = Object_initObject();
     frame->array[count] = object;                             // global object
     object->use_count++;
@@ -515,7 +515,7 @@ Environment_Frame *createFrame0(){
     object->data.Object_.object_id = (uint32_t)object; // 这个设置为他的地址
     
     // object_addNewSlot(object, CLONE_STRING, Object_initBuiltinLambda(&builtin_object_clone));
-    
+    */
     frame->length = count; // set length
     return frame;
 }

@@ -139,7 +139,8 @@ Object *VM(/*uint16_t * instructions,*/
     int16_t frames_list_length = 1;
     Object * functions_list[MAX_STACK_SIZE]; // save function
     int16_t functions_list_length = 0;
-    
+    uint64_t hash_val;
+
     pc = CONSTANT_TABLE_INSTRUCTIONS_TRACK_INDEX;
     // run CONSTANT_TABLE_INSTRUCTIONS first to load constant
     while (pc != CONSTANT_TABLE_INSTRUCTIONS->length) {
@@ -212,6 +213,7 @@ Object *VM(/*uint16_t * instructions,*/
     
     pc = start_pc;
     while(pc != end_pc){
+    CONTINUE_VM:
         // printf("%llu, %x \n", pc, instructions[pc]);
         inst = instructions[pc];
         opcode = (inst & 0xF000) >> 12;
@@ -501,13 +503,45 @@ Object *VM(/*uint16_t * instructions,*/
                     case TABLE: // table
                         pc = pc + 1;
                         switch(param_num){
+                                /*
+                                 * eg (def x {:type 'Object})
+                                 * x:type => 
+                                 * 1000 7a 5000 2500 10c 6000 7001
+                                 * 变为
+                                 * 1000 7a   0xE        xxxx          xxxx xxxx        xxxx
+                                 *           get_table  symbol_index   table_offset    not used
+                                 */
                             case 1: // table get
                                 temp = current_frame_pointer->array[current_frame_pointer->length - 1];
                                
                                 // get value from table
+                                /*
                                 accumulator = Table_getval(v, temp);
-                               
+                                */
+                                hash_val = hash(temp->data.String.v, v->data.Table.size); // get hash value
+                                Table_Pair * table_pairs = v->data.Table.vec[hash_val];
+                                while (table_pairs!=NULL) {
+                                    if (table_pairs->key == temp || strcmp(temp->data.String.v, table_pairs->key->data.String.v) == 0) {
+                                        accumulator = table_pairs->value;
+                                        
+                                        /*
+                                         * change instructions.
+                                         */
+                                        if (instructions[pc - 5] == NEWFRAME << 12) {
+                                            instructions[pc - 5] = TABLE_GET << 12;
+                                            instructions[pc - 4] = instructions[pc - 3]; // symbol offset
+                                            instructions[pc - 3] = (hash_val & 0xFFFF0000) >> 16;
+                                            instructions[pc - 2] = (hash_val & 0xFFFF);
+                                            instructions[pc - 1] = 0; // not used
+                                        }
+                                        
+                                        goto TABLE_FINISH_FINDING_VALUE;
+                                    }
+                                    table_pairs = table_pairs->next;
+                                }
+                                accumulator = GLOBAL_NULL;
                                 
+                            TABLE_FINISH_FINDING_VALUE:
                                 temp->use_count--; // pop parameters
                                 Object_free(temp);
                                 current_frame_pointer->length--; // decrease length
@@ -974,6 +1008,45 @@ Object *VM(/*uint16_t * instructions,*/
                     Object_free(v);
                 }
                 continue;
+            case TABLE_GET:
+                // printf("TABLE_GET \n");
+                offset = instructions[pc + 1]; // symbol offset
+                temp = Constant_Pool[offset]; // get symbol
+                hash_val = ((uint64_t)instructions[pc + 2] << 16) |
+                           ((uint64_t)instructions[pc + 3]);
+                if (hash_val > accumulator->data.Table.size) { // invalid hash_val
+                    Object_free(accumulator);
+                    accumulator = GLOBAL_NULL;
+                    pc += 5;
+                    goto CONTINUE_VM;
+                }
+                i = -1;
+            TABLE_GET_BEGIN_TO_FIND_VALUE:
+                v = accumulator; // get table.
+                Table_Pair * table_pairs = v->data.Table.vec[hash_val];
+                while (table_pairs != NULL) {
+                    if (table_pairs->key == temp || strcmp(temp->data.String.v, table_pairs->key->data.String.v) == 0) { // find
+                        accumulator = table_pairs->value;
+                        accumulator->use_count++;
+                        Object_free(v);
+                        accumulator->use_count--;
+                        pc = pc + 5;
+                        goto CONTINUE_VM;
+                    }
+                    table_pairs = table_pairs->next;
+                }
+                if (i == 0) { // 第一次没找到
+                    // didn't find
+                    hash_val = hash(temp->data.String.v, v->data.Table.size); // rehash
+                    i++;
+                    goto TABLE_GET_BEGIN_TO_FIND_VALUE;
+                }
+                else{ // 第二次没找到
+                    accumulator = GLOBAL_NULL;
+                    Object_free(v);
+                    pc = pc + 5;
+                    continue;
+                }
             default:
                 printf("ERROR: Invalid opcode %d\n", opcode);
                 vm_error_jump

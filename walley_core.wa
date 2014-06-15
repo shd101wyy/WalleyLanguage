@@ -4,7 +4,7 @@
 ;; Copyright (c) Yiyi Wang. All rights reserved.
 (def walley-core-author 'Yiyi-Wang)
 (def walley-core-version "0.00025")
-(def walley-language-version "0.3.8472")
+(def walley-language-version "0.3.8473")
 
 (def break 'break)          ;; for foreach function
 (def continue 'continue)
@@ -21,6 +21,7 @@
 (def lambda? (lambda [v] (eq? (typeof v) 'lambda)))
 (def table? (lambda [v] (eq? (typeof v) 'table)))
 (def string? (lambda [v] (eq? (typeof v) 'string)))
+(def fn? lambda?)
 
 ;; append and reverse functions.
 ;; which will be used for macro expansion

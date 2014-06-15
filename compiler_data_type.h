@@ -32,6 +32,7 @@
 #define TAIL_CALL_PUSH 0xB
 #define OBJECT_GET_SELF 0xC
 #define OBJECT_GET_PARENT 0xD
+#define TABLE_GET 0xE
 
 static Module * GLOBAL_MODULE;
 
@@ -232,7 +233,7 @@ Variable_Table * VT_init(){
     VT_push(vt, 0, "set-car!"); // 65       // global 65
     VT_push(vt, 0, "set-cdr!"); // 66       // global 66
     VT_push(vt, 0, "cmd"); // 67            // sys 67
-    VT_push(vt, 0, "Object"); // 68         // global 68
+    // VT_push(vt, 0, "Object"); // 68         // global 68
     return vt;
 }
 

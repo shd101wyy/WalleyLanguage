@@ -16,7 +16,7 @@
 ;(f 1000000)
 ;(display "Hello World")
 ;(def x 12)
-(times 1000000 (lambda [i] (print "Hi\n")))
+;(times 1000000 (lambda [i] (print "Hi\n")))
 ;(def result 0)
 ;(def f 
 ;  (lambda [n r]
@@ -46,4 +46,6 @@
 ;(def y 20)
 
 
-
+(defn test [n] (print n:type))
+(def x {:type 'Object})
+(test x)
