@@ -107,7 +107,8 @@ struct Object {
             uint64_t size;
             uint64_t length;
             Table_Pair **vec; // array to save Table_Pairs
-            Object * tag;
+            Object * tag; // remove this later
+            Object * proto;
         } Table;
         struct {
             char * v;
