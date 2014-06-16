@@ -18,8 +18,7 @@ void compiler(Instructions * insts,
               char * parent_func_name,
               Lambda_for_Compilation * function_for_compilation,
               Environment * env,
-              MacroTable * mt,
-              Module * module);
+              MacroTable * mt);
 
 Object * compiler_begin(Instructions * insts,
                         Object * l,
@@ -28,8 +27,7 @@ Object * compiler_begin(Instructions * insts,
                         Lambda_for_Compilation * function_for_compilation,
                         int32_t eval_flag,
                         Environment * env,
-                        MacroTable * mt,
-                        Module * module);
+                        MacroTable * mt);
 
 Object *VM(/*uint16_t * instructions,*/
            Instructions * instructions_,
@@ -158,8 +156,7 @@ int32_t macro_match(Object * a, Object * b, char **var_names, Object **var_value
 
 Object * macro_expansion_replacement(Object * expanded_value,
                                      Variable_Table * vt,
-                                     int32_t is_head,
-                                     Module * module){
+                                     int32_t is_head){
     if (expanded_value == GLOBAL_NULL) {
         return GLOBAL_NULL;
     }
@@ -168,9 +165,9 @@ Object * macro_expansion_replacement(Object * expanded_value,
     }
     Object * v = car(expanded_value);
     if (v->type == PAIR) {
-        return cons(macro_expansion_replacement(v, vt, true, module),
+        return cons(macro_expansion_replacement(v, vt, true),
                     macro_expansion_replacement(cdr(expanded_value),
-                                                vt, false, module));
+                                                vt, false));
     }
     else{
         if (v->type == STRING && is_head) { // check in vt
@@ -183,29 +180,29 @@ Object * macro_expansion_replacement(Object * expanded_value,
                 strcpy(buffer, &v->data.String.v[1]);
                 // printf("BUFFER! %s\n", buffer);
                 return cons(Object_initString(buffer, strlen(buffer)),
-                            macro_expansion_replacement(cdr(expanded_value), vt, false, module));
+                            macro_expansion_replacement(cdr(expanded_value), vt, false));
             }
             int32_t find[2];
             /*
              todo: change this VT_find later
              */
-            VT_find(vt, v->data.String.v, find, module);
+            VT_find(vt, v->data.String.v, find);
             if (find[0] != -1) { // find
                 return cons(cons(Object_initInteger(0),
                                  cons(Object_initInteger(find[0]),
                                       cons(Object_initInteger(find[1]),
                                            GLOBAL_NULL))),
                             macro_expansion_replacement(cdr(expanded_value),
-                                                        vt, false, module));
+                                                        vt, false));
             }
             else
-                return cons(v, macro_expansion_replacement(cdr(expanded_value), vt, false, module));
+                return cons(v, macro_expansion_replacement(cdr(expanded_value), vt, false));
         }
         else if(v->type == STRING ||
                 v->type == INTEGER ||
                 v->type == DOUBLE ||
                 v->type == NULL_)
-            return cons(v, macro_expansion_replacement(cdr(expanded_value), vt, false, module));
+            return cons(v, macro_expansion_replacement(cdr(expanded_value), vt, false));
         else{
             printf("ERROR: Macro expansion failed. Invalid Data Type\n");
             printf("     :%s\n", to_string(v));
@@ -229,7 +226,7 @@ Object * macro_expansion_replacement(Object * expanded_value,
  (defmacro square ([x] `(* ~x ~x)))
  (square 12) => (* 12 12)
  */
-Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable * mt, Environment * global_env, Instructions * insts, Module *module){
+Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable * mt, Environment * global_env, Instructions * insts){
     Object * clauses = macro->clauses;
     Object * expanded_value_after_replacement;
     Object * temp;
@@ -349,8 +346,7 @@ Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable *
                            NULL,
                            false,
                            new_env,
-                           mt,
-                           module);
+                           mt);
             
             // cannot run in compiler_begin,
             // because the default insts->start_pc is wrong
@@ -392,7 +388,7 @@ Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable *
             
             // 假设运行完了得到了 expanded_value
             // 根据 macro->vt 替换首项
-            expanded_value_after_replacement = macro_expansion_replacement(expanded_value, macro->vt, true, module);
+            expanded_value_after_replacement = macro_expansion_replacement(expanded_value, macro->vt, true);
             Object_free(expanded_value);
             return expanded_value_after_replacement;
             
@@ -420,8 +416,7 @@ void compiler(Instructions * insts,
               char * parent_func_name,
               Lambda_for_Compilation * function_for_compilation,
               Environment * env,
-              MacroTable * mt,
-              Module * module){
+              MacroTable * mt){
     int32_t i, j;
     uint64_t index1, index2, index3, jump_steps, start_pc;
     char * string;
@@ -518,7 +513,7 @@ void compiler(Instructions * insts,
                 return;
             }
             else{
-                VT_find(vt, l->data.String.v, vt_find, module);
+                VT_find(vt, l->data.String.v, vt_find);
                 if(vt_find[0] == -1){
                     // variable doesn't exist
                     printf("ERROR: undefined variable %s\n", l->data.String.v);
@@ -554,8 +549,7 @@ void compiler(Instructions * insts,
                                     parent_func_name,
                                     function_for_compilation,
                                     env,
-                                    mt,
-                                    module);
+                                    mt);
                 }
                 else if (v->type == PAIR){ // pair
                     temp = quote_list(v);
@@ -566,8 +560,7 @@ void compiler(Instructions * insts,
                              parent_func_name,
                              function_for_compilation,
                              env,
-                             mt,
-                             module);
+                             mt);
                     Object_free(temp);
                     return;
                 }
@@ -585,13 +578,12 @@ void compiler(Instructions * insts,
                              parent_func_name,
                              function_for_compilation,
                              env,
-                             mt,
-                             module);
+                             mt);
                     Object_free(v);
                     free(string);
                     return;
                 }
-                return compiler(insts, v, vt, tail_call_flag, parent_func_name, function_for_compilation,env,mt,module);
+                return compiler(insts, v, vt, tail_call_flag, parent_func_name, function_for_compilation,env,mt);
             }
             else if(str_eq(tag, "quasiquote")){
                 v = cadr(l);
@@ -604,8 +596,7 @@ void compiler(Instructions * insts,
                                     parent_func_name,
                                     function_for_compilation,
                                     env,
-                                    mt,
-                                    module);
+                                    mt);
                 }
                 else if (v->type == PAIR){ // pair
                     temp = quasiquote_list(v);
@@ -616,8 +607,7 @@ void compiler(Instructions * insts,
                              parent_func_name,
                              function_for_compilation,
                              env,
-                             mt,
-                             module);
+                             mt);
                     Object_free(temp);
                     return;
                 }
@@ -636,13 +626,12 @@ void compiler(Instructions * insts,
                              parent_func_name,
                              function_for_compilation,
                              env,
-                             mt,
-                             module);
+                             mt);
                     Object_free(v);
                     free(string);
                     return;
                 }
-                return compiler(insts, v, vt, tail_call_flag, parent_func_name, function_for_compilation,env, mt, module);
+                return compiler(insts, v, vt, tail_call_flag, parent_func_name, function_for_compilation,env, mt);
             }
             else if(str_eq(tag, "def")){
                 var_name = cadr(l);
@@ -663,132 +652,40 @@ void compiler(Instructions * insts,
                     var_value = GLOBAL_NULL;
                 else
                     var_value = caddr(l);
-                
-                /*
-                 * 考虑 (def test/x 12) in both local and global
-                 *
-                 */
-                char * splitted_[128];
-                int32_t n = 0; // split length
-                Module * current_module = NULL;
-            
-                /*
-                 *  split var_name. eg string/add splits to ["string", "add"]
-                 */
-                string_split_for_module(var_name->data.String.v, splitted_, &n);
-                if (n == 1) { // not module
-                    if(vt->length > 1){ // local def
-                        var_existed = false;
-                        // var_index = -1;
-                        frame = vt->frames[vt->length - 1];
-                        for (j = frame->length - 1; j >= 0; j--) {
-                            if (frame->var_names[j] == NULL) {
-                                continue;
-                            }
-                            if (str_eq(var_name->data.String.v,
-                                       frame->var_names[j])) {
-                                printf("DEFINITION ERROR: variable: %s already defined\n", var_name->data.String.v);
-                                return;
-                            }
-                        }
-                        if(var_existed == false)
-                            VT_push(vt, vt->length-1, var_name->data.String.v);
-                        if (var_value->type == PAIR &&
-                            (str_eq(car(var_value)->data.String.v,
-                                   "lambda")
-                             || str_eq(car(var_value)->data.String.v,
-                                       "fn"))) {
-                                parent_func_name = var_name->data.String.v;
-                            }
-                        // compile value
-                        compiler(insts,
-                                 var_value,
-                                 vt,
-                                 tail_call_flag,
-                                 parent_func_name,
-                                 function_for_compilation,
-                                 env,
-                                 mt,
-                                 module);
-                        // add instruction
-                        Insts_push(insts, SET_TOP << 12);
-                        Insts_push(insts, vt->frames[vt->length - 1]->length - 1);
-                        goto def_free_splitted;
+                var_existed = false;
+                // var_index = -1;
+                frame = vt->frames[vt->length - 1];
+                for (j = frame->length - 1; j >= 0; j--) {
+                    if (frame->var_names[j] == NULL) {
+                        continue;
                     }
-                    else{ // global. so use current module to store that variable
-                        current_module = module;
-                        goto def_check_variable_in_module;
+                    if (str_eq(var_name->data.String.v,
+                               frame->var_names[j])) {
+                        printf("DEFINITION ERROR: variable: %s already defined\n", var_name->data.String.v);
+                        return;
                     }
                 }
-                else{ /* module */
-                    if (vt->length > 1) {
-                        printf("DEFINITION ERROR: it is not allowed to define module variable in local scope ;( \n");
-                        goto def_free_splitted;
-                    }
-                    Module * m = module;
-                    for (i = 0; i < n - 1; i++) {
-                        int find_module = 0;
-                        m = m->children_modules_list; // get children
-                        while (m != NULL) {
-                            if (str_eq(splitted_[i], m->module_as_name)) {
-                                find_module = true; // find module
-                                break;
-                            }
-                            m = m->next; // check next
-                        }
-                        if (find_module) {
-                            continue;
-                        }
-                        // didn't find corresponding module
-                        printf("DEFINITION ERROR: didn't find corresponding module: %s in: %s\n", splitted_[i], var_name->data.String.v);
-                        goto def_free_splitted;
-                    }
-                    
-                    // save variable to module
-                    current_module = m;
-                    
-                def_check_variable_in_module:;
-                    // find module.
-                    Variable_Table_Frame * f = vt->frames[0]; // get global frames
-                    /* check variable existed */
-                    for (i = 0; i < *(current_module->length); i++) {
-                        if (str_eq(f->var_names[current_module->vtf_offset[i]], splitted_[n - 1])) {
-                            // find corresponding variable
-                            printf("DEFINITION ERRROR: variable: %s in: %s is already defined\n", splitted_[n - 1], var_name->data.String.v);
-                            goto def_free_splitted;
-                        }
-                    }
-                    
-                    // save that variable to that module
-                    Module_pushVarOffset(current_module, f->length); // save offset to module
-                    VT_push(vt, 0, splitted_[n - 1]); // push to vt
-                    
-                    if (var_value->type == PAIR &&
-                        (str_eq(car(var_value)->data.String.v,
-                                "lambda")
-                         || str_eq(car(var_value)->data.String.v,
-                                   "fn"))) {
-                            parent_func_name = var_name->data.String.v;
-                        }
-                    // compile value
-                    compiler(insts,
-                             var_value,
-                             vt,
-                             tail_call_flag,
-                             parent_func_name,
-                             function_for_compilation,
-                             env,
-                             mt,
-                             module);
-                    // add instruction
-                    Insts_push(insts, SET_TOP << 12);
-                    Insts_push(insts, vt->frames[vt->length - 1]->length - 1);
-                    
-                }
-            def_free_splitted: // free char* in splitted_ and return.
-                for (i = 0; i < n; i++) {
-                    free(splitted_[i]);
-                }
+                if(var_existed == false)
+                    VT_push(vt, vt->length-1, var_name->data.String.v);
+                if (var_value->type == PAIR &&
+                    (str_eq(car(var_value)->data.String.v,
+                            "lambda")
+                     || str_eq(car(var_value)->data.String.v,
+                               "fn"))) {
+                         parent_func_name = var_name->data.String.v;
+                     }
+                // compile value
+                compiler(insts,
+                         var_value,
+                         vt,
+                         tail_call_flag,
+                         parent_func_name,
+                         function_for_compilation,
+                         env,
+                         mt);
+                // add instruction
+                Insts_push(insts, SET_TOP << 12);
+                Insts_push(insts, vt->frames[vt->length - 1]->length - 1);
                 return;
             }
             else if(str_eq(tag, "set!")){
@@ -820,8 +717,7 @@ void compiler(Instructions * insts,
                              parent_func_name,
                              function_for_compilation,
                              env,
-                             mt,
-                             module);
+                             mt);
                     Object_free(temp_);
                     return;
                 }
@@ -829,7 +725,7 @@ void compiler(Instructions * insts,
                 // change value of a variable
                 var_name = cadr(l);
                 var_value = caddr(l);
-                VT_find(vt, var_name->data.String.v, vt_find, module);
+                VT_find(vt, var_name->data.String.v, vt_find);
                 if (vt_find[0] == -1) {
                     printf("ERROR: undefined variable %s \n", var_name->data.String.v);
                     return;
@@ -849,8 +745,7 @@ void compiler(Instructions * insts,
                              parent_func_name,
                              function_for_compilation,
                              env,
-                             mt,
-                             module);
+                             mt);
                     Insts_push(insts, SET << 12 | (0x0FFF & vt_find[0])); // frame_index
                     
                     Insts_push(insts, vt_find[1]); // value index
@@ -859,215 +754,11 @@ void compiler(Instructions * insts,
             }
             /*
              *  special builtin macro: load
-             *  (load "list") ; will load list.wa file with module NULL
-             *  (load "list" as "list") load file with module: list
+             *  load file, return the last value in that file
+             *
              */
             else if (str_eq(tag, "load")){
-                if (vt->length != 1) {
-                    printf("ERROR: load invalid place\n");
-                    return;
-                }
-                else{
-                    char * file_name = NULL;
-                    char abs_path[256];
-                    Module * load_module;
-                    char module_loaded_flag = 0; // check module loaded or not
-                    char * content = NULL;
-                    char module_as_name_[256];// module name max length = 255
-                    
-                    if (cadr(l)->type == PAIR && str_eq(car(cadr(l))->data.String.v, "quote")) {
-                        file_name = malloc(sizeof(char) * (256)); // max 256
-                        strcpy(file_name, cadr(cadr(l))->data.String.v);
-                    }
-                    else{
-                        file_name = format_string(cadr(l)->data.String.v);
-                    }
-                    uint64_t file_name_length = strlen(file_name);
-                    FILE *file;
-                    // check . existed
-                    if (file_name_length > 3 &&
-                        file_name[file_name_length - 1] == 'a' &&
-                        file_name[file_name_length - 2] == 'w' &&
-                        file_name[file_name_length - 3] == '.') {
-                        // read content from file
-                        file = fopen(file_name,"r");
-                        
-                        if(file == NULL){
-                            printf("ERROR: Failed to load %s\n", file_name);
-                            goto LOAD_DONE; // fail to read
-                        }
-                        
-                        // get absolute path
-                        realpath(file_name, abs_path);
-                    }
-                    else{
-                        char temp_file_name[file_name_length + 5];
-                        strcpy(temp_file_name, file_name);
-                        strcat(temp_file_name, ".wa");
-                        // read content from file
-                        file = fopen(temp_file_name, "r");
-                        
-                        if(file == NULL){
-                            printf("ERROR: Failed to load %s\n", file_name);
-                            goto LOAD_DONE; // fail to read
-                        }
-                        
-                        // get absolute path
-                        realpath(temp_file_name, abs_path);
-                    }
-                    
-                    /*
-                     * check module already loaded
-                     *
-                     */
-                    load_module = Module_loaded(GLOBAL_MODULE, abs_path); // check from global module
-                    if (load_module) {
-                        // printf("Module Already Loaded %s\n", abs_path);
-                        module_loaded_flag = 1; // already loaded
-                    }
-                    else{
-                        // printf("Module not loaded %s\n", abs_path);
-                        module_loaded_flag = 0; // not loaded
-                    }
-                    
-                    // check namespace
-                    if (cddr(l) != GLOBAL_NULL) {
-                        // (load 'test as 'test)
-                        if (str_eq(caddr(l)->data.String.v, "as")) {
-                            // get module name name
-                            if (cadddr(l)->type == PAIR && str_eq(car(cadddr(l))->data.String.v, "quote")) {
-                                strcpy(module_as_name_, cadr(cadddr(l))->data.String.v);
-                            }
-                            else{
-                                string = format_string(cadddr(l)->data.String.v);
-                                strcpy(module_as_name_, string);
-                                free(string);
-                            }
-                            /*
-                             * check as_name existed to prevent repeat
-                             */
-                            Module * children = module->children_modules_list;
-                            while (children!=NULL) {
-                                if (str_eq(module_as_name_, children->module_as_name)) {
-                                    printf("LOAD ERROR: module as name %s is already used\n", children->module_as_name);
-                                    printf("You are tring to load module %s\n", abs_path);
-                                    goto LOAD_DONE;
-                                }
-                                children = children->next;
-                            }
-                            
-                            if (module_loaded_flag == 0) { // not loaded
-                                load_module = Module_init(module_as_name_); // init load module
-                            }
-                            else{ // already loaded
-                                load_module = Module_copyWithNewAsName(load_module, module_as_name_);
-                                strcpy(load_module->module_abs_path, abs_path);
-                                Module_appendChild(module, load_module); // append to current module.
-                                goto LOAD_DONE;
-                            }
-                            
-                            goto LOAD_MODULE;
-                        }
-                        else if (str_eq(caddr(l)->data.String.v, "all")){
-                            // read content
-                            fseek(file, 0, SEEK_END);
-                            int64_t size = ftell(file);
-                            rewind(file);
-                            content = calloc(size + 1, 1);
-                            fread(content,1,size,file);
-                            fclose(file); // 不知道要不要加上这个
-                            
-                            Lexer * p;
-                            Object * o;
-                            p = lexer(content);
-                            o = parser(p);
-                            compiler_begin(insts,
-                                           o,
-                                           vt,
-                                           NULL,
-                                           NULL,
-                                           0,
-                                           env,
-                                           mt,
-                                           module);
-                        }
-                        else{
-                            printf("ERROR: load invalid args\n");
-                            printf("%s\n", to_string(l));
-                            free(file_name);
-                            free(content);
-                            return;
-                        }
-                    }
-                    else{
-                        // module as name is file_name
-                        /*
-                         * todo: 这里以后得改， 不能是file_name， 而应该是 file_name 最后"/" 之后的
-                         */
-                        /*
-                         * check as_name existed to prevent repeat
-                         */
-                        Module * children = module->children_modules_list;
-                        while (children!=NULL) {
-                            if (str_eq(file_name, children->module_as_name)) {
-                                printf("LOAD ERROR: module as name %s is already used\n", children->module_as_name);
-                                printf("You are tring to load module %s\n", abs_path);
-                                goto LOAD_DONE;
-                            }
-                            children = children->next;
-                        }
-                        if (module_loaded_flag == 0) { // not loaded
-                            // strcpy(module_as_name_, file_name);
-                            load_module = Module_init(file_name); // init load module
-                        }
-                        else{ // already loaded
-                            load_module = Module_copyWithNewAsName(load_module, file_name);
-                            strcpy(load_module->module_abs_path, abs_path);
-                            Module_appendChild(module, load_module); // append to current module.
-                            goto LOAD_DONE;
-                        }
-                        
-                    LOAD_MODULE:
-                        // set abs_path
-                        strcpy(load_module->module_abs_path, abs_path);
-                        
-                        // read content
-                        fseek(file, 0, SEEK_END);
-                        int64_t size = ftell(file);
-                        rewind(file);
-                        content = calloc(size + 1, 1);
-                        fread(content,1,size,file);
-                        fclose(file); // 不知道要不要加上这个
-                        
-                        
-                        Lexer * p;
-                        Object * o;
-                        p = lexer(content);
-                        o = parser(p);
-                        
-                        // 必须放在 compiler_begin 之前
-                        Module_appendChild(module, load_module); // add to module children list
-                        
-                        compiler_begin(insts,
-                                       o,
-                                       vt,
-                                       NULL,
-                                       NULL,
-                                       0,
-                                       env,
-                                       mt,
-                                       load_module);
-                    }
-                    
-                LOAD_DONE:
-                    if (file_name) {
-                        free(file_name);
-                    }
-                    if (content) {
-                        free(content);
-                    }
-                    return;
-                }
+                
             }
             // (if test conseq alter)
             else if (str_eq(tag, "if")){
@@ -1082,8 +773,7 @@ void compiler(Instructions * insts,
                          parent_func_name,
                          function_for_compilation,
                          env,
-                         mt,
-                         module);
+                         mt);
                 // push test, but now we don't know jump steps
                 Insts_push(insts, TEST << 12); // jump over consequence
                 index1 = insts->length;
@@ -1099,8 +789,7 @@ void compiler(Instructions * insts,
                                function_for_compilation,
                                false, // cannot eval
                                env,
-                               mt,
-                               module);
+                               mt);
                 //printf("\n@ %ld\n", insts->length);
                 
                 index2 = insts->length;
@@ -1118,8 +807,7 @@ void compiler(Instructions * insts,
                                function_for_compilation,
                                /*vt->length == 1 ? true :*/false,
                                env,
-                               mt,
-                               module);
+                               mt);
                 
                 index3 = insts->length;
                 jump_steps = index3 - index2;
@@ -1149,8 +837,7 @@ void compiler(Instructions * insts,
                                function_for_compilation,
                                false,
                                env,
-                               mt,
-                               module);
+                               mt);
                 return;
             }
             else if (str_eq(tag, "let")){
@@ -1199,8 +886,7 @@ void compiler(Instructions * insts,
                          parent_func_name,
                          function_for_compilation,
                          env,
-                         mt,
-                         module);
+                         mt);
                 Object_free(temp);
                 return;
             }
@@ -1266,8 +952,7 @@ void compiler(Instructions * insts,
                                function_,
                                false,
                                env,
-                               mt_,
-                               module);
+                               mt_);
                 // return
                 Insts_push(insts, RETURN << 12);
                 index2 = insts->length;
@@ -1343,32 +1028,6 @@ void compiler(Instructions * insts,
                 frame->length+=1;
                 return;
             }
-            /* 
-             * define module 
-             * eg : (defmodule list)
-             *    : (def list/module_version 0.01)
-             *    : (def list/module_author 0.02)
-             *
-             */
-            else if(str_eq(tag, "defmodule")){
-                char * module_name = cadr(l)->data.String.v;
-                /*
-                 *  check whether module_name already existed in current module
-                 */
-                Module * children = module->children_modules_list;
-                while (children!=NULL) {
-                    if (str_eq(module_name, children->module_as_name)) {
-                        printf("DEFMODULE ERROR: you are trying to define module: %s, which is already existed\n", module_name);
-                        return;
-                    }
-                    children = children->next;
-                }
-                Module * new_module = Module_init(module_name);
-                strcpy(new_module->module_abs_path, module->module_abs_path);
-                // add to current module children list
-                Module_appendChild(module, new_module);
-                return;
-            }
             // call function
             else{
                 // check is macro
@@ -1379,8 +1038,7 @@ void compiler(Instructions * insts,
                                                                        cdr(l),
                                                                        mt,
                                                                        env,
-                                                                       insts,
-                                                                       module);
+                                                                       insts);
                         compiler(insts,
                                  expand,
                                  vt,
@@ -1388,8 +1046,7 @@ void compiler(Instructions * insts,
                                  parent_func_name,
                                  function_for_compilation,
                                  env,
-                                 mt,
-                                 module);
+                                 mt);
                         Object_free(expand);
                         return;
                     }
@@ -1422,8 +1079,7 @@ void compiler(Instructions * insts,
                                  parent_func_name,
                                  function_for_compilation,
                                  env,
-                                 mt,
-                                 module); // compile that one parameter
+                                 mt); // compile that one parameter
                         
                         // set tp current frame
                         Insts_push(insts, (SET << 12) | (vt->length - 1)); // frame index
@@ -1448,8 +1104,7 @@ void compiler(Instructions * insts,
                                      parent_func_name,
                                      function_for_compilation,
                                      env,
-                                     mt,
-                                     module); // each argument is not tail call
+                                     mt); // each argument is not tail call
                             
                             Object_free(p);
                             
@@ -1470,8 +1125,7 @@ void compiler(Instructions * insts,
                                      parent_func_name,
                                      function_for_compilation,
                                      env,
-                                     mt,
-                                     module); // this argument is not tail call
+                                     mt); // this argument is not tail call
                             // set to current frame
                             //Insts_push(insts, (SET << 12) | (vt->length - 1)); // frame index
                             // 这里不能用 SET_OP, 因为stack的size会一直增长。。。
@@ -1538,8 +1192,7 @@ void compiler(Instructions * insts,
                              parent_func_name,
                              function_for_compilation,
                              env,
-                             mt,
-                             module); // compile lambda, save to accumulator
+                             mt); // compile lambda, save to accumulator
                     Insts_push(insts, NEWFRAME << 12); // create new frame
                     // compile paremeters
                     int32_t param_num = 0;
@@ -1563,8 +1216,7 @@ void compiler(Instructions * insts,
                                  parent_func_name,
                                  function_for_compilation,
                                  env,
-                                 mt,
-                                 module);// each argument is not tail call
+                                 mt);// each argument is not tail call
                         Insts_push(insts, PUSH_ARG << 12);
                     }
                     Insts_push(insts, (CALL << 12) | (0x0FFF & param_num));
@@ -1572,7 +1224,8 @@ void compiler(Instructions * insts,
                 }
             }
         default:
-            printf("ERROR: Invalid Data\n");
+            
+            printf("ERROR: Invalid Data\n%s\n",to_string(l));
             return;
             break;
     }
@@ -1587,8 +1240,7 @@ Object * compiler_begin(Instructions * insts,
                         Lambda_for_Compilation * function_for_compilation,
                         int32_t eval_flag,
                         Environment * env,
-                        MacroTable * mt,
-                        Module * module){
+                        MacroTable * mt){
     
     Object * acc = GLOBAL_NULL;
     Object * l_ = l; // make a copy of l, so that we can free it later
@@ -1605,8 +1257,7 @@ Object * compiler_begin(Instructions * insts,
                      NULL,
                      function_for_compilation,
                      env,
-                     mt,
-                     module);
+                     mt);
         }
         else{
             compiler(insts,
@@ -1616,8 +1267,7 @@ Object * compiler_begin(Instructions * insts,
                      parent_func_name,
                      function_for_compilation,
                      env,
-                     mt,
-                     module);
+                     mt);
         }
         l = cdr(l);
         

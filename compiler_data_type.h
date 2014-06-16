@@ -34,7 +34,6 @@
 #define OBJECT_GET_PARENT 0xD
 #define TABLE_GET 0xE
 
-static Module * GLOBAL_MODULE;
 
 /*
     construct Instructions data type
@@ -166,12 +165,12 @@ Variable_Table * VT_init(){
     VT_push(vt, 0, "-");                    // global 4
     VT_push(vt, 0, "*");                    // global 5
     VT_push(vt, 0, "/");                    // global 6
-    VT_push(vt, 0, "vector!");              // global 7
-    VT_push(vt, 0, "vector");               // global 8
-    VT_push(vt, 0, "length");               // vector 9
+    VT_push(vt, 0, "Vector!");              // global 7
+    VT_push(vt, 0, "Vector");               // global 8
+    VT_push(vt, 0, "vector-length");               // vector 9
     
-    VT_push(vt, 0, "push!");                // vector 10
-    VT_push(vt, 0, "pop!");                 // vector 11
+    VT_push(vt, 0, "vector-push!");                // vector 10
+    VT_push(vt, 0, "vector-pop!");                 // vector 11
     VT_push(vt, 0, "=");                    // global 12
     VT_push(vt, 0, "<");                    // global 13
     VT_push(vt, 0, "<=");                   // global 14
@@ -184,55 +183,55 @@ Variable_Table * VT_init(){
     VT_push(vt, 0, "parse"); // 20          // global 20
     VT_push(vt, 0, "random"); // 21         // global 21
     VT_push(vt, 0, "strcmp");               // global 22
-    VT_push(vt, 0, "slice");                // string 23
-    VT_push(vt, 0, "length");               // string 24
-    VT_push(vt, 0, "append");               // string 25
+    VT_push(vt, 0, "string-slice");                // string 23
+    VT_push(vt, 0, "string-length");               // string 24
+    VT_push(vt, 0, "string-append");               // string 25
     VT_push(vt, 0, "table");                // global 26
-    VT_push(vt, 0, "keys");                 // table  27
-    VT_push(vt, 0, "delete");               // table  28
-    VT_push(vt, 0, "read");                 // file   29
+    VT_push(vt, 0, "table-keys");                 // table  27
+    VT_push(vt, 0, "table-delete");               // table  28
+    VT_push(vt, 0, "file-read");                 // file   29
     
-    VT_push(vt, 0, "write");                // file 30
-    VT_push(vt, 0, "argv");                 // sys  31
-    VT_push(vt, 0, "->string");             // int  32
+    VT_push(vt, 0, "file-write");                // file 30
+    VT_push(vt, 0, "sys-argv");                 // sys  31
+    VT_push(vt, 0, "float->string");             // int  32
     VT_push(vt, 0, "->string");             // float  33
     VT_push(vt, 0, "input");                // global 34
     VT_push(vt, 0, "print");                // global 35
-    VT_push(vt, 0, "->int");                // string 36
-    VT_push(vt, 0, "->float");              // string 37
+    VT_push(vt, 0, "string->int");                // string 36
+    VT_push(vt, 0, "string->float");              // string 37
     VT_push(vt, 0, "ratio?");               // global 38
-    VT_push(vt, 0, "numer");                // ratio  39
+    VT_push(vt, 0, "ratio-numer");                // ratio  39
 
-    VT_push(vt, 0, "denom");                // ratio  40
+    VT_push(vt, 0, "ratio-denom");                // ratio  40
     VT_push(vt, 0, "gensym");               // global 41
-    VT_push(vt, 0, "add-tag");              // table  42
-    VT_push(vt, 0, "tag");                  // table  43
+    VT_push(vt, 0, "add-proto");              // global  42
+    VT_push(vt, 0, "proto");                  // global  43
     VT_push(vt, 0, "typeof");  // 44        // global 44
-    VT_push(vt, 0, "cos");  // 45           // math   45
-    VT_push(vt, 0, "sin");                  // math   46
-    VT_push(vt, 0, "tan");                  // math   47
-    VT_push(vt, 0, "acos");                 // math   48
-    VT_push(vt, 0, "asin");                 // math   49
+    VT_push(vt, 0, "math-cos");  // 45           // math   45
+    VT_push(vt, 0, "math-sin");                  // math   46
+    VT_push(vt, 0, "math-tan");                  // math   47
+    VT_push(vt, 0, "math-acos");                 // math   48
+    VT_push(vt, 0, "math-asin");                 // math   49
     
-    VT_push(vt, 0, "atan");  // 50          // math   50
-    VT_push(vt, 0, "cosh");  // 51          // math   51
-    VT_push(vt, 0, "sinh");  // 52          // math   52
-    VT_push(vt, 0, "tanh");  // 53          // math   53
-    VT_push(vt, 0, "log");  // 54           // math   54
-    VT_push(vt, 0, "exp");  // 55           // math   55
-    VT_push(vt, 0, "log10");  // 56         // math   56
-    VT_push(vt, 0, "pow");  // 57           // math   57
-    VT_push(vt, 0, "sqrt");  // 58          // math   58
-    VT_push(vt, 0, "ceil");  // 59          // math   59
+    VT_push(vt, 0, "math-atan");  // 50          // math   50
+    VT_push(vt, 0, "math-cosh");  // 51          // math   51
+    VT_push(vt, 0, "math-sinh");  // 52          // math   52
+    VT_push(vt, 0, "math-tanh");  // 53          // math   53
+    VT_push(vt, 0, "math-log");  // 54           // math   54
+    VT_push(vt, 0, "math-exp");  // 55           // math   55
+    VT_push(vt, 0, "math-log10");  // 56         // math   56
+    VT_push(vt, 0, "math-pow");  // 57           // math   57
+    VT_push(vt, 0, "math-sqrt");  // 58          // math   58
+    VT_push(vt, 0, "math-ceil");  // 59          // math   59
 
-    VT_push(vt, 0, "floor");  // 60         // math   60
-    VT_push(vt, 0, "find");  // 61          // string 61
-    VT_push(vt, 0, "replace");  // 62       // string 62
+    VT_push(vt, 0, "math-floor");  // 60         // math   60
+    VT_push(vt, 0, "string-find");  // 61          // string 61
+    VT_push(vt, 0, "string-replace");  // 62       // string 62
     VT_push(vt, 0, "apply");   // 63        // global 63
-    VT_push(vt, 0, "slice"); // 64          // vector 64
+    VT_push(vt, 0, "vector-slice"); // 64          // vector 64
     VT_push(vt, 0, "set-car!"); // 65       // global 65
     VT_push(vt, 0, "set-cdr!"); // 66       // global 66
-    VT_push(vt, 0, "cmd"); // 67            // sys 67
+    VT_push(vt, 0, "sys-cmd"); // 67            // sys 67
     // VT_push(vt, 0, "Object"); // 68         // global 68
     return vt;
 }
@@ -444,285 +443,26 @@ MacroTable * MT_copy(MacroTable * mt){
 }
 
 
-/*
- *   construct Module data structure
- *   定义模块结构
- *
- */
-struct Module{
-    char * module_as_name;              // 但前所在的module的 as_name
-    Module * children_modules_list;     // 当前module中load的所有modules
-    Module * next;                      // 下一个 module
-    /*
-     *  例如 (def x 2) (def y 3)
-     *  vtf_offset [1, 2]   length 2
-     *  例如 (def x 2) (def y 3) (load blabla后vtf断了) (def z 4)
-     *  vtf_offset [1, 2, 12]  length 3
-     *  找变量名的时候根据 vtf_offset 从 GLOBAL Variable Frame 中找
-     */
-    uint16_t * vtf_offset;          // variable table frame的开始offset, 最多存256个？
-    // use pointer because they might be shared by the same module with different as name
-    uint16_t * length;                   // length of vtf_offset
-    uint16_t * size;
-    
-    char module_abs_path[256]; // abs path
-};
 
-/*
- *
- *  initialize Module data structure
- *
- */
-Module * Module_init(char * module_as_name){
-    Module * m = malloc(sizeof(Module));
-    if (module_as_name == NULL) {
-        m->module_as_name = NULL;
-    }
-    else{
-        m->module_as_name = malloc(sizeof(char) * (strlen(module_as_name) + 1));
-        strcpy(m->module_as_name, module_as_name);
-    }
-    m->children_modules_list = NULL;
-    m->next = NULL;
-    m->size = malloc(sizeof(uint16_t));
-    *(m->size) = 8;
-    m->length = malloc(sizeof(uint16_t));
-    *(m->length) = 0;
-    m->vtf_offset = malloc(sizeof(uint16_t) * (*(m->size)));
-    
-    return m;
-}
-
-
-/*
- * push offset
- */
-void Module_pushVarOffset(Module * m, uint16_t offset){
-    if (*(m->size) == *(m->length)) { // reach max size
-        *(m->size) *= 2;
-        m->vtf_offset = (uint16_t*)realloc(m->vtf_offset, sizeof(uint16_t)* (*(m->size)));
-    }
-    m->vtf_offset[*(m->length)] = offset;
-    (*(m->length))++;
-}
-/*
- * copy module with new as name
- * attention: module_abs_path is not initialized here
- */
-Module * Module_copyWithNewAsName(Module * module, char * new_as_name){
-    Module * copy = malloc(sizeof(Module));
-    if (new_as_name == NULL) { // setup module_as_name
-        copy->module_as_name = NULL;
-    }
-    else{
-        copy->module_as_name = malloc(sizeof(char) * (strlen(new_as_name) + 1));
-        strcpy(copy->module_as_name, new_as_name);
-    }
-    copy->children_modules_list = module->children_modules_list; // point to same children
-    copy->next = module->next; // same next
-    copy->size = module->size; // same size
-    copy->length = module->length; // same length
-    copy->vtf_offset = module->vtf_offset; // same vtf_offset
-    return copy;
-}
-
-/*
- *
- * append child to children list
- *
- */
-void Module_appendChild(Module * m, Module * child){
-    child->next = m->children_modules_list;
-    m->children_modules_list = child;
-    return;
-}
-
-/*
- *
- *
- *  free current module and all its children and brothers
- *
- *
- */
-void Module_free(Module * m){
-    /* todo later */
-}
-/*
- *
- *
- * check module is already loaded
- * if yes: return that module
- * else  : return NULL
- *
- */
-Module * Module_loaded(Module * module, char * check_file_path){
-    if (module == NULL) {
-        return NULL;
-    }
-    if (str_eq(check_file_path, module->module_abs_path)) {
-        return module;
-    }
-    
-    // check children
-    Module * m = module->children_modules_list;
-    Module * r;
-    while (m != NULL) {
-        r = Module_loaded(m, check_file_path);
-        if (r) {
-            return r;
-        }
-        m = m->next;
-    }
-    return NULL;
-}
-
-void string_split_for_module(char * input_string, char * splitted_[128], int32_t * n_){
-    uint32_t n = 0; // split length
-    int32_t j, start, k;
-    char * t;
-    if (str_eq(input_string, "/")) { // check "/"  eg: (/ 3 4)
-        *n_ = 1;
-        splitted_[0] = malloc(sizeof(char) * 2);
-        strcpy(splitted_[0], "/");
-        return;
-    }
-    /*
-     *  split var_name. eg string/add splits to ["string", "add"]
-     */
-    start = 0;
-    // split string
-    for(j = 0; j < (uint32_t)strlen(input_string); j++){
-        if(input_string[j] == '/'){
-            /*char */ t = (char*)malloc(sizeof(char)*(j - start + 1));
-            for(k = start; k < j; k++){
-                t[k-start] = input_string[k];
-            }
-            t[k-start] = 0;
-            start = j+1;
-            splitted_[n] = t;
-            n++; // increase size
-        }
-    }
-    // append last
-    t = (char*)malloc(sizeof(char)*(j - start + 1));
-    for(k = start; k < j; k++){
-        t[k-start] = input_string[k];
-    }
-    t[k-start] = 0;
-    splitted_[n] = t;
-    n++; // increase size
-    
-    *n_ = n++;
-    return;
-}
-
-void VT_find(Variable_Table * vt, char * var_name, int32_t output[2], Module * module){
-    char * splitted_[128];
-    int32_t n = 0; // split length
+void VT_find(Variable_Table * vt, char * var_name, int32_t output[2]){
     int32_t i, j;
-    /*
-     *  split var_name. eg string/add splits to ["string", "add"]
-     */
-    string_split_for_module(var_name, splitted_, &n);
-    
-    /*
-    printf("# VT_find\n");
-    for (i = 0; i < n; i++) {
-        printf("%s \n", splitted_[i]);
-    }
-    */
-    
-    /*
-     *   get index
-     *   global or local
-     */
-    if (n == 1) {
-        Variable_Table_Frame * frame;
-        // check local
-        for (i = vt->length - 1; i >= 1; i--) {
-            frame = vt->frames[i];
-            for (j = frame->length-1; j >= 0; j--) {
-                if (frame->var_names[j] == NULL) {
-                    continue;
-                }
-                if(str_eq(frame->var_names[j], var_name)){
-                    output[0] = i;
-                    output[1] = j;
-                    goto free_splitted;
-                }
+    Variable_Table_Frame * frame;
+    // check local
+    for (i = vt->length - 1; i >= 0; i--) {
+        frame = vt->frames[i];
+        for (j = frame->length-1; j >= 0; j--) {
+            if (frame->var_names[j] == NULL) {
+                continue;
+            }
+            if(str_eq(frame->var_names[j], var_name)){
+                output[0] = i;
+                output[1] = j;
+                return;
             }
         }
-        /*
-         *  必须得先检查自己， 在检查 global 。。。
-         *
-         */
-        // check current module
-        Variable_Table_Frame * f = vt->frames[0]; // get global frames
-        for (i = 0; i < *(module->length); i++) {
-            if (str_eq(f->var_names[module->vtf_offset[i]], splitted_[n - 1])) {
-                // find corresponding variable
-                output[0] = 0;
-                output[1] = module->vtf_offset[i];
-                goto free_splitted;
-            }
-        }
-        
-        // check global
-        module = GLOBAL_MODULE;
-        goto check_variable_in_module;
-        
-        output[0] = -1;
-        output[1] = -1;
-        goto free_splitted;
     }
-    /*
-     * module
-     */
-    for (i = 0; i < n - 1; i++) {
-        int find_module = 0;
-        module = module->children_modules_list; // get children
-        while (module != NULL) {
-            if (str_eq(splitted_[i], module->module_as_name)) {
-                find_module = true; // find module
-                break;
-            }
-            module = module->next; // check next
-        }
-        if (find_module) {
-            continue;
-        }
-        // didn't find corresponding module
-        // printf("ERROR: didn't find corresponding module: %s in: %s\n", splitted_[i], var_name);
-        output[0] = -1;
-        output[1] = -1;
-        goto free_splitted;
-    }
-    /*
-     *
-     * todo: global/x problem. support global module.现在不支持
-     *
-     */
-check_variable_in_module:;
-    // find module.
-    Variable_Table_Frame * f = vt->frames[0]; // get global frames
-    for (i = 0; i < *(module->length); i++) {
-        if (str_eq(f->var_names[module->vtf_offset[i]], splitted_[n - 1])) {
-            // find corresponding variable
-            output[0] = 0;
-            output[1] = module->vtf_offset[i];
-            goto free_splitted;
-        }
-    }
-    // didn't find corresponding module
-    // printf("ERROR: didn't find corresponding variable: %s in: %s\n", splitted_[n - 1], var_name);
     output[0] = -1;
     output[1] = -1;
-    
-
-free_splitted: // free char* in splitted_ and return.
-    for (i = 0; i < n; i++) {
-        free(splitted_[i]);
-    }
     return;
 }
 

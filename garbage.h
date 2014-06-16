@@ -81,6 +81,7 @@ void Object_free(Object * o){
                         }
                     }
                 }
+                Object_free(o->data.Table.proto);
                 free(o->data.Table.vec); // free table vector
                 free(o);
                 return;

@@ -30,8 +30,6 @@ static Variable_Table * GLOBAL_VARIABLE_TABLE;
 static Environment * GLOBAL_ENVIRONMENT;
 static MacroTable * GLOBAL_MACRO_TABLE;
 
-// static Module * GLOBAL_MODULE; // 放到 compiler_data_type.h 里面了
-
 Environment *createEnvironment(); // init env
 
 /*
@@ -175,149 +173,6 @@ void Walley_init(){
     GLOBAL_VARIABLE_TABLE = VT_init();
     GLOBAL_ENVIRONMENT = createEnvironment();
     GLOBAL_MACRO_TABLE = MT_init();
-    
-    // init global module
-    GLOBAL_MODULE = Module_init("global"); //Module_initializeGlobalModule();
-    GLOBAL_MODULE->next = NULL;
-    strcpy(GLOBAL_MODULE->module_abs_path, "global");
-    // register global module
-    Module_pushVarOffset(GLOBAL_MODULE, 0); // cons
-    Module_pushVarOffset(GLOBAL_MODULE, 1); // car
-    Module_pushVarOffset(GLOBAL_MODULE, 2); // cdr
-    Module_pushVarOffset(GLOBAL_MODULE, 3); // +
-    Module_pushVarOffset(GLOBAL_MODULE, 4); // -
-    Module_pushVarOffset(GLOBAL_MODULE, 5); // *
-    Module_pushVarOffset(GLOBAL_MODULE, 6); // /
-    Module_pushVarOffset(GLOBAL_MODULE, 7); // vector!
-    Module_pushVarOffset(GLOBAL_MODULE, 8); // vector
-    Module_pushVarOffset(GLOBAL_MODULE, 12); // =
-    Module_pushVarOffset(GLOBAL_MODULE, 13); // <
-    Module_pushVarOffset(GLOBAL_MODULE, 14); // <=
-    Module_pushVarOffset(GLOBAL_MODULE, 15); // eq?
-    Module_pushVarOffset(GLOBAL_MODULE, 16); // eval
-    Module_pushVarOffset(GLOBAL_MODULE, 17); // exit
-    Module_pushVarOffset(GLOBAL_MODULE, 18); // >
-    Module_pushVarOffset(GLOBAL_MODULE, 19); // >=
-    Module_pushVarOffset(GLOBAL_MODULE, 20); // parse
-    Module_pushVarOffset(GLOBAL_MODULE, 21); // random
-    Module_pushVarOffset(GLOBAL_MODULE, 22); // strcmp
-    Module_pushVarOffset(GLOBAL_MODULE, 26); // table
-    Module_pushVarOffset(GLOBAL_MODULE, 34); // input
-    Module_pushVarOffset(GLOBAL_MODULE, 35); // print
-    Module_pushVarOffset(GLOBAL_MODULE, 38); // ratio?
-    Module_pushVarOffset(GLOBAL_MODULE, 41); // gensym
-    Module_pushVarOffset(GLOBAL_MODULE, 44); // typeof
-    Module_pushVarOffset(GLOBAL_MODULE, 63); // apply
-    Module_pushVarOffset(GLOBAL_MODULE, 65); // set-car!
-    Module_pushVarOffset(GLOBAL_MODULE, 66); // set-cdr!
-    // Module_pushVarOffset(GLOBAL_MODULE, 68); // object
-    
-    // init string module
-    Module * STRING_MODULE = Module_init("string");
-    strcpy(STRING_MODULE->module_abs_path, "string");
-    // register string module
-    Module_pushVarOffset(STRING_MODULE, 23); // slice
-    Module_pushVarOffset(STRING_MODULE, 24); // length
-    Module_pushVarOffset(STRING_MODULE, 25); // append
-    Module_pushVarOffset(STRING_MODULE, 36); // ->int
-    Module_pushVarOffset(STRING_MODULE, 37); // ->float
-    Module_pushVarOffset(STRING_MODULE, 61); // find
-    Module_pushVarOffset(STRING_MODULE, 62); // replace
-    // add to global module
-    Module_appendChild(GLOBAL_MODULE, STRING_MODULE);
-    
-    // init vector module
-    Module * VECTOR_MODULE = Module_init("vector");
-    strcpy(VECTOR_MODULE->module_abs_path, "vector");
-    // register vector module
-    Module_pushVarOffset(VECTOR_MODULE, 9); // length
-    Module_pushVarOffset(VECTOR_MODULE, 10); // push!
-    Module_pushVarOffset(VECTOR_MODULE, 11); // pop!
-    Module_pushVarOffset(VECTOR_MODULE, 64); // slice
-    // add to global module
-    Module_appendChild(GLOBAL_MODULE, VECTOR_MODULE);
-    
-    // init table module
-    Module * TABLE_MODULE = Module_init("table");
-    strcpy(TABLE_MODULE->module_abs_path, "table");
-    // register table module
-    Module_pushVarOffset(TABLE_MODULE, 27); // keys
-    Module_pushVarOffset(TABLE_MODULE, 28); // delete
-    Module_pushVarOffset(TABLE_MODULE, 42); // add-tag
-    Module_pushVarOffset(TABLE_MODULE, 43); // tag
-    // add to global module
-    Module_appendChild(GLOBAL_MODULE, TABLE_MODULE);
-    
-    /*
-     * todo: (def x (file "test1.wa" "r")) do something like that
-     *       (file/read x)
-     *
-     */
-    // init file module
-    Module * FILE_MODULE = Module_init("file");
-    strcpy(FILE_MODULE->module_abs_path, "file");
-    // register file module
-    Module_pushVarOffset(FILE_MODULE, 29); // read
-    Module_pushVarOffset(FILE_MODULE, 30); // write
-    // add to global module
-    Module_appendChild(GLOBAL_MODULE, FILE_MODULE);
-    
-    // init int module
-    Module * INT_MODULE = Module_init("int"); // ->string
-    strcpy(FILE_MODULE->module_abs_path, "int");
-    // register int module
-    Module_pushVarOffset(INT_MODULE, 32);
-    // add to global module
-    Module_appendChild(GLOBAL_MODULE, INT_MODULE);
-    
-    // init int module
-    Module * FLOAT_MODULE = Module_init("float"); // ->string
-    strcpy(FLOAT_MODULE->module_abs_path, "float");
-    // register float module
-    Module_pushVarOffset(FLOAT_MODULE, 33);
-    // add to global module
-    Module_appendChild(GLOBAL_MODULE, FLOAT_MODULE);
-    
-    // init ratio module
-    Module * RATIO_MODULE = Module_init("ratio");
-    strcpy(RATIO_MODULE->module_abs_path, "ratio");
-    // register ratio module
-    Module_pushVarOffset(RATIO_MODULE, 39); // numer
-    Module_pushVarOffset(RATIO_MODULE, 40); // denom
-    // add to global module
-    Module_appendChild(GLOBAL_MODULE, RATIO_MODULE);
-    
-    // init sys module
-    Module * SYS_MODULE = Module_init("sys");
-    strcpy(SYS_MODULE->module_abs_path, "sys");
-    // register sys module
-    Module_pushVarOffset(SYS_MODULE, 31); // argv
-    Module_pushVarOffset(SYS_MODULE, 67);   // cmd
-    // add to global module
-    Module_appendChild(GLOBAL_MODULE, SYS_MODULE);
-    
-    // init math module
-    Module * MATH_MODULE = Module_init("math");
-    strcpy(MATH_MODULE->module_abs_path, "math");
-    // register math module
-    Module_pushVarOffset(MATH_MODULE, 45); // cos
-    Module_pushVarOffset(MATH_MODULE, 46); // sin
-    Module_pushVarOffset(MATH_MODULE, 47); // tan
-    Module_pushVarOffset(MATH_MODULE, 48); // acos
-    Module_pushVarOffset(MATH_MODULE, 49); // asin
-    Module_pushVarOffset(MATH_MODULE, 50); // atan
-    Module_pushVarOffset(MATH_MODULE, 51); // cosh
-    Module_pushVarOffset(MATH_MODULE, 52); // sinh
-    Module_pushVarOffset(MATH_MODULE, 53); // tanh
-    Module_pushVarOffset(MATH_MODULE, 54); // log
-    Module_pushVarOffset(MATH_MODULE, 55); // exp
-    Module_pushVarOffset(MATH_MODULE, 56); // log10
-    Module_pushVarOffset(MATH_MODULE, 57); // pow
-    Module_pushVarOffset(MATH_MODULE, 58); // sqrt
-    Module_pushVarOffset(MATH_MODULE, 59); // ceil
-    Module_pushVarOffset(MATH_MODULE, 60); // floor
-    // add to global module
-    Module_appendChild(GLOBAL_MODULE, MATH_MODULE);
 }
 
 // end walley program
@@ -475,8 +330,8 @@ Environment_Frame *createFrame0(){
     EF_set_builtin_lambda(frame, &builtin_numer);            // ratio
     EF_set_builtin_lambda(frame, &builtin_denom);            // ratio
     EF_set_builtin_lambda(frame, &builtin_gensym);           // global
-    EF_set_builtin_lambda(frame, &builtin_table_add_tag);    // table
-    EF_set_builtin_lambda(frame, &builtin_table_tag);        // table
+    EF_set_builtin_lambda(frame, &builtin_table_add_proto);    // global
+    EF_set_builtin_lambda(frame, &builtin_table_proto);        // global
     EF_set_builtin_lambda(frame, &builtin_typeof);           // global
     EF_set_builtin_lambda(frame, &builtin_cos);              // math
     EF_set_builtin_lambda(frame, &builtin_sin);              // math

@@ -832,16 +832,16 @@ Object * builtin_gensym(Object ** params, uint32_t param_num){
     return Object_initString(buffer, strlen(buffer));
 }
 
-// 42 table-add-tag
-Object * builtin_table_add_tag(Object ** params, uint32_t param_num){
-    params[0]->data.Table.tag = params[1];
+// 42 table-add-proto
+Object * builtin_table_add_proto(Object ** params, uint32_t param_num){
+    params[0]->data.Table.proto = params[1];
     params[1]->use_count += 1;
     return GLOBAL_NULL;
 }
 
-// 43 table-tag
-Object * builtin_table_tag(Object ** params, uint32_t param_num){
-    return params[0]->data.Table.tag;
+// 43 table-proto
+Object * builtin_table_proto(Object ** params, uint32_t param_num){
+    return params[0]->data.Table.proto;
 }
 
 // 44 typeof

@@ -23,7 +23,6 @@ typedef struct Table_Pair Table_Pair;
 typedef struct Environment Environment;
 typedef struct Environment_Frame Environment_Frame;
 
-typedef struct Module Module;
 void Env_free(Environment * env);
 Environment * Env_init_with_size(int size);
 Environment_Frame * EF_init_with_size(int size);
@@ -107,8 +106,7 @@ struct Object {
             uint64_t size;
             uint64_t length;
             Table_Pair **vec; // array to save Table_Pairs
-            Object * tag; // remove this later
-            Object * proto;
+            Object * proto;   // for object
         } Table;
         struct {
             char * v;
@@ -293,7 +291,7 @@ Object * Object_initTable(uint64_t size){
     o->data.Table.length = 0;
     o->data.Table.size = size;
     o->data.Table.vec = calloc(size, sizeof(Table_Pair*));
-    o->data.Table.tag = GLOBAL_NULL;
+    o->data.Table.proto = GLOBAL_NULL;
     o->use_count = 0;
     return o;
 }

@@ -3,7 +3,7 @@
 ;; created by Yiyi Wang 
 ;; Copyright (c) Yiyi Wang. All rights reserved.
 (def walley-core-author 'Yiyi-Wang)
-(def walley-core-version "0.00025")
+(def walley-core-version "0.00026")
 (def walley-language-version "0.3.8473")
 
 (def break 'break)          ;; for foreach function
@@ -58,10 +58,10 @@
 
 
 ;; list macro
-(defmacro list 
+(defmacro List 
   [() ()]
   [(a) `(cons ~a ())]
-  [(a . b) `(cons ~a (list ~@b))])
+  [(a . b) `(cons ~a (List ~@b))])
 
 ;; cond macro
 (defmacro cond 
@@ -100,12 +100,8 @@
     [(macro-name args pattern)
      `(defmacro ~macro-name (~args ~pattern))])
 
-
-
-;; list module
-(defmodule list) ;; make list module
 ;; get the length of the list
-(def list/length
+(def list-length
   (lambda [n]
           (def list-length-iter
             (lambda [n r]
@@ -128,8 +124,8 @@
     (list-slice-remove-head (cdr l)
                             (- start 1))))
 ;; list-slice
-(defn list/slice  [l start end]
-          (set! end (or end (list/length l)))
+(defn list-slice  [l start end]
+          (set! end (or end (list-length l)))
           (list-slice-helper (list-slice-remove-head l start)
                              (- end start)))
 
@@ -140,7 +136,7 @@
   (defn str-iter [b]
     (if (null? b)
     ""
-    (string/append (car b)
+    (string-append (car b)
                    (str-iter (cdr b)))))
   (str-iter b))
 
@@ -150,11 +146,11 @@
   (if (null? b)
     0
     (if (string? b)
-      (string/length b)
+      (string-length b)
       (if (pair? b)
-        (list/length b)
+        (list-length b)
         (if (vector? b)
-          (vector/length b)
+          (vector-length b)
           (error "Function len invalid data type"))))))
 
 
@@ -171,7 +167,7 @@
 (defn string<=? [a b] (<= (strcmp a b) 0))
 
 ;; **
-(def ** math/pow)
+(def ** math-pow)
 
 ;; ########################### LIST ############################
 ;; some functions for list
@@ -183,17 +179,17 @@
 (defn cdddr [x] (cdr (cdr (cdr x))))
 (defn cadddr [x] (car (cdr (cdr (cdr x)))))
 
-(def list/reverse reverse)
-(defn list/ref [l i]
+(def list-reverse reverse)
+(defn list-ref [l i]
   (if (= i 0)
     (car l)
-    (list/ref (cdr l)
+    (list-ref (cdr l)
               (- i 1))))
 
-;; list/append
-;; eg (list/append '(1 2) '(4 5)) => '(1 2 4 5)
-;; eg (list/append '(1 2) 4) => '(1 2 4)
-(defn list/append [l0 l1]
+;; list-append
+;; eg (list-append '(1 2) '(4 5)) => '(1 2 4 5)
+;; eg (list-append '(1 2) 4) => '(1 2 4)
+(defn list-append [l0 l1]
   (defn list-append-iter0 [l0]
     (if (null? l0)
       l1
@@ -204,28 +200,28 @@
     (begin (set! l1 (cons l1 '()))
            (list-append-iter0 l0))))
 ;; list->vector
-(defn list/->vector [l]
+(defn list->vector [l]
   (defn list->vector-iter [l output]
     (if (null? l)
       output
       (list->vector-iter (cdr l) 
-                         (vector/push! output (car l)))))
+                         (vector-push! output (car l)))))
   (list->vector-iter l #[]))
 
 ;; (list-for-each '(1 2 3 4) (lambda [n] (print n)))
-(defn list/foreach [l f]
+(defn list-foreach [l f]
   (if (null? l)
     ()
     (if (eq? (f (car l)) 'break)
       ()
-      (list/foreach (cdr l)
+      (list-foreach (cdr l)
                      f))
     ))
 
 ;; ############## VECTOR ########################
-;; vector/->list
-(defn vector/->list [v]
-  (def length (vector/length v))
+;; vector->list
+(defn vector->list [v]
+  (def length (vector-length v))
   (defn vector->list-iter [v i]
     (if (= i length)
       '()
@@ -234,11 +230,11 @@
                                (+ i 1)))))
   (vector->list-iter v 0))
 
-;; vector/find
+;; vector-find
 ;; find element in vector and return its index
-(defn vector/find [v o start-index]
+(defn vector-find [v o start-index]
   (set! start-index (or start-index 0))
-  (def length (vector/length v))
+  (def length (vector-length v))
   (defn vector-find-iter [i]
     (if (= i length)
       -1 ;; didn't find
@@ -248,11 +244,11 @@
         (vector-find-iter (+ i 1))))) 
   (vector-find-iter start-index))
 
-;; vector/foreach
-;; eg (vector/foreach #[1,2,3,4] (lambda [i] (if (= i 3) break (print i))))
+;; vector-foreach
+;; eg (vector-foreach #[1,2,3,4] (lambda [i] (if (= i 3) break (print i))))
 ;; will print 1 2
-(defn vector/foreach [v f]
-  (def v-length (vector/length v))
+(defn vector-foreach [v f]
+  (def v-length (vector-length v))
   (defn vector-foreach-iter [count]
     (if (= count v-length)
       ()
@@ -262,8 +258,8 @@
   (vector-foreach-iter 0))
 
 ;; table-foreach
-(defn table/foreach [t f]
-  (def keys (table/keys t))
+(defn table-foreach [t f]
+  (def keys (table-keys t))
   (defn table-foreach-iter [keys]
     (if (null? keys)
       ()
@@ -281,20 +277,20 @@
 ;; dictionary => dictionary-foreach
 (defn foreach [value func]
   (def t (typeof value))
-  (cond (eq? t 'pair)   (list/foreach value func)
-        (eq? t 'vector) (vector/foreach value func)
-        (eq? t 'table)  (table/foreach value func)
+  (cond (eq? t 'pair)   (list-foreach value func)
+        (eq? t 'vector) (vector-foreach value func)
+        (eq? t 'table)  (table-foreach value func)
         else (print "ERROR: Function foreach invalid param type")))
 
 ;; slice
 (defn slice [v start end]
   (def t (typeof v))
-  (set! end (or end (cond (eq? t 'pair) (list/length v)
-                          (eq? t 'string) (string/length v)
-                          (eq? t 'vector) (vector/length v))))
-  (cond (eq? t 'pair) (list/slice v start end)
-        (eq? t 'string) (string/slice v start end)
-        (eq? t 'vector) (vector/slice v start end)
+  (set! end (or end (cond (eq? t 'pair) (list-length v)
+                          (eq? t 'string) (string-length v)
+                          (eq? t 'vector) (vector-length v))))
+  (cond (eq? t 'pair) (list-slice v start end)
+        (eq? t 'string) (string-slice v start end)
+        (eq? t 'vector) (vector-slice v start end)
         else ()))
 
 ;; times function
@@ -408,3 +404,69 @@
     (reduce-iter f (cdr l) (- param-num 1) (car l))))
 
 
+
+;; modules
+(def vector 
+  {:length vector-length
+   :push! vector-push!
+   :pop! vector-pop!
+   :slice vector-slice
+   :->list vector->list
+   :find vector-find
+   :vector vector-foreach
+   })
+
+(def list 
+  {:length list-length
+   :slice list-slice
+   :reverse list-reverse
+   :ref list-ref
+   :append list-append
+   :->vector list->vector
+   :foreach list-foreach
+   })
+
+(def string
+  {:slice string-slice
+   :length string-length
+   :append string-append
+   :->int string->int
+   :->float string->float
+   :find string-find
+   :replace string-replace
+   })
+
+(def math 
+  {:cos math-cos
+   :sin math-sin
+   :tan math-tan
+   :acos math-acos
+   :asin math-asin
+   :atan math-atan
+   :cosh math-cosh
+   :sinh math-sinh
+   :tanh math-tanh
+   :log math-log
+   :exp math-exp
+   :log10 math-log10
+   :pow math-pow
+   :sqrt math-sqrt
+   :ceil math-ceil
+   :floor math-floor
+   })
+
+(def ratio 
+  {:numer ratio-numer
+   :denom ratio-denom
+   })
+
+(def file
+  {:read file-read
+   :write file-write
+   })
+
+(def sys
+  {:argv sys-argv
+   :cmd sys-cmd
+   }
+)

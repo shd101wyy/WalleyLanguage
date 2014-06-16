@@ -163,10 +163,10 @@ Lexer* lexer(char * input_string){
             Lexer_push(output_list, "(");
             paren_count++;
             if (input_string[i + 1] == '(') {
-                Lexer_push(output_list, "vector"); // 定长 vector, 长度不可变
+                Lexer_push(output_list, "Vector"); // 定长 vector, 长度不可变
             }
             else{
-                Lexer_push(output_list, "vector!"); // 不定长 vector, 长度可变
+                Lexer_push(output_list, "Vector!"); // 不定长 vector, 长度可变
             }
             i++;
         }

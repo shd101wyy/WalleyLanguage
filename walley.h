@@ -106,7 +106,6 @@ void Walley_Repl(){
     Variable_Table * vt = GLOBAL_VARIABLE_TABLE;
     Environment * env = GLOBAL_ENVIRONMENT;
     MacroTable * mt = GLOBAL_MACRO_TABLE;
-    Module * gm = GLOBAL_MODULE;
     
     /*
      * todo: windows platform
@@ -144,8 +143,7 @@ void Walley_Repl(){
                        NULL,
                        run_eval,
                        env,
-                       mt,
-                       gm);
+                       mt);
         
         /*
          // print parser
@@ -233,7 +231,6 @@ void Walley_Run_File(char * file_name){
     Variable_Table * vt = GLOBAL_VARIABLE_TABLE;
     Environment * env = GLOBAL_ENVIRONMENT;
     MacroTable * mt = GLOBAL_MACRO_TABLE;
-    Module * gm = GLOBAL_MODULE;
     
     
     // run walley_core.wa
@@ -261,8 +258,7 @@ void Walley_Run_File(char * file_name){
                        NULL,
                        run_eval,
                        env,
-                       mt,
-                       gm);
+                       mt);
     
     free(content);
     return;
@@ -377,8 +373,7 @@ Object * Walley_Run_File_for_VM(char * file_name,
                            NULL,
                            run_eval,
                            env,
-                           mt,
-                           GLOBAL_MODULE);
+                           mt);
     
     free(content);
     return return_value;
@@ -403,8 +398,7 @@ Object * Walley_RunString(char * input_string){
                                            NULL,
                                            run_eval,
                                            GLOBAL_ENVIRONMENT,
-                                           GLOBAL_MACRO_TABLE,
-                                           GLOBAL_MODULE);
+                                           GLOBAL_MACRO_TABLE);
     
     return return_value;
 
@@ -483,8 +477,7 @@ void Walley_Compile(char * file_name){
                            NULL,
                            run_eval,
                            env,
-                           mt,
-                           GLOBAL_MODULE);
+                           mt);
     
     free(content);
     
