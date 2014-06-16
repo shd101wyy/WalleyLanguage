@@ -742,7 +742,7 @@ int16_t compiler(Instructions * insts,
                                   "fn")))
                         parent_func_name = var_name->data.String.v;
                     // compile value
-                    compiler(insts,
+                    i = compiler(insts,
                              var_value,
                              vt,
                              tail_call_flag,
@@ -750,8 +750,12 @@ int16_t compiler(Instructions * insts,
                              function_for_compilation,
                              env,
                              mt);
-                    Insts_push(insts, SET << 12 | (0x0FFF & vt_find[0])); // frame_index
                     
+                    if (i == 1) { // new loaded
+                        LOADED_MODULES->offset = vt_find[1]; // save offset
+                    }
+                    
+                    Insts_push(insts, SET << 12 | (0x0FFF & vt_find[0])); // frame_index
                     Insts_push(insts, vt_find[1]); // value index
                     return 0;
                 }
