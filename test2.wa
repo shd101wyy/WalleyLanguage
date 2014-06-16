@@ -1,4 +1,3 @@
-(load 'test3)
-(load 'test4)
-(print test3/test4/x)
-(print test4/x)
+(def x 12)
+{:test 12
+ :x 15}

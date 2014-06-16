@@ -11,7 +11,7 @@
 #include "env_data_type.h"
 
 // static int32_t CONSTANT_TABLE_LENGTH = 0;
-void compiler(Instructions * insts,
+int16_t compiler(Instructions * insts,
               Object * l,
               Variable_Table * vt,
               int32_t tail_call_flag,
@@ -409,7 +409,7 @@ Object * list_append(Object * a, Object * b){
 /*
  Compiler 暂不支持 Macro
  */
-void compiler(Instructions * insts,
+int16_t compiler(Instructions * insts,
               Object * l,
               Variable_Table * vt,
               int32_t tail_call_flag,
@@ -435,7 +435,7 @@ void compiler(Instructions * insts,
     switch (l->type) {
         case NULL_:
             Insts_push(insts, CONST_NULL); // push null;
-            return;
+            return 0;
         case INTEGER: // integer
             int_ = l->data.Integer.v;
             
@@ -444,14 +444,14 @@ void compiler(Instructions * insts,
                 // load from constant pool
                 Insts_push(insts, CONST_LOAD);
                 Insts_push(insts, int_);
-                return;
+                return 0;
             }
             Insts_push(insts, CONST_INTEGER);
             Insts_push(insts, (0xFFFF000000000000ULL & (uint64_t)int_) >> 48);
             Insts_push(insts, (0x0000FFFF00000000ULL & (uint64_t)int_) >> 32);
             Insts_push(insts, (0x00000000FFFF0000 & int_) >> 16);
             Insts_push(insts, 0xFFFF & int_);
-            return;
+            return 0;
         case DOUBLE:
             double_ = l->data.Double.v;
             uint64_t * unsigned_int_ = (uint64_t *)&double_; // get hex
@@ -460,7 +460,7 @@ void compiler(Instructions * insts,
             Insts_push(insts, (0x0000FFFF00000000ULL & (uint64_t)(*unsigned_int_)) >> 32);
             Insts_push(insts, (0x00000000FFFF0000 & (*unsigned_int_)) >> 16);
             Insts_push(insts, 0xFFFF & (*unsigned_int_));
-            return;
+            return 0;
             /*
              关于 string, 存在于 CONSTANT_TABLE_INSTRUCTIONS 而不是 insts
              */
@@ -480,7 +480,7 @@ void compiler(Instructions * insts,
                     free(v->data.String.v);
                     free(v);
                     free(s);
-                    return;
+                    return 0;
                 }
                 else{ // doesn't exist, save to table
                     Insts_push(insts, CONST_LOAD); // load from table
@@ -510,14 +510,14 @@ void compiler(Instructions * insts,
                     Insts_push(CONSTANT_TABLE_INSTRUCTIONS, 0x0000); // add end
                 }
                 free(s);
-                return;
+                return 0;
             }
             else{
                 VT_find(vt, l->data.String.v, vt_find);
                 if(vt_find[0] == -1){
                     // variable doesn't exist
                     printf("ERROR: undefined variable %s\n", l->data.String.v);
-                    return;
+                    return 0;
                 }
                 Insts_push(insts, GET<<12 | vt_find[0]); // frame index
                 Insts_push(insts, vt_find[1]); // value index
@@ -527,7 +527,7 @@ void compiler(Instructions * insts,
                     Insts_push(insts, RETURN << 12);
                 }
                 
-                return;
+                return 0;
             }
             
         case PAIR:
@@ -535,7 +535,7 @@ void compiler(Instructions * insts,
                 // set
                 Insts_push(insts, (GET << 12) | (0x0FFF & cadr(l)->data.Integer.v));
                 Insts_push(insts, caddr(l)->data.Integer.v);
-                return;
+                return 0;
             }
             tag = car(l)->data.String.v;
             if(str_eq(tag, "quote")){
@@ -562,7 +562,7 @@ void compiler(Instructions * insts,
                              env,
                              mt);
                     Object_free(temp);
-                    return;
+                    return 0;
                 }
                 else if(v->data.String.v[0] != '\''){
                     string = malloc(sizeof(char) * (2 + v->data.String.length + 1));
@@ -581,7 +581,7 @@ void compiler(Instructions * insts,
                              mt);
                     Object_free(v);
                     free(string);
-                    return;
+                    return 0;
                 }
                 return compiler(insts, v, vt, tail_call_flag, parent_func_name, function_for_compilation,env,mt);
             }
@@ -609,7 +609,7 @@ void compiler(Instructions * insts,
                              env,
                              mt);
                     Object_free(temp);
-                    return;
+                    return 0;
                 }
                 else if(v->data.String.v[0] != '\''){
                     
@@ -629,7 +629,7 @@ void compiler(Instructions * insts,
                              mt);
                     Object_free(v);
                     free(string);
-                    return;
+                    return 0;
                 }
                 return compiler(insts, v, vt, tail_call_flag, parent_func_name, function_for_compilation,env, mt);
             }
@@ -645,7 +645,7 @@ void compiler(Instructions * insts,
                         str_eq(var_name->data.String.v, "def") ||
                         str_eq(var_name->data.String.v, "set!"))) {
                         printf("DEFINITION ERROR: Invalid variable name %s\n", var_name->data.String.v);
-                        return;
+                        return 0;
                     }
                 // 不支持 scheme 类似的 (def (add a b) (+ a b))
                 if (cddr(l)->type == NULL_)
@@ -662,7 +662,7 @@ void compiler(Instructions * insts,
                     if (str_eq(var_name->data.String.v,
                                frame->var_names[j])) {
                         printf("DEFINITION ERROR: variable: %s already defined\n", var_name->data.String.v);
-                        return;
+                        return 0;
                     }
                 }
                 if(var_existed == false)
@@ -675,7 +675,7 @@ void compiler(Instructions * insts,
                          parent_func_name = var_name->data.String.v;
                      }
                 // compile value
-                compiler(insts,
+                i = compiler(insts,
                          var_value,
                          vt,
                          tail_call_flag,
@@ -683,10 +683,14 @@ void compiler(Instructions * insts,
                          function_for_compilation,
                          env,
                          mt);
+                if (i == 1) { // new loaded
+                    LOADED_MODULES->offset = vt->frames[vt->length - 1]->length - 1; // save offset
+                }
+                
                 // add instruction
                 Insts_push(insts, SET_TOP << 12);
                 Insts_push(insts, vt->frames[vt->length - 1]->length - 1);
-                return;
+                return 0;
             }
             else if(str_eq(tag, "set!")){
                 // check eg (set! x 0 12) case
@@ -719,7 +723,7 @@ void compiler(Instructions * insts,
                              env,
                              mt);
                     Object_free(temp_);
-                    return;
+                    return 0;
                 }
                 
                 // change value of a variable
@@ -728,7 +732,7 @@ void compiler(Instructions * insts,
                 VT_find(vt, var_name->data.String.v, vt_find);
                 if (vt_find[0] == -1) {
                     printf("ERROR: undefined variable %s \n", var_name->data.String.v);
-                    return;
+                    return 0;
                 }
                 else{
                     if(var_value->type == PAIR &&
@@ -749,16 +753,100 @@ void compiler(Instructions * insts,
                     Insts_push(insts, SET << 12 | (0x0FFF & vt_find[0])); // frame_index
                     
                     Insts_push(insts, vt_find[1]); // value index
-                    return;
+                    return 0;
                 }
             }
             /*
              *  special builtin macro: load
              *  load file, return the last value in that file
+             *  (def matrix (load "matrix")) ;; save test to global
              *
              */
             else if (str_eq(tag, "load")){
-                
+                if (vt->length != 1) {
+                    printf("ERROR: load invalid place\n");
+                    return 0;
+                }
+                else{
+                    char abs_path[256];
+                    char * file_name_ptr;
+                    char file_name[256];
+                    if (cadr(l)->type == PAIR && str_eq(car(cadr(l))->data.String.v, "quote")) {
+                        file_name_ptr = malloc(sizeof(char) * (256)); // max 256
+                        strcpy(file_name_ptr, cadr(cadr(l))->data.String.v);
+                    }
+                    else{
+                        file_name_ptr = format_string(cadr(l)->data.String.v);
+                    }
+                    uint64_t file_name_length = strlen(file_name_ptr);
+                    if (file_name_length > 3 &&
+                        file_name_ptr[file_name_length - 1] == 'a' &&
+                        file_name_ptr[file_name_length - 2] == 'w' &&
+                        file_name_ptr[file_name_length - 3] == '.') {
+                        strcpy(file_name, file_name_ptr);
+                    }
+                    else{
+                        strcpy(file_name, file_name_ptr);
+                        strcat(file_name, ".wa");
+                    }
+                    // get absolute path
+                    realpath(file_name, abs_path);
+                    
+                    // check modules loaded or not
+                    uint16_t offset = checkModuleLoaded(&LOADED_MODULES, abs_path, vt->frames[0]);
+                    if (offset > 0) { // already loaded
+                        Insts_push(insts, GET<<12 | 0);
+                        Insts_push(insts, offset);
+                        free(file_name_ptr);
+                        return 0; // return 0 means already loaded
+                    }
+                    
+                    // printf("here %s\n", abs_path);
+                    /*
+                     * TODO : 检查 abs_path 已经load过了
+                     */
+                    FILE * file;
+                    file = fopen(file_name, "r");
+                    if(file == NULL){
+                        printf("ERROR: Failed to load %s\n", file_name);
+                        Insts_push(insts, CONST_NULL);
+                        free(file_name_ptr);
+                        return 0; // return 0 means already loaded or error
+                    }
+                    char * content;
+                    fseek(file, 0, SEEK_END);
+                    int64_t size = ftell(file);
+                    rewind(file);
+                    content = calloc(size + 1, 1);
+                    fread(content,1,size,file);
+                    fclose(file); // 不知道要不要加上这个
+                    
+                    
+                    Lexer * p;
+                    Object * o;
+                    p = lexer(content);
+                    o = parser(p);
+                    // put o inside function
+                    // ((fn [] o))
+                    o = cons(GLOBAL_NULL, o);
+                    o = cons(LAMBDA_STRING, o);
+                    o = cons(o, GLOBAL_NULL);
+                    o = cons(o, GLOBAL_NULL);
+                    //printf("%llu %llu\n", insts->length, insts->start_pc);
+                    compiler_begin(insts,
+                                   o,
+                                   vt,
+                                   NULL,
+                                   NULL,
+                                   0,
+                                   env,
+                                   mt);
+                    //printf("%llu %llu\n", insts->length, insts->start_pc);
+
+                LOAD_DONE:
+                    free(file_name_ptr);
+                    return 1;
+                }
             }
             // (if test conseq alter)
             else if (str_eq(tag, "if")){
@@ -826,7 +914,7 @@ void compiler(Instructions * insts,
                  insts->start_pc = insts->length;
                  }
                  */
-                return;
+                return 0;
             }
             else if (str_eq(tag, "begin")){
                 // compiler begin
@@ -838,7 +926,7 @@ void compiler(Instructions * insts,
                                false,
                                env,
                                mt);
-                return;
+                return 0;
             }
             else if (str_eq(tag, "let")){
                 Object * chunk = cadr(l);
@@ -888,7 +976,7 @@ void compiler(Instructions * insts,
                          env,
                          mt);
                 Object_free(temp);
-                return;
+                return 0;
             }
             else if (str_eq(tag, "lambda") || str_eq(tag, "fn")){ // I am too lazy
                 Object * params = cadr(l); // get parameters
@@ -907,7 +995,7 @@ void compiler(Instructions * insts,
                     }
                     if (car(params)->type != STRING) {
                         printf("ERROR: Invalid Function Parameter type\n");
-                        return;
+                        return 0;
                     }
                     if (str_eq(car(params)->data.String.v,
                                ".")) { // variadic
@@ -994,7 +1082,7 @@ void compiler(Instructions * insts,
                 free(function_); // free lambda for compilation
                 function_ = NULL;
                 
-                return;
+                return 0;
             }
             /*
              (defmacro macro_name [var0 pattern0] [var1 pattern1] ...)
@@ -1013,7 +1101,7 @@ void compiler(Instructions * insts,
                         
                         clauses->use_count+=1; // 必须+1
                         frame->array[i] = Macro_init(var_name->data.String.v, (clauses), VT_copy(vt));
-                        return;
+                        return 0;
                     }
                 }
                 // is not defined
@@ -1026,7 +1114,7 @@ void compiler(Instructions * insts,
                 clauses->use_count+=1; // 必须+1
                 frame->array[frame->length] = Macro_init(var_name->data.String.v, (clauses), VT_copy(vt));
                 frame->length+=1;
-                return;
+                return 0;
             }
             // call function
             else{
@@ -1048,7 +1136,7 @@ void compiler(Instructions * insts,
                                  env,
                                  mt);
                         Object_free(expand);
-                        return;
+                        return 0;
                     }
                 }
                 // tail call function
@@ -1180,7 +1268,7 @@ void compiler(Instructions * insts,
                     jump_steps = -(insts->length - start_pc) + 1; // jump steps
                     Insts_push(insts, (0xFFFF0000 & jump_steps) >> 16);
                     Insts_push(insts, 0x0000FFFF & jump_steps);
-                    return;
+                    return 0;
                 }
                 // not tail call
                 else{
@@ -1220,13 +1308,13 @@ void compiler(Instructions * insts,
                         Insts_push(insts, PUSH_ARG << 12);
                     }
                     Insts_push(insts, (CALL << 12) | (0x0FFF & param_num));
-                    return;
+                    return 0;
                 }
             }
         default:
             
             printf("ERROR: Invalid Data\n%s\n",to_string(l));
-            return;
+            return 0;
             break;
     }
 }

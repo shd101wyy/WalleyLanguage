@@ -214,7 +214,7 @@ Object *VM(/*uint16_t * instructions,*/
     pc = start_pc;
     while(pc != end_pc){
     CONTINUE_VM:
-        // printf("%llu, %x \n", pc, instructions[pc]);
+        //printf("%llu, %x \n", pc, instructions[pc]);
         inst = instructions[pc];
         opcode = (inst & 0xF000) >> 12;
         //printf("%x\n", inst);
@@ -309,7 +309,7 @@ Object *VM(/*uint16_t * instructions,*/
                 // free accumulator is necessary
                 Object_free(accumulator);
                 
-                accumulator = Object_initUserDefinedLambda(param_num, variadic_place, start_pc, copyEnvironment(env), (unsigned char)instructions[pc + 2]);
+                accumulator = Object_initUserDefinedLambda(param_num, variadic_place, start_pc, copyEnvironment(env), (uint8_t)instructions[pc + 2]);
                 pc = pc + jump_steps;
                 continue;
             case RETURN:
@@ -382,6 +382,7 @@ Object *VM(/*uint16_t * instructions,*/
                 functions_list[functions_list_length - 1] = NULL; // clear
                 functions_list_length--;  // pop that function from list
                 v->use_count--; // decrement use count
+                accumulator = GLOBAL_NULL; // 必须设为 GLOBAL_NULL
                 
                 switch (v->type){
                     case STRING: // only support access

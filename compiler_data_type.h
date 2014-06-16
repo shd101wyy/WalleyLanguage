@@ -466,6 +466,40 @@ void VT_find(Variable_Table * vt, char * var_name, int32_t output[2]){
     return;
 }
 
+/*
+ *
+ * 保存已经loaded的modules，防止重复load
+ *
+ */
+typedef struct Loaded_Modules{
+    char * file_abs_path;
+    struct Loaded_Modules * next;
+    uint16_t offset;
+}Loaded_Modules;
+
+/*
+ * if loaded return offset
+ * else add abs_path to modules, return -1
+ *
+ */
+int checkModuleLoaded(Loaded_Modules ** m, char * abs_path, Variable_Table_Frame * global_vtf){
+    Loaded_Modules * m_ = * m;
+    while (m_!=NULL) {
+        if (str_eq(m_->file_abs_path, abs_path)) {
+            return m_->offset; // loaded
+        }
+        m_ = m_->next;
+    }
+    Loaded_Modules * new_m = malloc(sizeof(Loaded_Modules));
+    new_m->next = *m;
+    new_m->file_abs_path = malloc(sizeof(char) * (1 + strlen(abs_path)));
+    strcpy(new_m->file_abs_path, abs_path);
+    new_m->offset = 0; // 这里可能有错
+    
+    *m = new_m; // reset pointer
+    return 0;
+}
+
 #endif
 
 

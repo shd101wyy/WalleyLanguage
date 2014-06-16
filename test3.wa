@@ -1,11 +1,7 @@
-(load 'test4)
-(load 'test4 as 'test5)
-;(def a 15)
-;(def append 20)
-
-(print test4/x)
-
-(set! test4/x 15)
-
-(print test5/x)
-(print test4/x)
+(def x (load "./test2.wa"))
+(print x)
+(def y (load "./test2.wa"))
+(print y)
+(set! y:x 16)
+(print x)
+(print y)

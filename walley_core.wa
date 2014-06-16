@@ -4,7 +4,7 @@
 ;; Copyright (c) Yiyi Wang. All rights reserved.
 (def walley-core-author 'Yiyi-Wang)
 (def walley-core-version "0.00026")
-(def walley-language-version "0.3.8473")
+(def walley-language-version "0.3.8475")
 
 (def break 'break)          ;; for foreach function
 (def continue 'continue)
