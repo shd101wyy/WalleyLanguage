@@ -1,0 +1,37 @@
+;; prototype based oop system written in walley language
+;; by shd101wyy
+
+;; base object
+(def Object {:type 'Object
+             :proto ()
+             :clone (fn [self]
+                      {:proto self})})
+
+(defn Object-get [obj attr]
+  (if (null? obj)
+    ()
+    (begin
+     (def resp (obj attr))
+     (if resp
+       resp
+       (Object-get obj:proto attr)))))
+;; macro for oop
+(defmacro $oop
+  [((obj attr)) `((Object-get ~obj ~attr) ~obj)]
+  [((obj attr) . args) `((Object-get ~obj ~attr) ~obj ~@args)])
+
+;; example
+
+(def Dog ($oop Object:clone)) ;; Create Dog class
+(Dog :type 'Dog) ;; set type 
+(Dog :print-age (fn [self]  ;; print-age function
+                  (print self:age))) ;; 这里有错
+(Dog :age 12)               ;; set age
+(Dog :set-age (fn [self new-age]   ;; set-age function
+                (self :age new-age)))
+
+(def my-dog ($oop Dog:clone))
+;($oop my-dog:print-age)
+;(print my-dog)
+(print (Object-get my-dog :age))
+

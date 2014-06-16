@@ -527,7 +527,7 @@ Object *VM(/*uint16_t * instructions,*/
                                         /*
                                          * change instructions.
                                          */
-                                        if (instructions[pc - 5] == NEWFRAME << 12) {
+                                        if (instructions[pc - 5] == NEWFRAME << 12 && instructions[pc - 4] == 0x5000) {
                                             instructions[pc - 5] = TABLE_GET << 12;
                                             instructions[pc - 4] = instructions[pc - 3]; // symbol offset
                                             instructions[pc - 3] = (hash_val & 0xFFFF0000) >> 16;

@@ -46,6 +46,30 @@
 ;(def y 20)
 
 
-(defn test [n] (print n:type))
-(def x {:type 'Object})
-(test x)
+;(defn test [n] (print n:type))
+;(def x {:type 'Object})
+;(test x)
+
+(def math {})
+(set! math.sin math/sin)
+(times 10000000 (fn [n] 
+	 (math.sin n)))
+
+(def Dog (Object::clone))
+(set! x::age 12)
+(set! x::print-age 
+      (fn [] 
+        (print self::age)))
+
+(def Dog (Object::clone))
+(def Dog (Object::clone))
+(def Dog|age 12)
+
+
+
+
+(def Dog (Object/clone))
+(def Dog/age 12)
+
+
+
