@@ -136,7 +136,7 @@ char * list_to_string(Object * l){
                 strcat(buffer, s);
                 free(s);
                 break;
-            case TABLE:
+            case TABLE: case OBJECT:
                 s = table_to_string(v);
                 strcat(buffer, s);
                 free(s);
@@ -203,7 +203,7 @@ char * vector_to_string(Object * l){
                 strcat(buffer, s);
                 free(s);
                 break;
-            case TABLE:
+            case TABLE: case OBJECT:
                 s = table_to_string(v);
                 strcat(buffer, s);
                 free(s);
@@ -271,7 +271,7 @@ char * table_to_string(Object * l){
                 strcat(buffer, s);
                 free(s);
                 break;
-            case TABLE:
+            case TABLE: case OBJECT:
                 s = table_to_string(v);
                 strcat(buffer, s);
                 free(s);
@@ -324,7 +324,7 @@ char * to_string(Object * v){
             strcat(buffer, (s));
             free(s);
             break;
-        case TABLE:
+        case TABLE: case OBJECT:
             s = table_to_string(v);
             strcat(buffer, s);
             free(s);

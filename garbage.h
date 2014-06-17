@@ -81,13 +81,34 @@ void Object_free(Object * o){
                         }
                     }
                 }
-                Object_free(o->data.Table.proto);
+                // 因为是table所以不用
+                // Object_free(o->data.Table.proto);
                 free(o->data.Table.vec); // free table vector
                 free(o);
                 return;
             case OBJECT:
-                printf("free object");
-                return;
+                size = o->data.Table.size;
+                // length = o->data.Table.length;
+                for(i = 0; i < size; i++){
+                    if(o->data.Table.vec[i]){ // exist
+                        p = o->data.Table.vec[i]; // get Table_Pair;
+                        while(p != NULL){
+                            p->key->use_count--;     // decrease use_count
+                            Object_free(p->key);     // free key
+                            p->value->use_count--;   // decrease use_count
+                            Object_free(p->value);   // free value
+                            temp = p;
+                            p = p->next;
+                            free(temp); // free that Table_Pair
+                        }
+                    }
+                }
+                o->data.Table.proto->use_count--;
+                Object_free(o->data.Table.proto);
+                
+                free(o->data.Table.vec); // free table vector
+                free(o);
+                return;                return;
             default:
                 printf("ERROR: Object_free invalid data type\n");
                 return;

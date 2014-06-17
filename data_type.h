@@ -59,7 +59,7 @@ static Object * CLONE_STRING;
 // for object
 static Object * STRING_proto;
 static Object * STRING_type;
-static Object * STRING_Object;
+static Object * STRING_object;
 
 static Object * SYS_ARGV;
 
@@ -291,7 +291,7 @@ Object * Object_initTable(uint64_t size){
     o->data.Table.length = 0;
     o->data.Table.size = size;
     o->data.Table.vec = calloc(size, sizeof(Table_Pair*));
-    o->data.Table.proto = GLOBAL_NULL;
+    o->data.Table.proto = NULL;
     o->use_count = 0;
     return o;
 }

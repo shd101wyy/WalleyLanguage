@@ -832,14 +832,15 @@ Object * builtin_gensym(Object ** params, uint32_t param_num){
     return Object_initString(buffer, strlen(buffer));
 }
 
-// 42 table-add-proto
+// 42 add-proto
 Object * builtin_table_add_proto(Object ** params, uint32_t param_num){
-    params[0]->data.Table.proto = params[1];
-    params[1]->use_count += 1;
+    params[0]->data.Table.proto = params[1]; // set proto
+    params[1]->use_count++;
+    params[0]->type = OBJECT; // change type
     return GLOBAL_NULL;
 }
 
-// 43 table-proto
+// 43 proto
 Object * builtin_table_proto(Object ** params, uint32_t param_num){
     return params[0]->data.Table.proto;
 }
@@ -863,6 +864,8 @@ Object * builtin_typeof(Object ** params, uint32_t param_num){
             return VECTOR_STRING;
         case TABLE:
             return TABLE_STRING;
+        case OBJECT:
+            return STRING_object;
         default:
             return GLOBAL_NULL;
     }
