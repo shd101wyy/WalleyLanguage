@@ -3,7 +3,7 @@
 ;; created by Yiyi Wang 
 ;; Copyright (c) Yiyi Wang. All rights reserved.
 (def walley-core-author 'Yiyi-Wang)
-(def walley-core-version "0.00026")
+(def walley-core-version "0.00027")
 (def walley-language-version "0.3.8475")
 
 (def break 'break)          ;; for foreach function
@@ -403,7 +403,12 @@
     '()
     (reduce-iter f (cdr l) (- param-num 1) (car l))))
 
-
+;; #################### curry #####################
+;; curry function
+;; eg (((curry + 1) 2) 3) => 6
+(defn curry [func . arg]
+  (fn [. another-arg]
+    (apply func (list-append arg another-arg))))
 
 ;; modules
 (def vector 
