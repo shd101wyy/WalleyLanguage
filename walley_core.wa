@@ -252,7 +252,7 @@
   (defn vector-foreach-iter [count]
     (if (= count v-length)
       ()
-      (if (eq? (f v[count]) 'break) ;; break
+      (if (eq? (f count v[count]) 'break) ;; break
         ()
         (vector-foreach-iter (+ count 1)))))
   (vector-foreach-iter 0))
@@ -440,6 +440,11 @@
    :->vector list->vector
    :foreach list-foreach
    })
+(def table
+  {:keys table-keys
+   :delete table-delete
+   :foreach table-foreach
+   })
 
 (def string
   {:slice string-slice
@@ -468,6 +473,13 @@
    :sqrt math-sqrt
    :ceil math-ceil
    :floor math-floor
+   })
+(def int 
+  {:->string int->string
+   })
+
+(def float
+  {:->string float->string
    })
 
 (def ratio 

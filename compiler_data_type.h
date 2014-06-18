@@ -186,15 +186,15 @@ Variable_Table * VT_init(){
     VT_push(vt, 0, "string-slice");                // string 23
     VT_push(vt, 0, "string-length");               // string 24
     VT_push(vt, 0, "string-append");               // string 25
-    VT_push(vt, 0, "table");                // global 26
+    VT_push(vt, 0, "Table");                // global 26
     VT_push(vt, 0, "table-keys");                 // table  27
     VT_push(vt, 0, "table-delete");               // table  28
     VT_push(vt, 0, "file-read");                 // file   29
     
     VT_push(vt, 0, "file-write");                // file 30
     VT_push(vt, 0, "sys-argv");                 // sys  31
-    VT_push(vt, 0, "float->string");             // int  32
-    VT_push(vt, 0, "->string");             // float  33
+    VT_push(vt, 0, "int->string");             // int  32
+    VT_push(vt, 0, "float->string");             // float  33
     VT_push(vt, 0, "input");                // global 34
     VT_push(vt, 0, "print");                // global 35
     VT_push(vt, 0, "string->int");                // string 36

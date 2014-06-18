@@ -1,3 +1,10 @@
-(def x 12)
-{:test 12
- :x 15}
+(def test	
+  (fn [t i]
+    (if (= i 0)
+      t
+      (begin (t (int:->string i) 
+                i)
+             (test t (- i 1))))))
+(def my-obj {})
+(test my-obj 100000)
+;(print my-obj)

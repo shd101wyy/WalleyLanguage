@@ -239,7 +239,7 @@ Lexer* lexer(char * input_string){
                 }
                 else{
                     Lexer_push(output_list, "(");
-                    Lexer_push(output_list, "table");
+                    Lexer_push(output_list, "Table");
                     paren_count++;
                 }
             }
