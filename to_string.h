@@ -91,7 +91,7 @@ char * clean_string(Object * s){
 char * list_to_string(Object * l){
     char buffer[TO_STRING_BUFFER_SIZE]; // maximum 1024
     strcpy(buffer, "(");
-
+    uint16_t a;
     Object * p = l;
     Object * v;
     char * s;
@@ -126,10 +126,20 @@ char * list_to_string(Object * l){
                 free(s);
                 break;
             case USER_DEFINED_LAMBDA:
-                strcat(buffer, "< user-defined-lambda >");
-                break;
-            case BUILTIN_LAMBDA:
-                strcat(buffer, "< builtin-lambda >");
+                strcat(buffer, "#<user-defined-lambda (");
+                uint16_t end_ = (v->data.User_Defined_Lambda.variadic_place >= 0 ? (v->data.User_Defined_Lambda.param_num - 1) : v->data.User_Defined_Lambda.param_num);
+                for (a = 0; a < end_; a++) {
+                    strcat(buffer, "_");
+                    if (a != end_ - 1) {
+                        strcat(buffer, " ");
+                    }
+                }
+                if (v->data.User_Defined_Lambda.variadic_place >= 0) {
+                    strcat(buffer, " . _");
+                }
+                strcat(buffer, ")>");
+                break;            case BUILTIN_LAMBDA:
+                strcat(buffer, "#<builtin-lambda>");
                 break;
             case VECTOR:
                 s = vector_to_string(v);
@@ -165,6 +175,7 @@ char * vector_to_string(Object * l){
      */
     uint64_t length = l->data.Vector.length;
     uint64_t i;
+    uint16_t a;
     char * s;
     if (l->data.Vector.resizable) {
         strcat(buffer, "#[");
@@ -193,10 +204,21 @@ char * vector_to_string(Object * l){
                 free(s);
                 break;
             case USER_DEFINED_LAMBDA:
-                strcat(buffer, "< user-defined-lambda >");
+                strcat(buffer, "#<user-defined-lambda (");
+                uint16_t end_ = (v->data.User_Defined_Lambda.variadic_place >= 0 ? (v->data.User_Defined_Lambda.param_num - 1) : v->data.User_Defined_Lambda.param_num);
+                for (a = 0; a < end_; a++) {
+                    strcat(buffer, "_");
+                    if (a != end_ - 1) {
+                        strcat(buffer, " ");
+                    }
+                }
+                if (v->data.User_Defined_Lambda.variadic_place >= 0) {
+                    strcat(buffer, " . _");
+                }
+                strcat(buffer, ")>");
                 break;
             case BUILTIN_LAMBDA:
-                strcat(buffer, "< builtin-lambda >");
+                strcat(buffer, "#<builtin-lambda>");
                 break;
             case VECTOR:
                 s = vector_to_string(v);
@@ -236,6 +258,7 @@ char * table_to_string(Object * l){
     char * s;
     Object * keys = table_getKeys(l); // it is pair
     strcat(buffer, "{");
+    uint16_t a;
     while (keys!=GLOBAL_NULL) {
         v = Table_getval(l, car(keys));
         strcat(buffer, ":");
@@ -261,10 +284,21 @@ char * table_to_string(Object * l){
                 free(s);
                 break;
             case USER_DEFINED_LAMBDA:
-                strcat(buffer, "< user-defined-lambda >");
+                strcat(buffer, "#<user-defined-lambda (");
+                uint16_t end_ = (v->data.User_Defined_Lambda.variadic_place >= 0 ? (v->data.User_Defined_Lambda.param_num - 1) : v->data.User_Defined_Lambda.param_num);
+                for (a = 0; a < end_; a++) {
+                    strcat(buffer, "_");
+                    if (a != end_ - 1) {
+                        strcat(buffer, " ");
+                    }
+                }
+                if (v->data.User_Defined_Lambda.variadic_place >= 0) {
+                    strcat(buffer, " . _");
+                }
+                strcat(buffer, ")>");
                 break;
             case BUILTIN_LAMBDA:
-                strcat(buffer, "< builtin-lambda >");
+                strcat(buffer, "#<builtin-lambda>");
                 break;
             case VECTOR:
                 s = vector_to_string(v);
@@ -296,6 +330,7 @@ char * to_string(Object * v){
     char buffer[TO_STRING_BUFFER_SIZE];
     strcpy(buffer, "");
     char * s;
+    uint16_t a;
     switch (v->type) {
         case NULL_:
             strcat(buffer, "()");
@@ -314,10 +349,21 @@ char * to_string(Object * v){
             free(s);
             break;
         case USER_DEFINED_LAMBDA:
-            strcat(buffer, "< user-defined-lambda >");
+            strcat(buffer, "#<user-defined-lambda (");
+            uint16_t end_ = (v->data.User_Defined_Lambda.variadic_place >= 0 ? (v->data.User_Defined_Lambda.param_num - 1) : v->data.User_Defined_Lambda.param_num);
+            for (a = 0; a < end_; a++) {
+                strcat(buffer, "_");
+                if (a != end_ - 1) {
+                    strcat(buffer, " ");
+                }
+            }
+            if (v->data.User_Defined_Lambda.variadic_place >= 0) {
+                strcat(buffer, " . _");
+            }
+            strcat(buffer, ")>");
             break;
         case BUILTIN_LAMBDA:
-            strcat(buffer, "< builtin-lambda >");
+            strcat(buffer, "#<builtin-lambda>");
             break;
         case VECTOR:
             s = vector_to_string(v);
