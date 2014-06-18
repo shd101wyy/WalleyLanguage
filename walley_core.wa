@@ -3,8 +3,8 @@
 ;; created by Yiyi Wang 
 ;; Copyright (c) Yiyi Wang. All rights reserved.
 (def walley-core-author 'Yiyi-Wang)
-(def walley-core-version "0.00027")
-(def walley-language-version "0.3.8475")
+(def walley-core-version "0.00028")
+(def walley-language-version "0.3.8476")
 
 (def break 'break)          ;; for foreach function
 (def continue 'continue)
@@ -409,6 +409,16 @@
 (defn curry [func . arg]
   (fn [. another-arg]
     (apply func (list-append arg another-arg))))
+
+
+;; ################## Prototype based OOP #########
+(def Object {:type 'Object  ;;;; define base Object
+             :clone (fn [self]
+                      (def new-object {})
+                      (add-proto new-object self)
+                      new-object)}) 
+(add-proto Object ()) ;; whose proto is ()
+
 
 ;; modules
 (def vector 

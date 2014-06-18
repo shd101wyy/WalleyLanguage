@@ -27,66 +27,6 @@ Object * Walley_Run_File_for_VM(char * file_name,
                                 Variable_Table * vt,
                                 Environment * env,
                                 MacroTable * mt);
-/*
- * 如果没找到，返回-1, otherwise return 0
- */
-int8_t Object_get_for_vm(uint16_t * instructions, Object * v, Object ** accumulator, Object * check_symbol, uint64_t pc){
-    uint32_t i;
-    Object ** msgs = v->data.Object_.msgs;
-    Object ** actions = v->data.Object_.actions;
-    char is_self = true; // 是从自己的actions里面拿到的property，而不是从proto里面拿到的property
-NOT_FOUND:
-    for (i = 0; i < v->data.Object_.length; i++) {
-        if (msgs[i] == check_symbol) {
-            *accumulator = actions[i];  // get required actions.
-            goto FOUND;
-        }
-    }
-    // didn't find from that object
-    if (actions[0] == GLOBAL_NULL) { // check prototype
-        printf("OBJECT ERROR: Cannot find message %s from Object\n", check_symbol->data.String.v);
-        return -1;
-    }
-    else{
-        // check proto ...
-        msgs = actions[0]->data.Object_.msgs;
-        actions = actions[0]->data.Object_.actions;
-        is_self = false;
-        goto NOT_FOUND; // go above
-    }
-    
-    /*
-     * TODO : 1 . Change instructions here
-     *        2 . if call object function next, push self.
-     */
-FOUND:
-    /*
-     * change instructions here. 看上面的信息怎么变instructions
-     */
-    
-    if (is_self) {
-        instructions[pc - 5] = OBJECT_GET_SELF << 12;
-        instructions[pc - 4] = instructions[pc - 3]; // // 存下 symbol(string)在 constant table里面的offset
-        // instructions[pc - 3] = (v->data.Object_.object_id & 0xFFFF0000) >> 16;
-        // instructions[pc - 2] = v->data.Object_.object_id & 0x0000FFFF;
-        // save offset
-        instructions[pc - 1] = i;
-    }
-    else{ // 从proto里面拿到的property
-        if (instructions[pc - 3] > 0x0FFF) {
-            printf("ERROR: Cannot save more messages\n");
-            return -1;
-        }
-        instructions[pc - 5] = (OBJECT_GET_PARENT << 12) || instructions[pc - 3]; // 存下 symbol(string)在 constant table里面的offset
-        // save object_id
-        instructions[pc - 4] = (v->data.Object_.object_id & 0xFFFF0000) >> 16;
-        instructions[pc - 3] = v->data.Object_.object_id & 0x0000FFFF;
-        // save action address
-        instructions[pc - 2] = ((uint32_t)(*accumulator) & 0xFFFF0000) >> 16;
-        instructions[pc - 1] = (uint32_t)(*accumulator) & 0x0000FFFF;
-    }
-    return 0;
-}
 
 /*
  Walley Language Virtual Machine
@@ -125,7 +65,6 @@ Object *VM(/*uint16_t * instructions,*/
     Object * v;
     Object * temp; // temp use
     Object * temp2;
-    Object ** msgs, ** actions;
     
     Environment_Frame *BUILTIN_PRIMITIVE_PROCEDURE_STACK = EF_init_with_size(MAX_STACK_SIZE); // for builtin primitive procedure calculation
     BUILTIN_PRIMITIVE_PROCEDURE_STACK->use_count = 1; // cannot free it
@@ -557,7 +496,7 @@ Object *VM(/*uint16_t * instructions,*/
                                 Object_free(v);
                                 continue;
 
-                            case 2: // object set
+                            case 2: // table set
                                 temp = current_frame_pointer->array[current_frame_pointer->length - 2]; // key
                                 temp2 = current_frame_pointer->array[current_frame_pointer->length - 1]; // value
                                 
@@ -781,7 +720,7 @@ Object *VM(/*uint16_t * instructions,*/
                                 goto VM_END;
                         }
                     case OBJECT:
-                        printf("UNFINISHED IMPLEMENTATION Object\n");
+                        // printf("UNFINISHED IMPLEMENTATION Object\n");
                         pc = pc + 1;
                         switch(param_num){
                             /*
@@ -799,13 +738,44 @@ Object *VM(/*uint16_t * instructions,*/
                              * get_obj        get property     not used       action offset
                              */
                             case 1: // Object get
-                                // printf("Object get");
-                                temp = current_frame_pointer->array[current_frame_pointer->length - 1]; // this temp should be string...
+                                temp = current_frame_pointer->array[current_frame_pointer->length - 1]; // get symbol
+                                temp2 = v; // save v;
                                 
-                                // check message to update accumulator
-                                if (Object_get_for_vm(instructions, v, &accumulator, temp, pc)< 0) {
-                                    goto VM_END; // error
+                            // get value from object
+                            OBJECT_FIND_PROPERTY:
+                                hash_val = hash(temp->data.String.v, v->data.Table.size); // get hash value
+                                Table_Pair * table_pairs = v->data.Table.vec[hash_val];
+                                while (table_pairs!=NULL) {
+                                    if (table_pairs->key == temp || strcmp(temp->data.String.v, table_pairs->key->data.String.v) == 0) {
+                                        accumulator = table_pairs->value;
+                                        
+                                        /*
+                                         * change instructions.
+                                         */
+                                        /*
+                                        if (instructions[pc - 5] == NEWFRAME << 12 && instructions[pc - 4] == 0x5000) {
+                                            instructions[pc - 5] = TABLE_GET << 12;
+                                            instructions[pc - 4] = instructions[pc - 3]; // symbol offset
+                                            instructions[pc - 3] = (hash_val & 0xFFFF0000) >> 16;
+                                            instructions[pc - 2] = (hash_val & 0xFFFF);
+                                            instructions[pc - 1] = 0; // not used
+                                        }
+                                         */
+                                        
+                                        goto OBJECT_FINISH_FINDING_VALUE;
+                                    }
+                                    table_pairs = table_pairs->next;
                                 }
+                                if (v->data.Table.proto == GLOBAL_NULL) {
+                                    // didn't find
+                                    accumulator = GLOBAL_NULL;
+                                }
+                                else{
+                                    v = v->data.Table.proto;
+                                    goto OBJECT_FIND_PROPERTY;
+                                }
+                                
+                            OBJECT_FINISH_FINDING_VALUE:
                                 temp->use_count--; // pop parameters
                                 Object_free(temp);
                                 current_frame_pointer->length--; // decrease length
@@ -816,84 +786,56 @@ Object *VM(/*uint16_t * instructions,*/
                                 frames_list_length--; // pop frame list
                                 current_frame_pointer = frames_list[frames_list_length - 1];
                                 
-                                // 这里是要call object method
+                                /*
+                                 * If call object method later
+                                 * push that object to function as well
+                                 */
                                 if (instructions[pc] == NEWFRAME << 12 &&
-                                    (accumulator->type == USER_DEFINED_LAMBDA ||
-                                     (accumulator->type == BUILTIN_LAMBDA &&
-                                      accumulator->data.Builtin_Lambda.func_ptr == &builtin_object_clone))) {
-                                         // exit(0);
-                                    // create new frame with length 64
-                                    //
+                                    (accumulator->type == USER_DEFINED_LAMBDA)) {
+                                         // create new frame with length 64
                                          if (accumulator->type == USER_DEFINED_LAMBDA) {
                                              current_frame_pointer = EF_init_with_size(accumulator->data.User_Defined_Lambda.frame_size);
                                          }
                                          else{
                                              current_frame_pointer = BUILTIN_PRIMITIVE_PROCEDURE_STACK;
                                          }
-                                    
-                                     
-                                        // save to frames_list
-                                        frames_list[frames_list_length] = current_frame_pointer;
-                                        frames_list_length+=1;
-                                        current_frame_pointer->use_count++; // current frame pointer is used
                                          
-                                        // save to function list
-                                        functions_list[functions_list_length] = accumulator;
-                                        functions_list_length++;
-                                        accumulator->use_count++;
                                          
-                                        // push self
-                                        current_frame_pointer->array[current_frame_pointer->length] = v; // push to env frame
-                                        current_frame_pointer->length++;
-                                        v->use_count++;
-                                             
-                                        pc++;
-                                        continue;
-
-                                }
+                                         // save to frames_list
+                                         frames_list[frames_list_length] = current_frame_pointer;
+                                         frames_list_length+=1;
+                                         current_frame_pointer->use_count++; // current frame pointer is used
+                                         
+                                         // save to function list
+                                         functions_list[functions_list_length] = accumulator;
+                                         functions_list_length++;
+                                         accumulator->use_count++;
+                                         
+                                         // push self
+                                         current_frame_pointer->array[current_frame_pointer->length] = temp2; // push to env frame
+                                         current_frame_pointer->length++;
+                                         temp2->use_count++;
+                                         
+                                         pc++;
+                                         continue;
+                                     }
                                 else{
                                     // free lambda
-                                    Object_free(v);
-                                }
-                                continue;
-                            case 2: // Object set
-                                /*
-                                 * TODO : change hidden_class (id) value
-                                 */
-                                // printf("Object set");
-                                temp = current_frame_pointer->array[current_frame_pointer->length - 2]; // msg
-                                temp2 = current_frame_pointer->array[current_frame_pointer->length - 1]; // value
-                                msgs = v->data.Object_.msgs;         // get msgs
-                                actions = v->data.Object_.actions;   // get actions
-                                for (i = 0; i < v->data.Object_.length; i++) {
-                                    if (temp == msgs[i]) { // already existed
-                                        actions[i]->use_count--;
-                                        Object_free(actions[i]); // free old
-                                        actions[i] = temp2;
-                                        temp2->use_count++;      // set new
-                                        /*
-                                         * TODO : change instructions here
-                                         *
-                                         */
-                                        goto OBJECT_FIRST_TIME_SET_POP_PARAMS; // 2 below
-                                    }
-                                }
-                                // didn't existed
-                                object_addNewSlot(v, temp, temp2);
-                                // check whether need to update object_id
-                                if (v->data.Object_.object_id != actions[0]->data.Object_.object_id) {
-                                     // update object id
-                                    /* eg (def Dog (Object:clone))
-                                     * 这里 Dog 和 Object 有一样的id
-                                     * (set! Dog:age 12) 这里添加了一个property给Dog
-                                     * 所以改变 Dog 的 object_id
-                                     * (set! Dog:name "hi") 因为object_id已经变过了，所以不用再变
-                                     *
-                                     */
-                                    v->data.Object_.object_id = (uint32_t)v; 
+                                    Object_free(temp2); // temp2 is the original v
                                 }
                                 
-                            OBJECT_FIRST_TIME_SET_POP_PARAMS:  // 2
+                                continue;
+                            case 2: // Object set
+                                    // same as table set
+                                temp = current_frame_pointer->array[current_frame_pointer->length - 2]; // key
+                                temp2 = current_frame_pointer->array[current_frame_pointer->length - 1]; // value
+                                
+                                Table_setval(v, temp, temp2);
+                                
+                                // 下面这个不用运行
+                                // 因为在 Table_setval的时候会自动增加
+                                // temp2->use_count++; // in use
+                                
                                 // pop parameters
                                 for(i = 0; i < param_num; i++){
                                     temp = current_frame_pointer->array[current_frame_pointer->length - 1];
@@ -902,7 +844,6 @@ Object *VM(/*uint16_t * instructions,*/
                                     
                                     current_frame_pointer->length--; // decrease length
                                 }
-                                
                                 // free current_frame_pointer
                                 free_current_frame_pointer(current_frame_pointer);
                                 
@@ -911,8 +852,8 @@ Object *VM(/*uint16_t * instructions,*/
                                 
                                 // free lambda
                                 Object_free(v);
-                                accumulator = GLOBAL_NULL;
                                 continue;
+
                             default: // wrong parameters
                                 printf("ERROR: Invalid vector operation\n");
                                 Object_free(accumulator);
@@ -963,50 +904,10 @@ Object *VM(/*uint16_t * instructions,*/
                 accumulator = GLOBAL_NULL; // 必须set为global null， 要不然会出错， 因为GET的时候会free掉accumulator, 而此时的accumulator的use count正好是0
                 continue;
             case OBJECT_GET_SELF:
-                printf("UNFINISHED IMPLEMENTATION Object\n");
-                offset = instructions[pc + 4]; // get offset
-                temp = Constant_Pool[instructions[pc + 1]]; // get symbol(string)
-                pc = pc + 5; // 不要移动这个pc的位置
-                msgs = accumulator->data.Object_.msgs; // get msgs
-                actions = accumulator->data.Object_.actions; // get actions
-                // find
-                if(temp == msgs[offset]){ // 这里可能错了, 没有free accumulator. eg (object:clone):type
-                    temp = accumulator;
-                    accumulator = actions[offset];
-                    Object_free(temp);
-                    continue;
-                }
-                /*
-                 * TODO : 这里的代码和上面的重复了
-                 */
-                // didn't find
-                v = accumulator;
-                if(Object_get_for_vm(instructions, v, &accumulator, temp, pc) < 0){
-                    goto VM_END; // error
-                }
-                // free original accumulator
-                Object_free(v);
+                
                 continue;
             case OBJECT_GET_PARENT:
-                printf("UNFINISHED IMPLEMENTATION Object\n");
-                exit(0);
-                // check object_id.
-                temp = Constant_Pool[0x0FFF & instructions[pc]]; // get symbol(string) msg
-                if (accumulator->data.Object_.object_id == ((instructions[pc + 1] << 16) | instructions[pc + 2])) {
-                    temp = accumulator;
-                    // 下面这个exp要改
-                    //accumulator = (Object*)((uint32_t)((int32_t)(instructions[pc + 3] << 16) | instructions[pc + 4]));
-                    pc = pc + 5;
-                }
-                else{ // didn't find...
-                    v = accumulator;
-                    pc = pc + 5;
-                    if(Object_get_for_vm(instructions, v, &accumulator, temp, pc) < 0){
-                        goto VM_END; // error
-                    }
-                    // free original accumulator
-                    Object_free(v);
-                }
+
                 continue;
             case TABLE_GET:
                 // printf("TABLE_GET \n");

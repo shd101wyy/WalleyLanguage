@@ -1259,30 +1259,4 @@ Object * builtin_system(Object ** params, uint32_t param_num){
     return GLOBAL_NULL;
 }
 
-// 68 object
-//  :clone property
-/*
- *  第一个是self
- */
-Object * builtin_object_clone(Object ** params, uint32_t param_num){
-    printf("HERE %d\n", param_num);
-    exit(0);
-    
-    
-    Object * o = Object_initObject();
-    o->type = OBJECT;
-    o->use_count = 0;
-    uint16_t size = 4;
-    o->data.Object_.actions = malloc(sizeof(Object*) * size);
-    o->data.Object_.msgs = malloc(sizeof(Object*) * size);
-    o->data.Object_.object_id = params[0]->data.Object_.object_id; // proto's object_id
-    
-    o->data.Object_.length = 1;
-    o->data.Object_.size = size;
-    
-    // add proto property
-    o->data.Object_.msgs[0] = STRING_proto;
-    o->data.Object_.actions[0] = params[0];
-    return o;
-}
 #endif

@@ -132,6 +132,7 @@ struct Object {
         struct {          // builtin lambda
             Object* (*func_ptr)(Object**, uint32_t); // function pointer
         } Builtin_Lambda;
+        /*
         struct {
             Object ** msgs;
             Object ** actions;
@@ -145,6 +146,7 @@ struct Object {
             Object * msgs[1];    // used to save proto
             Object * actions[1];
         } Integer_Object; // use this in the future?
+         */
     } data;
 };
 
@@ -442,46 +444,6 @@ Object * table_getKeys(Object * t){
         }
     }
     return keys;
-}
-
-
-/*
- *
- *  Object_
- *
- */
-Object * Object_initObject(){
-    Object * o = allocateObject();
-    o->type = OBJECT;
-    o->use_count = 0;
-    uint16_t size = 4;
-    o->data.Object_.actions = malloc(sizeof(Object*) * size);
-    o->data.Object_.msgs = malloc(sizeof(Object*) * size);
-    o->data.Object_.object_id = 0;
-    
-    o->data.Object_.length = 0;
-    o->data.Object_.size = size;
-    return o;
-}
-/*
- * 
- * 为 object 添加 property
- *
- */
-void object_addNewSlot(Object * o, Object * msg, Object * action){
-    if (o->data.Object_.length == o->data.Object_.size) { // realloc if necessary
-        o->data.Object_.size*=2;
-        o->data.Object_.actions = realloc(o->data.Object_.actions, sizeof(Object*)*o->data.Object_.size);
-        o->data.Object_.msgs = realloc(o->data.Object_.msgs, sizeof(Object*)*o->data.Object_.size);
-    }
-    o->data.Object_.actions[o->data.Object_.length] = action;
-    o->data.Object_.msgs[o->data.Object_.length] = msg;
-    o->data.Object_.length++;
-    
-    action->use_count++;
-    msg->use_count++;
-    
-    return;
 }
 
 
