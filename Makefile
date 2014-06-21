@@ -6,6 +6,10 @@
 all:
 	gcc helper.c -o helper;./helper;rm -rf helper
 	gcc -O1 main.c -o walley -lm
+install_walley_core:  # create walley_core.h from walley_core.wa
+	gcc helper.c -o helper
+	./helper      # this program will generate walley_core.h
+	rm -rf helper
 install:
 	rm -rf /usr/local/bin/walley
 	rm -rf /usr/local/include/walley
