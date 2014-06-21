@@ -3,8 +3,8 @@
 ;; created by Yiyi Wang 
 ;; Copyright (c) Yiyi Wang. All rights reserved.
 (def walley-core-author 'Yiyi-Wang)
-(def walley-core-version "0.00028")
-(def walley-language-version "0.3.8476")
+(def walley-core-version "0.00029")
+(def walley-language-version "0.3.8477")
 
 (def break 'break)          ;; for foreach function
 (def continue 'continue)

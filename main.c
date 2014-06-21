@@ -11,7 +11,6 @@
 
 int main(int argc, char *argv[]){
     srand((unsigned int)time(NULL)); // set seed
-    
     //printf("Current Working Directory %s\n", getcwd(NULL, 0));
     
     // ######################################################
@@ -19,7 +18,7 @@ int main(int argc, char *argv[]){
     // ######################################################
     // ######################################################
     // ######################################################
-    int i;
+    uint16_t i;
     // init sys_argv
     SYS_ARGV = Object_initVector(0, argc);
     SYS_ARGV->data.Vector.length = argc;
@@ -27,6 +26,7 @@ int main(int argc, char *argv[]){
     for(i = 0; i < argc; i++){
         vector_Set(SYS_ARGV, i, Object_initString(argv[i], strlen(argv[i])));
     }
+    
     // ######################################################
     // ######################################################
     // ######################################################
@@ -36,7 +36,7 @@ int main(int argc, char *argv[]){
     // Walley_Run_File("/Users/wangyiyi/百度云同步盘/Github/Walley0.3/walley/walley/tutorial.wa");
     //return 0;
     if (argc == 1) {
-        printf("\nWalley Language 0.3.8476\n");
+        printf("\nWalley Language 0.3.8477\n");
         printf("Copyright (c) 2012-2014 Yiyi Wang\n");
         printf("All Rights Reserved\n\n");
         Walley_Repl();

@@ -9,7 +9,9 @@
 #ifndef walley_walley_h
 #define walley_walley_h
 #include "vm.h"
+#include "walley_core.h" // load walley_core.h (from walley_core.wa)
 
+Object * Walley_RunString(char * input_string);
 /*
  *
  * switch working directory to the directory of run_file
@@ -112,15 +114,18 @@ void Walley_Repl(){
      *
      */
     // run walley_core.wa
+    /*
     Walley_Run_File_for_VM("/usr/local/lib/walley/walley_core.wa", // assume is this folder
                            insts,
                            vt,
                            env,
                            mt);
+    */
+    // run walley_core.wa (walley_core.h)
+    Walley_RunString(WALLEY_CORE_CONTENT);
     
     
     int32_t run_eval = true;
-    
     //Environment * env = NULL;
     //int run_eval = false;
     
@@ -234,11 +239,15 @@ void Walley_Run_File(char * file_name){
     
     
     // run walley_core.wa
+    /*
     Walley_Run_File_for_VM("/usr/local/lib/walley/walley_core.wa", // assume is this folder
                            insts,
                            vt,
                            env,
                            mt);
+    */
+    // run walley_core.wa (walley_core.h)
+    Walley_RunString(WALLEY_CORE_CONTENT);
     
     int32_t run_eval = true;
     
@@ -453,11 +462,15 @@ void Walley_Compile(char * file_name){
     MacroTable * mt = GLOBAL_MACRO_TABLE;
     
     // run walley_core.wa
+    /*
     Walley_Run_File_for_VM("/usr/local/lib/walley/walley_core.wa", // assume is this folder
                            insts,
                            vt,
                            env,
                            mt);
+     */
+    // run walley_core.wa (walley_core.h)
+    Walley_RunString(WALLEY_CORE_CONTENT);
     
     int32_t run_eval = true;
     
