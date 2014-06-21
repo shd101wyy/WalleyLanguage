@@ -58,10 +58,14 @@
 
 
 ;; list macro
-(defmacro List 
-  [() ()]
-  [(a) `(cons ~a ())]
-  [(a . b) `(cons ~a (List ~@b))])
+;(defmacro List 
+;  [() ()]
+;  [(a) `(cons ~a ())]
+;  [(a . b) `(cons ~a (List ~@b))])
+
+; I decide to use a fn instead of maco to represent List
+(def List (fn [. args] args))
+
 
 ;; cond macro
 (defmacro cond 
