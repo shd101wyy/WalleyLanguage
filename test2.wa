@@ -1,10 +1,4 @@
-(def test	
-  (fn [t i]
-    (if (= i 0)
-      t
-      (begin (t (int:->string i) 
-                i)
-             (test t (- i 1))))))
-(def my-obj {})
-(test my-obj 100000)
-;(print my-obj)
+(def x (load './test3.wa))
+(def another-x (load './test4.wa))
+(print x:x)
+(print another-x:x)

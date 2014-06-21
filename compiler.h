@@ -767,11 +767,11 @@ int16_t compiler(Instructions * insts,
              *
              */
             else if (str_eq(tag, "load")){
-                if (vt->length != 1) {
+                /*if (vt->length != 1) {
                     printf("ERROR: load invalid place\n");
                     return 0;
                 }
-                else{
+                else{*/
                     char abs_path[256];
                     char * file_name_ptr;
                     char file_name[256];
@@ -850,7 +850,7 @@ int16_t compiler(Instructions * insts,
                 LOAD_DONE:
                     free(file_name_ptr);
                     return 1;
-                }
+                //}
             }
             // (if test conseq alter)
             else if (str_eq(tag, "if")){
