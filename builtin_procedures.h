@@ -1182,12 +1182,12 @@ Object * builtin_string_replace(Object ** params, uint32_t param_num){
     Object * find_s = params[1];
     Object * replace_s = params[2];
     char * p;
-    char buffer[4096];
+    char buffer[4096] = "";
     if (param_num == 3) {
         p = strstr(s->data.String.v, find_s->data.String.v);
     str_test:
         if (p) {
-            strncpy(buffer, s->data.String.v, p - s->data.String.v); // copy
+            strncat(buffer, s->data.String.v, p - s->data.String.v); // copy
             strcat(buffer, replace_s->data.String.v);
             strcat(buffer, p + find_s->data.String.length);
             return Object_initString(buffer, strlen(buffer));
