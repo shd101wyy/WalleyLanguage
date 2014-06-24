@@ -16,7 +16,7 @@
 ;(f 1000000)
 ;(display "Hello World")
 ;(def x 12)
-;(times 1000000 (lambda [i] (print "Hi\n")))
+(times 1000000 (lambda [i] (print "Hi\n")))
 ;(def result 0)
 ;(def f 
 ;  (lambda [n r]
@@ -49,27 +49,6 @@
 ;(defn test [n] (print n:type))
 ;(def x {:type 'Object})
 ;(test x)
-
-(def math {})
-(set! math.sin math/sin)
-(times 10000000 (fn [n] 
-	 (math.sin n)))
-
-(def Dog (Object::clone))
-(set! x::age 12)
-(set! x::print-age 
-      (fn [] 
-        (print self::age)))
-
-(def Dog (Object::clone))
-(def Dog (Object::clone))
-(def Dog|age 12)
-
-
-
-
-(def Dog (Object/clone))
-(def Dog/age 12)
 
 
 

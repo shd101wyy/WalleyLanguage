@@ -41,14 +41,13 @@ char * number_to_string(Object * x){
     return output;
 }
 char * clean_string(Object * s){
-    char buffer[TO_STRING_BUFFER_SIZE];
-    strcpy(buffer, "");
+    char buffer[TO_STRING_BUFFER_SIZE] = "";
 
     uint64_t i = 0;
     uint64_t length = s->data.String.length;
     char c;
     int32_t has_space = 0;
-    char temp_buffer[1]; // single char buffer
+    char temp_buffer[2]; // single char buffer
     for (i = 0; i < length; i++) {
         c = s->data.String.v[i];
         if (c == ' ' || c == '\n' || c == '\t' || c == '\a') {
