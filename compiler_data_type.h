@@ -358,16 +358,19 @@ void Macro_free(Macro * macro){
     Object_free(macro->clauses);
     
     // only need to free top frame
+    /* 不用在这里free top frame。。。compiler里面free掉了
     Variable_Table_Frame * top_frame = macro->vt->frames[macro->vt->length - 1];
-    int32_t length = top_frame->length;
-    int32_t i = 0;
-    for (i = 0; i < length; i++) {
-        free(top_frame->var_names[i]);
+    if (top_frame) {
+        int32_t length = top_frame->length;
+        int32_t i = 0;
+        for (i = 0; i < length; i++) {
+            free(top_frame->var_names[i]);
+        }
+        free(top_frame->var_names);
+        free(top_frame);
     }
-    free(top_frame->var_names);
-    free(top_frame);
+    */
     free(macro->vt);
-    
     free(macro);
 }
 /*
