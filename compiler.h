@@ -761,6 +761,65 @@ int16_t compiler(Instructions * insts,
                 }
             }
             /*
+             *  include file like C
+             *
+             */
+            else if (str_eq(tag, "include")){
+                char abs_path[256];
+                char * file_name_ptr;
+                char file_name[256];
+                if (cadr(l)->type == PAIR && str_eq(car(cadr(l))->data.String.v, "quote")) {
+                    file_name_ptr = malloc(sizeof(char) * (256)); // max 256
+                    strcpy(file_name_ptr, cadr(cadr(l))->data.String.v);
+                }
+                else{
+                    file_name_ptr = format_string(cadr(l)->data.String.v);
+                }
+                uint64_t file_name_length = strlen(file_name_ptr);
+                if (file_name_length > 3 &&
+                    file_name_ptr[file_name_length - 1] == 'a' &&
+                    file_name_ptr[file_name_length - 2] == 'w' &&
+                    file_name_ptr[file_name_length - 3] == '.') {
+                    strcpy(file_name, file_name_ptr);
+                }
+                else{
+                    strcpy(file_name, file_name_ptr);
+                    strcat(file_name, ".wa");
+                }
+                // get absolute path
+                realpath(file_name, abs_path);
+                FILE * file;
+                file = fopen(abs_path, "r");
+                if(file == NULL){
+                    printf("ERROR: Failed to load %s\n", file_name);
+                    Insts_push(insts, CONST_NULL);
+                    free(file_name_ptr);
+                    return 0; // return 0 means already loaded or error
+                }
+                char * content;
+                fseek(file, 0, SEEK_END);
+                int64_t size = ftell(file);
+                rewind(file);
+                content = calloc(size + 1, 1);
+                fread(content,1,size,file);
+                fclose(file); // 不知道要不要加上这个
+                
+                Lexer * p;
+                Object * o;
+                p = lexer(content);
+                o = parser(p);
+                compiler_begin(insts,
+                               o,
+                               vt,
+                               NULL,
+                               NULL,
+                               0,
+                               env,
+                               mt);
+                free(content);
+                return 0;
+            }
+            /*
              *  special builtin macro: load
              *  load file, return the last value in that file
              *  (def matrix (load "matrix")) ;; save test to global
@@ -848,6 +907,7 @@ int16_t compiler(Instructions * insts,
                     //printf("%llu %llu\n", insts->length, insts->start_pc);
 
                 LOAD_DONE:
+                    free(content);
                     free(file_name_ptr);
                     return 1;
                 //}

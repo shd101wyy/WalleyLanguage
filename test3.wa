@@ -1,4 +1,5 @@
-(def x (load 'test4.wa))
-(print x:x)
-(set! x:x 14)
-{:x x:x}
+;(def x (load 'test4.wa))
+;(print x:x)
+;(set! x:x 14)
+;{:x x:x}
+(def x 12)
