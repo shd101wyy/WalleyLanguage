@@ -37,7 +37,8 @@ Object *VM(/*uint16_t * instructions,*/
            uint64_t end_pc,
            Environment * env,
            Variable_Table * vt,
-           MacroTable * mt){
+           MacroTable * mt,
+           Module * module){
     uint16_t * instructions = instructions_->array;
     uint64_t pc;
     uint64_t i;
@@ -631,7 +632,8 @@ Object *VM(/*uint16_t * instructions,*/
                                                              NULL,
                                                              1,
                                                              original_env,
-                                                             mt); // eval 的默认 namespace 名称是空
+                                                             mt,
+                                                             module); // eval 的默认 namespace 名称是空
                                 // Object_free(temp); // compiler_begin 会给 free 掉
                                 
                                 // restore start-pc

@@ -99,6 +99,7 @@
 ;               else    (display "else")
 ;               1
 ;               ))
+
 (defmacro defm 
     [(macro-name args pattern)
      `(defmacro ~macro-name (~args ~pattern))])
@@ -113,6 +114,7 @@
                       (list-length-iter (cdr n)
                                         (+ r 1)))))
           (list-length-iter n 0)))
+
 ;; list-slice-helper
 (defn list-slice-helper [l end]
   (if (= end 0)
@@ -130,6 +132,8 @@
           (set! end (or end (list-length l)))
           (list-slice-helper (list-slice-remove-head l start)
                              (- end start)))
+
+
 ;; str
 ;; eg (str "Hello " "World") -> "Hello World"
 (defn str [. b]
@@ -159,6 +163,7 @@
 ;; string<?
 ;; string>=?
 ;; string<=?
+
 (defn string=? [a b] (= (strcmp a b) 0))
 (defn string>? [a b] (> (strcmp a b) 0))
 (defn string<? [a b] (< (strcmp a b) 0))
@@ -167,6 +172,7 @@
 
 ;; **
 (def ** math-pow)
+
 ;; ########################### LIST ############################
 ;; some functions for list
 
@@ -408,6 +414,7 @@
   (fn [. another-arg]
     (apply func (list-append arg another-arg))))
 
+
 ;; ################## Prototype based OOP #########
 (def Object {:type 'Object  ;;;; define base Object
              :clone (fn [self]
@@ -427,6 +434,7 @@
    :find vector-find
    :vector vector-foreach
    })
+
 (def list 
   {:length list-length
    :slice list-slice
@@ -441,6 +449,7 @@
    :delete table-delete
    :foreach table-foreach
    })
+
 (def string
   {:slice string-slice
    :length string-length
@@ -492,4 +501,3 @@
    :cmd sys-cmd
    }
 )
-

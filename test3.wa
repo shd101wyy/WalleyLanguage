@@ -1,8 +1,2 @@
-;(def x (load 'test4.wa))
-;(print x:x)
-;(set! x:x 14)
-;{:x x:x}
-;(def x 12)
-;(defm test-macro [x] `(* ~x ~x))
-(defm square [x] `(* ~x ~x))
-(export-macro square)
+(defn add [a b] (+ a b))
+{:add add}

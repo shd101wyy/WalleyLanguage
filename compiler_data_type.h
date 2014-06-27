@@ -80,6 +80,45 @@ void printInstructions(Instructions * insts){
 #define Insts_length(l) ((l)->length)
 #define Insts_get(l, index) ((l)->array[(index)])
 #define Insts_set(l, index, v) ((l)->array[(index)] = (v))
+
+/*
+ *
+ * module. save global variables offsets
+ *
+ */
+typedef struct Module Module;
+struct Module{
+    uint16_t * variable_offset;
+    uint16_t length;
+    uint16_t size;
+};
+/*
+ * init module
+ */
+Module * Module_init(){
+    Module * m = malloc(sizeof(Module));
+    m->size = 8;
+    m->length = 0;
+    m->variable_offset = malloc(sizeof(uint16_t) * m->size);
+    return m;
+}
+void Module_addOffset(Module * m, uint16_t offset){
+    if(m->length == m->size){ // reach maximum
+        m->size*=2;
+        m->variable_offset = realloc(m->variable_offset, sizeof(uint16_t)*m->size);
+    }
+    m->variable_offset[m->length] = offset;
+    m->length++;
+}
+void Module_free(Module * m){
+    free(m->variable_offset);
+    free(m);
+    return;
+}
+
+static Module * GLOBAL_MODULE;
+
+
 /*
     define Variable Table Frame
 */
@@ -446,11 +485,11 @@ MacroTable * MT_copy(MacroTable * mt){
 
 
 
-void VT_find(Variable_Table * vt, char * var_name, int32_t output[2]){
+void VT_find(Variable_Table * vt, char * var_name, int32_t output[2], Module * module){
     int32_t i, j;
     Variable_Table_Frame * frame;
     // check local
-    for (i = vt->length - 1; i >= 0; i--) {
+    for (i = vt->length - 1; i >= 1; i--) {
         frame = vt->frames[i];
         for (j = frame->length-1; j >= 0; j--) {
             if (frame->var_names[j] == NULL) {
@@ -463,6 +502,33 @@ void VT_find(Variable_Table * vt, char * var_name, int32_t output[2]){
             }
         }
     }
+    // check module
+    for (i = 0; i < module->length; i++) {
+        char * var_name2 = vt->frames[0]->var_names[module->variable_offset[i]];
+        if (var_name2 == NULL) {
+            continue;
+        }
+        if (str_eq(var_name, var_name2)) {
+            output[0] = 0;
+            output[1] = module->variable_offset[i];
+            return;
+        }
+    }
+    if (module != GLOBAL_MODULE) {
+        // check global
+        for (i = 0; i < GLOBAL_MODULE->length; i++) {
+            char * var_name2 = vt->frames[0]->var_names[GLOBAL_MODULE->variable_offset[i]];
+            if (var_name2 == NULL) {
+                continue;
+            }
+            if (str_eq(var_name, var_name2)){
+                output[0] = 0;
+                output[1] = GLOBAL_MODULE->variable_offset[i];
+                return;
+            }
+        }
+    }
+    
     output[0] = -1;
     output[1] = -1;
     return;
@@ -501,6 +567,7 @@ int checkModuleLoaded(Loaded_Modules ** m, char * abs_path, Variable_Table_Frame
     *m = new_m; // reset pointer
     return 0;
 }
+
 
 #endif
 

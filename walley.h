@@ -148,8 +148,8 @@ void Walley_Repl(){
                        NULL,
                        run_eval,
                        env,
-                       mt);
-        
+                       mt,
+                       GLOBAL_MODULE);
         /*
          // print parser
         s = to_string(o);
@@ -267,8 +267,8 @@ void Walley_Run_File(char * file_name){
                        NULL,
                        run_eval,
                        env,
-                       mt);
-    
+                       mt,
+                       GLOBAL_MODULE);
     free(content);
     return;
 }
@@ -331,7 +331,8 @@ void Walley_Run_Compiled_File(char * file_name){
     
     //printf("%llu %llu\n", constant_table_insts_length, insts_length);
     
-    VM(insts, 0, insts->length, env, NULL, NULL);
+    VM(insts, 0, insts->length, env, NULL, NULL,
+       NULL); /* TODO add module */
     return;
 }
 
@@ -382,7 +383,8 @@ Object * Walley_Run_File_for_VM(char * file_name,
                            NULL,
                            run_eval,
                            env,
-                           mt);
+                           mt,
+                           GLOBAL_MODULE);
     
     free(content);
     return return_value;
@@ -407,7 +409,8 @@ Object * Walley_RunString(char * input_string){
                                            NULL,
                                            run_eval,
                                            GLOBAL_ENVIRONMENT,
-                                           GLOBAL_MACRO_TABLE);
+                                           GLOBAL_MACRO_TABLE,
+                                           GLOBAL_MODULE);
     
     return return_value;
 
@@ -490,7 +493,8 @@ void Walley_Compile(char * file_name){
                            NULL,
                            run_eval,
                            env,
-                           mt);
+                           mt,
+                           GLOBAL_MODULE);
     
     free(content);
     

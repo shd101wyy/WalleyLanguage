@@ -32,6 +32,7 @@ static MacroTable * GLOBAL_MACRO_TABLE;
 
 static Loaded_Modules * LOADED_MODULES;
 
+
 Environment *createEnvironment(); // init env
 
 /*
@@ -175,6 +176,12 @@ void Walley_init(){
     GLOBAL_VARIABLE_TABLE = VT_init();
     GLOBAL_ENVIRONMENT = createEnvironment();
     GLOBAL_MACRO_TABLE = MT_init();
+    GLOBAL_MODULE = Module_init();
+    
+    // add variables offset to module
+    for (i = 0; i < GLOBAL_VARIABLE_TABLE->frames[0]->length; i++) {
+        Module_addOffset(GLOBAL_MODULE, i); // add offset
+    }
     
     // init loaded_modules
     LOADED_MODULES = malloc(sizeof(Loaded_Modules));
