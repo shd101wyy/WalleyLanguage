@@ -715,7 +715,7 @@ int16_t compiler(Instructions * insts,
                          mt,
                          module);
                 if (i == 1) { // new required
-                    LOADED_MODULES->offset = module->variable_offset[module->length - 1];//vt->frames[vt->length - 1]->length - 1; // save offset
+                    LOADED_MODULES->offset = set_index;// save offset
                 }
                 
                 // add instruction

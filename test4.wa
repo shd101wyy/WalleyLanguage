@@ -1,5 +1,2 @@
-(defn f [x]
-  (if (= x 0)
-    1
-    (* x (f (- x 1)))))
-(print (f 20))
+(def x 12)
+{:x x}

@@ -1,2 +1,4 @@
-(defn add [a b] (+ a b))
-{:add add}
+(def test4 (require 'test4))
+(print "test3 file ")
+(print test4:x)
+{:x test4:x}
