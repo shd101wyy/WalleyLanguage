@@ -2,4 +2,7 @@
 ;(print x:x)
 ;(set! x:x 14)
 ;{:x x:x}
-(def x 12)
+;(def x 12)
+;(defm test-macro [x] `(* ~x ~x))
+(defm square [x] `(* ~x ~x))
+(export-macro square)

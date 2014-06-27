@@ -2,5 +2,5 @@
 ;(def another-x (load './test4.wa))
 ;(print x:x)
 ;(print another-x:x)
-(include 'test3)
-(print x)
+(def x (load 'test3))
+(print (square 12))

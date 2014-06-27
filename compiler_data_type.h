@@ -321,7 +321,6 @@ Macro * Macro_init(char * macro_name, Object * clauses, Variable_Table * vt){
     m->vt = vt;
     
     clauses->use_count++;
-
     return m;
 }
 /*

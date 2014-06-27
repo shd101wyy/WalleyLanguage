@@ -1125,18 +1125,23 @@ int16_t compiler(Instructions * insts,
                     // because I might set it to NULL when doing tail call
                     if (vt_->frames[vt_->length - 1]->var_names[i] != NULL) {
                         free(vt_->frames[vt_->length - 1]->var_names[i]);
+                        vt_->frames[vt_->length - 1]->var_names[i] = NULL;
                     }
                 }
                 free(vt_->frames[vt_->length - 1]->var_names);
+                vt_->frames[vt_->length - 1]->var_names = NULL;
                 free(vt_->frames[vt_->length - 1]);
+                vt_->frames[vt_->length - 1] = NULL;
                 free(vt_);
                 
                 // free macro table
                 MacroTableFrame * top_frame = mt_->frames[mt_->length - 1];
                 for (i = 0; i < top_frame->length; i++) {
                     Macro_free(top_frame->array[i]);
+                    top_frame->array[i] = NULL;
                 }
                 free(top_frame->array);
+                top_frame->array = NULL;
                 free(top_frame);
                 free(mt_);
                 
@@ -1180,6 +1185,66 @@ int16_t compiler(Instructions * insts,
                 frame->length+=1;
                 return 0;
             }
+            /*
+             * export macro to upper level.
+             * eg (defn test [] 
+             *        (defm square [x] `(* ~x ~x))
+             *        (export-macro square))       ;; export to upper level
+             *    (square 12) ;; => 144
+             (def test (fn [] (defm square [x] `(* ~x ~x)) (export-macro square)))(square 12) ;; => 144
+             */
+            /*
+            else if (str_eq(tag, "export-macro")){ // move macro to upper level
+                if (mt->length <= 1) {
+                    return 0;
+                }
+                MacroTableFrame * mt_top_frame = mt->frames[mt->length - 1];
+                Macro * new_macro = NULL;
+                int8_t found_macro = 0;
+                // find macro
+                for (i = mt_top_frame->length - 1; i >= 0; i--) {
+                    if (str_eq(mt_top_frame->array[i]->macro_name, cadr(l)->data.String.v)) { // find macro
+                        new_macro = Macro_init(mt_top_frame->array[i]->macro_name, mt_top_frame->array[i]->clauses,
+                            mt_top_frame->array[i]->vt);
+                        found_macro = 1;
+                        break;
+                    }
+                }
+                if (!found_macro) {
+                    printf("MACRO EXPORT ERROR: macro %s does not exist\n", cadr(l)->data.String.v);
+                    return 0;
+                }
+                else{ // found macro
+                    //
+                    //为了保险加上 ()
+                    //
+                    Insts_push(insts, CONST_NULL);
+                    MacroTableFrame * upper_level_frame = mt->frames[mt->length - 2]; // get upper level frame
+                    for (i = upper_level_frame->length - 1; i >= 0; i--) {
+                        if (str_eq(cadr(l)->data.String.v, upper_level_frame->array[i]->macro_name)) { // already existed
+                            // free old macro
+                            Macro * old_macro = upper_level_frame->array[i];
+                            free(old_macro->macro_name);
+                            old_macro->clauses->use_count--;
+                            Object_free(old_macro->clauses);
+                            free(old_macro);
+                            // set new macro
+                            upper_level_frame->array[i] = new_macro;
+                            return 0;
+                        }
+                    }
+                    // is not defined
+                    // resize if size is not enough
+                    if (upper_level_frame->length == upper_level_frame->size) {
+                        upper_level_frame->size*=2;
+                        upper_level_frame->array = realloc(upper_level_frame->array, upper_level_frame->size);
+                    }
+                    upper_level_frame->array[upper_level_frame->length] = new_macro;
+                    upper_level_frame->length+=1;
+                    return 0;
+                }
+            }
+            */
             // call function
             else{
                 // check is macro
