@@ -5,12 +5,10 @@
 //  Created by WangYiyi on 4/28/14.
 //  Copyright (c) 2014 WangYiyi. All rights reserved.
 //
-
-#ifndef walley_walley_h
-#define walley_walley_h
 #include "vm.h"
 #include "walley_core.h" // load walley_core.h (from walley_core.wa)
-
+#ifndef walley_walley_h
+#define walley_walley_h
 Object * Walley_RunString(char * input_string);
 /*
  *
@@ -29,8 +27,7 @@ void SwitchWorkingDirectory(char * working_path){
     }
     //printf("working_path %s\n", working_path);
     // now abs_path is the folder
-    chdir(working_path); // change working directory.
-    //printf("Current Working Directory %s\n", getcwd(NULL, 0));
+	_chdir(working_path); // change working directory
 
 #else      // .nix
     int32_t i = (uint32_t)strlen(working_path) - 1;
@@ -185,8 +182,13 @@ void Walley_Run_File(char * file_name){
     // get abs_path of file_name
     char abs_path[256];
     char working_path[256];
-    realpath(file_name, abs_path);
-    strcpy(working_path, abs_path);
+// get absolute path
+#ifdef WIN32
+	GetFullPathName((TCHAR*)file_name, 256, (TCHAR*)abs_path, NULL); // I don't know is this correct
+#else
+	realpath(file_name, abs_path);
+#endif 
+	strcpy(working_path, abs_path);
     // change working directory
     SwitchWorkingDirectory(working_path);
     
@@ -213,7 +215,7 @@ void Walley_Run_File(char * file_name){
     int64_t size = ftell(file);
     rewind(file);
     
-    char* content = calloc(size + 1, 1);
+    char* content = (char*)calloc(size + 1, 1);
     
     fread(content,1,size,file);
     
@@ -357,7 +359,7 @@ Object * Walley_Run_File_for_VM(char * file_name,
     int64_t size = ftell(file);
     rewind(file);
     
-    char* content = calloc(size + 1, 1);
+    char* content = (char*)calloc(size + 1, 1);
     
     fread(content,1,size,file);
     
@@ -422,8 +424,13 @@ void Walley_Compile(char * file_name){
     // get abs_path of file_name
     char abs_path[256];
     char working_path[256];
-    realpath(file_name, abs_path);
-    strcpy(working_path, abs_path);
+// get absolute path
+#ifdef WIN32
+	GetFullPathName((TCHAR*)file_name, 256, (TCHAR*)abs_path, NULL); // I don't know is this correct
+#else
+	realpath(file_name, abs_path);
+#endif
+	strcpy(working_path, abs_path);
     // change working directory
     SwitchWorkingDirectory(working_path);
     
@@ -440,7 +447,7 @@ void Walley_Compile(char * file_name){
     int64_t size = ftell(file);
     rewind(file);
     
-    char* content = calloc(size + 1, 1);
+    char* content = (char*)calloc(size + 1, 1);
     
     fread(content,1,size,file);
     

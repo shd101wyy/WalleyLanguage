@@ -1,18 +1,14 @@
+// WalleyLanguage.cpp : Defines the entry point for the console application.
 //
-//  main.c
-//  walley
-//
-//  Created by WangYiyi on 4/27/14.
-//  Copyright (c) 2014 WangYiyi. All rights reserved.
-//
-
-#include <stdio.h>
+/* // IF windows, uncomment this
+#include "stdafx.h"
+*/
 #include "walley.h"
 
 int main(int argc, char *argv[]){
     srand((unsigned int)time(NULL)); // set seed
     //printf("Current Working Directory %s\n", getcwd(NULL, 0));
-    
+
     // ######################################################
     // ######################################################
     // ######################################################
@@ -23,17 +19,17 @@ int main(int argc, char *argv[]){
     SYS_ARGV = Object_initVector(0, argc);
     SYS_ARGV->data.Vector.length = argc;
     SYS_ARGV->use_count = 1; // in use
-    for(i = 0; i < argc; i++){
+    for (i = 0; i < argc; i++){
         vector_Set(SYS_ARGV, i, Object_initString(argv[i], strlen(argv[i])));
     }
-    
+
     // ######################################################
     // ######################################################
     // ######################################################
     // ######################################################
-    
+
     //number_debug(Object_initRatio(-6, 15));
-    // Walley_Run_File("/Users/wangyiyi/百度云同步盘/Github/Walley0.3/walley/walley/tutorial.wa");
+    // Walley_Run_File("/Users/wangyiyi/∞Ÿ∂»‘∆Õ¨≤Ω≈Ã/Github/Walley0.3/walley/walley/tutorial.wa");
     //return 0;
     if (argc == 1) {
         printf("\nWalley Language 0.3.8480\n");

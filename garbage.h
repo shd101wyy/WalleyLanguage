@@ -1,4 +1,4 @@
-//
+﻿//
 //  garbage.h
 //  walley
 //
@@ -17,13 +17,14 @@ void Object_free(Object * o){
     Table_Pair * temp;
     Table_Pair * p;
     Environment * env;
+	Object ** v;
     if(o->use_count == 0){
         // free
         switch (o->type){
             case NULL_:
                 return; // cannot free null;
                 // null will be stored in string_table(constant_table) index0;
-            case INTEGER: case DOUBLE: case RATIO:
+            case INTEGER: case DOUBLE_: case RATIO:
                 free(o);
                 return;
             case STRING:
@@ -56,7 +57,7 @@ void Object_free(Object * o){
                 return; // cannt free builtin lambda
             case VECTOR:
                 length = o->data.Vector.length;
-                Object ** v = o->data.Vector.v;
+                v = o->data.Vector.v;
                 for(i = 0; i < length; i++){
                     v[i]->use_count--; // decrease use count
                     Object_free(v[i]);

@@ -51,7 +51,7 @@ void parser_free(Object * p){
                 free(v->data.String.v);
                 free(v);
                 break;
-            case INTEGER:case DOUBLE:
+            case INTEGER:case DOUBLE_:
                 free(v);
                 break;
             case PAIR:
@@ -120,7 +120,7 @@ Object * parser(Lexer * le){
         else{
             temp = NULL;
             if (l[i][0] == ':') { // :a  =>  "a"
-                t = malloc(sizeof(char) * strlen(l[i])+2); // " " 0
+                t = (char*)malloc(sizeof(char) * strlen(l[i])+2); // " " 0
                 t[0] = '"';
                 for (j = 1; j < strlen(l[i]); j++) {
                     t[j] = l[i][j];
@@ -180,7 +180,7 @@ void parser_debug (Object * p){
                 case INTEGER: 
                     printf("%ld", v->data.Integer.v);
                     break;
-                case DOUBLE:
+                case DOUBLE_:
                     printf("%lf", v->data.Double.v);
                     break;
                 case NULL_:

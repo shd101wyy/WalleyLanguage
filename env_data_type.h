@@ -184,9 +184,9 @@ void Walley_init(){
     }
     
     // init loaded_modules
-    LOADED_MODULES = malloc(sizeof(Loaded_Modules));
+	LOADED_MODULES = (Loaded_Modules*)malloc(sizeof(Loaded_Modules));
     LOADED_MODULES->next = NULL;
-    LOADED_MODULES->file_abs_path = malloc(sizeof(char));
+    LOADED_MODULES->file_abs_path = (char*)malloc(sizeof(char));
     LOADED_MODULES->file_abs_path[0] = 0;
     LOADED_MODULES->offset = 0;
 }
@@ -252,10 +252,10 @@ void EF_free(Environment_Frame * ef){
  create frame with size
  */
 Environment_Frame * EF_init_with_size(int32_t size){
-    Environment_Frame * frame = malloc(sizeof(Environment_Frame));
+	Environment_Frame * frame = (Environment_Frame*)malloc(sizeof(Environment_Frame));
     frame->length = 0;
     /* array 必须初始化为 0, 所以用calloc */
-    frame->array = calloc(size, sizeof(Object*));//malloc(sizeof(Object*)*size);
+    frame->array = (Object**)calloc(size, sizeof(Object*));//malloc(sizeof(Object*)*size);
     frame->use_count = 0;
     return frame;
 }
@@ -279,7 +279,7 @@ void Env_free(Environment * env){
     return;
 }
 Environment * Env_init_with_size(int32_t size){
-    Environment * env = malloc(sizeof(Environment));
+	Environment * env = (Environment*)malloc(sizeof(Environment));
     env->frames = (Environment_Frame**)malloc(sizeof(Environment_Frame*) * size);
     env->length = 0;
     return env;
@@ -290,7 +290,7 @@ Environment * Env_init_with_size(int32_t size){
  */
 Environment_Frame *createFrame0(){
     // Object * frame = Object_initVector(0, GLOBAL_FRAME_SIZE);
-    Environment_Frame * frame = malloc(sizeof(Environment_Frame));
+	Environment_Frame * frame = (Environment_Frame*)malloc(sizeof(Environment_Frame));
     frame->length = 0;
     frame->array = GLOBAL_FRAME;
     frame->use_count = 0;
@@ -383,9 +383,9 @@ Environment_Frame *createFrame0(){
  create environment
  */
 Environment *createEnvironment(){
-    Environment * env = malloc(sizeof(Environment));
+	Environment * env = (Environment*)malloc(sizeof(Environment));
     env->length = 1;
-    env->frames = malloc(sizeof(Environment_Frame*) * MAX_STACK_SIZE);
+	env->frames = (Environment_Frame**)malloc(sizeof(Environment_Frame*) * MAX_STACK_SIZE);
     env->frames[0] = createFrame0();
     env->frames[0]->use_count = 1;
     return env;
@@ -394,9 +394,9 @@ Environment *createEnvironment(){
  copy environment
  */
 Environment *copyEnvironment(Environment * old_env){
-    Environment * new_env = malloc(sizeof(Environment));
+	Environment * new_env = (Environment*)malloc(sizeof(Environment));
     new_env->length = old_env->length;
-    new_env->frames = malloc(sizeof(Environment_Frame*) * new_env->length);
+	new_env->frames = (Environment_Frame**)malloc(sizeof(Environment_Frame*) * new_env->length);
     int32_t i;
     for (i = 0; i < new_env->length; i++) {
         new_env->frames[i] = old_env->frames[i]; // copy frame pointer
@@ -409,9 +409,9 @@ Environment *copyEnvironment(Environment * old_env){
  copy environment and push frame
  */
 Environment *copyEnvironmentAndPushFrame(Environment * old_env, Environment_Frame * frame){
-    Environment * new_env = malloc(sizeof(Environment));
+	Environment * new_env = (Environment*)malloc(sizeof(Environment));
     new_env->length = old_env->length;
-    new_env->frames = malloc(sizeof(Environment_Frame*) * (new_env->length + 1));
+	new_env->frames = (Environment_Frame**)malloc(sizeof(Environment_Frame*) * (new_env->length + 1));
     int32_t i;
     for (i = 0; i < old_env->length; i++) {
         new_env->frames[i] = old_env->frames[i]; // copy frame pointer

@@ -31,7 +31,7 @@
                 case INTEGER: 
                     fprintf(file, "%lld", v->data.Integer.v);
                     break;
-                case DOUBLE:
+                case DOUBLE_:
                     fprintf(file, "%lf", v->data.Double.v);
                     break;
                 case NULL_:

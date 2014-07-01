@@ -1,11 +1,10 @@
-//
+﻿//
 //  debug.h
 //  walley
 //
 //  Created by WangYiyi on 4/29/14.
 //  Copyright (c) 2014 WangYiyi. All rights reserved.
 //
-
 #ifndef walley_debug_h
 #define walley_debug_h
 #include <stdio.h>
@@ -14,14 +13,13 @@
 #include <ctype.h>
 #include <time.h>
 #include <stdint.h>
-/*
-#ifdef WIND32
-#include <dirent.h> // windows
+
+#ifdef WIN32
+#include <windows.h> // windows
+#include <direct.h>
 #else
 #include <unistd.h> // .nix
 #endif
-*/
-#include <unistd.h>
 
 
 #define RATIO_DEBUG 0   // ratio number debug

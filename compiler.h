@@ -1,4 +1,4 @@
-//
+﻿//
 //  compiler.h
 //  walley
 //
@@ -138,7 +138,7 @@ int32_t macro_match(Object * a, Object * b, char **var_names, Object **var_value
         if (car(a)->type == STRING &&
             str_eq(car(a)->data.String.v, ".")) {
             // 这里 var_name 前加 空格
-            char * temp = malloc(sizeof(char) * (strlen(cadr(a)->data.String.v) + 2));
+            char * temp = (char*)malloc(sizeof(char) * (strlen(cadr(a)->data.String.v) + 2));
             strcpy(temp, " ");
             strcat(temp, cadr(a)->data.String.v);
             var_names[count] = temp;// cadr(a)->data.String.v; // save var name
@@ -180,10 +180,7 @@ Object * macro_expansion_replacement(Object * expanded_value,
                 return expanded_value;
             }
             if (v->data.String.v[0] == '!') { // means not replace
-                char buffer[v->data.String.length];
-                strcpy(buffer, &v->data.String.v[1]);
-                // printf("BUFFER! %s\n", buffer);
-                return cons(Object_initString(buffer, strlen(buffer)),
+                return cons(Object_initString(&(v->data.String.v[1]), strlen(v->data.String.v) - 1),
                             macro_expansion_replacement(cdr(expanded_value), vt, false, module));
             }
             int32_t find[2];
@@ -204,7 +201,7 @@ Object * macro_expansion_replacement(Object * expanded_value,
         }
         else if(v->type == STRING ||
                 v->type == INTEGER ||
-                v->type == DOUBLE ||
+                v->type == DOUBLE_ ||
                 v->type == NULL_)
             return cons(v, macro_expansion_replacement(cdr(expanded_value), vt, false, module));
         else{
@@ -263,13 +260,13 @@ Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable *
             Environment_Frame * new_env_top_frame;
             
             // init vt frame
-            new_vt_top_frame = malloc(sizeof(Variable_Table_Frame));
+			new_vt_top_frame = (Variable_Table_Frame*)malloc(sizeof(Variable_Table_Frame));
             // new_vt_top_frame->use_count = 1; // 后面要被使用
-            new_vt_top_frame->var_names = malloc(sizeof(char*)*match);
+            new_vt_top_frame->var_names = (char**)malloc(sizeof(char*)*match);
             new_vt_top_frame->length = match; // set length directly
             
             // init vt
-            new_vt = malloc(sizeof(Variable_Table));
+			new_vt = (Variable_Table*)malloc(sizeof(Variable_Table));
             new_vt->frames[0] = macro->vt->frames[0];
             new_vt->frames[1] = new_vt_top_frame;
             new_vt->length = 2; // set length
@@ -289,7 +286,7 @@ Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable *
                 
                 
                 if (var_names[i][0] == ' ') {
-                    char * a = malloc(sizeof(char) * (strlen(var_names[i])));
+                    char * a = (char*)malloc(sizeof(char) * (strlen(var_names[i]) + 1));
                     strcpy(a, &var_names[i][1]);
                     free(var_names[i]);
                     var_names[i] = a;
@@ -439,6 +436,7 @@ int16_t compiler(Instructions * insts,
     Object * temp;
     int32_t var_existed/*, var_index*/;
     Variable_Table_Frame * frame;
+	uint64_t * unsigned_int_;
     switch (l->type) {
         case NULL_:
             Insts_push(insts, CONST_NULL); // push null;
@@ -459,9 +457,10 @@ int16_t compiler(Instructions * insts,
             Insts_push(insts, (0x00000000FFFF0000 & int_) >> 16);
             Insts_push(insts, 0xFFFF & int_);
             return 0;
-        case DOUBLE:
+        case DOUBLE_:
             double_ = l->data.Double.v;
-            uint64_t * unsigned_int_ = (uint64_t *)&double_; // get hex
+            
+			unsigned_int_ = (uint64_t *)&double_; // get hex
             Insts_push(insts, CONST_FLOAT);
             Insts_push(insts, (0xFFFF000000000000ULL & (uint64_t)(*unsigned_int_)) >> 48);
             Insts_push(insts, (0x0000FFFF00000000ULL & (uint64_t)(*unsigned_int_)) >> 32);
@@ -536,7 +535,6 @@ int16_t compiler(Instructions * insts,
                 
                 return 0;
             }
-            
         case PAIR:
             if(car(l)->type == INTEGER && car(l)->data.Integer.v == 0){
                 // set
@@ -548,7 +546,7 @@ int16_t compiler(Instructions * insts,
             if(str_eq(tag, "quote")){
                 v = cadr(l);
                 // check integer float null
-                if(v->type == NULL_ || v->type == INTEGER || v->type == DOUBLE){
+                if(v->type == NULL_ || v->type == INTEGER || v->type == DOUBLE_){
                     return compiler(insts,
                                     v,
                                     vt,
@@ -574,7 +572,7 @@ int16_t compiler(Instructions * insts,
                     return 0;
                 }
                 else if(v->data.String.v[0] != '\''){
-                    string = malloc(sizeof(char) * (2 + v->data.String.length + 1));
+                    string = (char*)malloc(sizeof(char) * (2 + v->data.String.length + 1));
                     strcpy(string, "\"");
                     strcat(string, v->data.String.v);
                     strcat(string, "\"");
@@ -598,7 +596,7 @@ int16_t compiler(Instructions * insts,
             else if(str_eq(tag, "quasiquote")){
                 v = cadr(l);
                 // check integer float null
-                if(v->type == NULL_ || v->type == INTEGER || v->type == DOUBLE){
+                if(v->type == NULL_ || v->type == INTEGER || v->type == DOUBLE_){
                     return compiler(insts,
                                     v,
                                     vt,
@@ -625,7 +623,7 @@ int16_t compiler(Instructions * insts,
                 }
                 else if(v->data.String.v[0] != '\''){
                     
-                    string = malloc(sizeof(char) * (2 + v->data.String.length + 1));
+                    string = (char*)malloc(sizeof(char) * (2 + v->data.String.length + 1));
                     strcpy(string, "\"");
                     strcat(string, v->data.String.v);
                     strcat(string, "\"");
@@ -802,7 +800,7 @@ int16_t compiler(Instructions * insts,
                 char * file_name_ptr;
                 char file_name[256];
                 if (cadr(l)->type == PAIR && str_eq(car(cadr(l))->data.String.v, "quote")) {
-                    file_name_ptr = malloc(sizeof(char) * (256)); // max 256
+                    file_name_ptr = (char*)malloc(sizeof(char) * (256)); // max 256
                     strcpy(file_name_ptr, cadr(cadr(l))->data.String.v);
                 }
                 else{
@@ -819,9 +817,13 @@ int16_t compiler(Instructions * insts,
                     strcpy(file_name, file_name_ptr);
                     strcat(file_name, ".wa");
                 }
-                // get absolute path
-                realpath(file_name, abs_path);
-                FILE * file;
+// get absolute path
+#ifdef WIN32
+				GetFullPathName((TCHAR*)file_name, 256, (TCHAR*)abs_path, NULL); // I don't know is this correct
+#else
+				realpath(file_name, abs_path);
+#endif
+				FILE * file;
                 file = fopen(abs_path, "r");
                 if(file == NULL){
                     printf("ERROR: Failed to load %s\n", file_name);
@@ -833,7 +835,7 @@ int16_t compiler(Instructions * insts,
                 fseek(file, 0, SEEK_END);
                 int64_t size = ftell(file);
                 rewind(file);
-                content = calloc(size + 1, 1);
+                content = (char*)calloc(size + 1, 1);
                 fread(content,1,size,file);
                 fclose(file); // 不知道要不要加上这个
                 
@@ -869,7 +871,7 @@ int16_t compiler(Instructions * insts,
                     char * file_name_ptr;
                     char file_name[256];
                     if (cadr(l)->type == PAIR && str_eq(car(cadr(l))->data.String.v, "quote")) {
-                        file_name_ptr = malloc(sizeof(char) * (256)); // max 256
+                        file_name_ptr = (char*)malloc(sizeof(char) * (256)); // max 256
                         strcpy(file_name_ptr, cadr(cadr(l))->data.String.v);
                     }
                     else{
@@ -886,9 +888,12 @@ int16_t compiler(Instructions * insts,
                         strcpy(file_name, file_name_ptr);
                         strcat(file_name, ".wa");
                     }
-                    // get absolute path
-                    realpath(file_name, abs_path);
-                    
+// get absolute path
+#ifdef WIN32
+					GetFullPathName((TCHAR*)file_name, 256, (TCHAR*)abs_path, NULL); // I don't know is this correct
+#else
+					realpath(file_name, abs_path);
+#endif                    
                     // check modules loaded or not
                     uint16_t offset = checkModuleLoaded(&LOADED_MODULES, abs_path, vt->frames[0]);
                     if (offset > 0) { // already loaded
@@ -914,7 +919,7 @@ int16_t compiler(Instructions * insts,
                     fseek(file, 0, SEEK_END);
                     int64_t size = ftell(file);
                     rewind(file);
-                    content = calloc(size + 1, 1);
+                    content = (char*)calloc(size + 1, 1);
                     fread(content,1,size,file);
                     fclose(file); // 不知道要不要加上这个
                     
@@ -943,7 +948,7 @@ int16_t compiler(Instructions * insts,
                                    new_module);
                 Module_free(new_module);
 
-                LOAD_DONE:
+                //LOAD_DONE:
                     free(content);
                     free(file_name_ptr);
                     return 1;
@@ -1129,7 +1134,7 @@ int16_t compiler(Instructions * insts,
                 start_pc = insts->length; // get start_pc
                 
                 // set function_for_compilation
-                Lambda_for_Compilation * function_ = malloc(sizeof(Lambda_for_Compilation));
+				Lambda_for_Compilation * function_ = (Lambda_for_Compilation*)malloc(sizeof(Lambda_for_Compilation));
                 function_->start_pc = start_pc;
                 function_->param_num = counter;
                 function_->variadic_place = variadic_place;
@@ -1220,7 +1225,7 @@ int16_t compiler(Instructions * insts,
                 // resize if size is not enough
                 if (frame->length == frame->size) {
                     frame->size*=2;
-                    frame->array = realloc(frame->array, frame->size);
+                    frame->array = (Macro**)realloc(frame->array, frame->size);
                 }
                 
                 clauses->use_count+=1; // 必须+1
@@ -1442,7 +1447,7 @@ int16_t compiler(Instructions * insts,
                     // jump back
                     start_pc = function_for_compilation->start_pc;
                     Insts_push(insts, JMP << 12);
-                    jump_steps = -(insts->length - start_pc) + 1; // jump steps
+					jump_steps = (uint64_t)(-(int64_t)(insts->length - start_pc) + 1); // jump steps
                     Insts_push(insts, (0xFFFF0000 & jump_steps) >> 16);
                     Insts_push(insts, 0x0000FFFF & jump_steps);
                     return 0;

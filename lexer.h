@@ -1,4 +1,4 @@
-/*
+﻿/*
  walley language 0.3 by Yiyi Wang @ 2014
  Released under MIT Licenses
  lexer
@@ -29,9 +29,9 @@ void Lexer_push(Lexer * l, char * value){
     if(l->array_length == l->array_size){
         // printf("realloc");
         l->array_size *= 2;
-        l->string_array = realloc(l->string_array, sizeof(char*) * l->array_size);
+        l->string_array = (char**)realloc(l->string_array, sizeof(char*) * l->array_size);
     }
-    char * s = malloc(sizeof(char)*((uint32_t)strlen(value) + 1));
+    char * s = (char*)malloc(sizeof(char)*((uint32_t)strlen(value) + 1));
     strcpy(s, value); // copy string
     l->string_array[l->array_length] = s; // push to lexer
     l->array_length += 1;
@@ -40,7 +40,7 @@ void Lexer_push(Lexer * l, char * value){
 void Lexer_set(Lexer * l, uint32_t index, char * value){
     free(l->string_array[index]);
     l->string_array[index] = NULL;
-    char * s = malloc(sizeof(char)*((uint32_t)strlen(value) + 1));
+    char * s = (char*)malloc(sizeof(char)*((uint32_t)strlen(value) + 1));
     strcpy(s, value); // copy string
     l->string_array[index] = s;
     return;
@@ -62,7 +62,7 @@ void Lexer_free(Lexer * l){
 
 // string slice
 char * string_slice(char * input_string, uint32_t start, uint32_t end){
-    char *r = malloc(sizeof(char)*(end - start + 1));
+    char *r = (char*)malloc(sizeof(char)*(end - start + 1));
     uint32_t i;
     for(i = start; i < end; i++){
         r[i-start] = input_string[i];
@@ -76,7 +76,7 @@ char * string_append(char *str1, char *str2){
     uint64_t length2 = strlen(str2);
     uint32_t i ;
     uint32_t j ;
-    char *r = malloc(sizeof(char)*(length1 + length2 + 1));
+    char *r = (char*)malloc(sizeof(char)*(length1 + length2 + 1));
     for (i = 0; i < length1; i++) {
         r[i] = str1[i];
     }

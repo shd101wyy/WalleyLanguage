@@ -27,7 +27,7 @@ char * number_to_string(Object * x){
         case INTEGER:
             sprintf(buffer, "%lld", (long long int)x->data.Integer.v);
             break;
-        case DOUBLE:
+        case DOUBLE_:
             sprintf(buffer, "%lf", x->data.Double.v);
             break;
         case RATIO:
@@ -36,7 +36,7 @@ char * number_to_string(Object * x){
         default:
             return "()";
     }
-    char * output = malloc(sizeof(char) * (strlen(buffer) + 1));
+    char * output = (char*)malloc(sizeof(char) * (strlen(buffer) + 1));
     strcpy(output, buffer);
     return output;
 }
@@ -83,7 +83,7 @@ char * clean_string(Object * s){
     else{
         strcat(buffer, s->data.String.v);
     }
-    char * return_s = malloc(sizeof(char) * (strlen(buffer) + 1));
+    char * return_s = (char*)malloc(sizeof(char) * (strlen(buffer) + 1));
     strcpy(return_s, buffer);
     return return_s;
 }
@@ -94,6 +94,7 @@ char * list_to_string(Object * l){
     Object * p = l;
     Object * v;
     char * s;
+	uint16_t end_;
     /*
         这里可能得free .
      */
@@ -109,7 +110,7 @@ char * list_to_string(Object * l){
             case NULL_:
                 strcat(buffer, "()");
                 break;
-            case INTEGER: case DOUBLE: case RATIO:
+            case INTEGER: case DOUBLE_: case RATIO:
                 s = number_to_string(v);
                 strcat(buffer, s);
                 free(s);
@@ -126,7 +127,7 @@ char * list_to_string(Object * l){
                 break;
             case USER_DEFINED_LAMBDA:
                 strcat(buffer, "#<user-defined-lambda (");
-                uint16_t end_ = (v->data.User_Defined_Lambda.variadic_place >= 0 ? (v->data.User_Defined_Lambda.param_num - 1) : v->data.User_Defined_Lambda.param_num);
+                end_ = (v->data.User_Defined_Lambda.variadic_place >= 0 ? (v->data.User_Defined_Lambda.param_num - 1) : v->data.User_Defined_Lambda.param_num);
                 for (a = 0; a < end_; a++) {
                     strcat(buffer, "_");
                     if (a != end_ - 1) {
@@ -137,7 +138,8 @@ char * list_to_string(Object * l){
                     strcat(buffer, " . _");
                 }
                 strcat(buffer, ")>");
-                break;            case BUILTIN_LAMBDA:
+                break;           
+			case BUILTIN_LAMBDA:
                 strcat(buffer, "#<builtin-lambda>");
                 break;
             case VECTOR:
@@ -160,7 +162,7 @@ char * list_to_string(Object * l){
         }
     }
     strcat(buffer, ")");
-    char * return_s = malloc(sizeof(char) * (strlen(buffer) + 1));
+    char * return_s = (char*)malloc(sizeof(char) * (strlen(buffer) + 1));
     strcpy(return_s, buffer);
     return return_s;
 }
@@ -176,6 +178,7 @@ char * vector_to_string(Object * l){
     uint64_t i;
     uint16_t a;
     char * s;
+	uint16_t end_;
     if (l->data.Vector.resizable) {
         strcat(buffer, "#[");
     }
@@ -187,7 +190,7 @@ char * vector_to_string(Object * l){
             case NULL_:
                 strcat(buffer, "()");
                 break;
-            case INTEGER: case DOUBLE: case RATIO:
+            case INTEGER: case DOUBLE_: case RATIO:
                 s = number_to_string(v);
                 strcat(buffer, s);
                 free(s);
@@ -204,7 +207,7 @@ char * vector_to_string(Object * l){
                 break;
             case USER_DEFINED_LAMBDA:
                 strcat(buffer, "#<user-defined-lambda (");
-                uint16_t end_ = (v->data.User_Defined_Lambda.variadic_place >= 0 ? (v->data.User_Defined_Lambda.param_num - 1) : v->data.User_Defined_Lambda.param_num);
+                end_ = (v->data.User_Defined_Lambda.variadic_place >= 0 ? (v->data.User_Defined_Lambda.param_num - 1) : v->data.User_Defined_Lambda.param_num);
                 for (a = 0; a < end_; a++) {
                     strcat(buffer, "_");
                     if (a != end_ - 1) {
@@ -244,7 +247,7 @@ char * vector_to_string(Object * l){
     else{
         strcat(buffer, ")");
     }
-    char * return_s = malloc(sizeof(char) * (strlen(buffer) + 1));
+    char * return_s = (char*)malloc(sizeof(char) * (strlen(buffer) + 1));
     strcpy(return_s, buffer);
     return return_s;
 }
@@ -258,6 +261,7 @@ char * table_to_string(Object * l){
     Object * keys = table_getKeys(l); // it is pair
     strcat(buffer, "{");
     uint16_t a;
+	uint16_t end_;
     while (keys!=GLOBAL_NULL) {
         v = Table_getval(l, car(keys));
         strcat(buffer, ":");
@@ -267,7 +271,7 @@ char * table_to_string(Object * l){
             case NULL_:
                 strcat(buffer, "()");
                 break;
-            case INTEGER: case DOUBLE: case RATIO:
+            case INTEGER: case DOUBLE_: case RATIO:
                 s = number_to_string(v);
                 strcat(buffer, s);
                 free(s);
@@ -284,7 +288,7 @@ char * table_to_string(Object * l){
                 break;
             case USER_DEFINED_LAMBDA:
                 strcat(buffer, "#<user-defined-lambda (");
-                uint16_t end_ = (v->data.User_Defined_Lambda.variadic_place >= 0 ? (v->data.User_Defined_Lambda.param_num - 1) : v->data.User_Defined_Lambda.param_num);
+                end_ = (v->data.User_Defined_Lambda.variadic_place >= 0 ? (v->data.User_Defined_Lambda.param_num - 1) : v->data.User_Defined_Lambda.param_num);
                 for (a = 0; a < end_; a++) {
                     strcat(buffer, "_");
                     if (a != end_ - 1) {
@@ -320,7 +324,7 @@ char * table_to_string(Object * l){
         }
     }
     strcat(buffer, "}");
-    char * return_s = malloc(sizeof(char) * (strlen(buffer) + 1));
+    char * return_s = (char*)malloc(sizeof(char) * (strlen(buffer) + 1));
     strcpy(return_s, buffer);
     return return_s;
 }
@@ -330,11 +334,12 @@ char * to_string(Object * v){
     strcpy(buffer, "");
     char * s;
     uint16_t a;
+	uint16_t end_;
     switch (v->type) {
         case NULL_:
             strcat(buffer, "()");
             break;
-        case INTEGER: case DOUBLE: case RATIO:
+        case INTEGER: case DOUBLE_: case RATIO:
             s = number_to_string(v);
             strcat(buffer, s);
             free(s);
@@ -349,7 +354,7 @@ char * to_string(Object * v){
             break;
         case USER_DEFINED_LAMBDA:
             strcat(buffer, "#<user-defined-lambda (");
-            uint16_t end_ = (v->data.User_Defined_Lambda.variadic_place >= 0 ? (v->data.User_Defined_Lambda.param_num - 1) : v->data.User_Defined_Lambda.param_num);
+            end_ = (v->data.User_Defined_Lambda.variadic_place >= 0 ? (v->data.User_Defined_Lambda.param_num - 1) : v->data.User_Defined_Lambda.param_num);
             for (a = 0; a < end_; a++) {
                 strcat(buffer, "_");
                 if (a != end_ - 1) {
@@ -378,7 +383,7 @@ char * to_string(Object * v){
             printf("ERROR: stdout");
             break;
     }
-    char * return_s = malloc(sizeof(char) * (strlen(buffer) + 1));
+    char * return_s = (char*)malloc(sizeof(char) * (strlen(buffer) + 1));
     strcpy(return_s, buffer);
     return return_s;
 }

@@ -1,4 +1,4 @@
-#ifndef builtin_procedures_h
+﻿#ifndef builtin_procedures_h
 #define builtin_procedures_h
 #include "to_string.h"
 #include <math.h>
@@ -35,7 +35,7 @@ Object * add_2(Object * p1, Object * p2){
             switch (p2->type) {
                 case INTEGER:
                     return Object_initInteger(p1->data.Integer.v + p2->data.Integer.v);
-                case DOUBLE:
+                case DOUBLE_:
                     return Object_initDouble(p1->data.Integer.v + p2->data.Double.v);
                 case RATIO:
                     return add_rat(p1->data.Integer.v, 1,
@@ -45,11 +45,11 @@ Object * add_2(Object * p1, Object * p2){
                     return GLOBAL_NULL;
             }
             break;
-        case DOUBLE:
+        case DOUBLE_:
             switch (p2->type) {
                 case INTEGER:
                     return Object_initDouble(p1->data.Double.v + p2->data.Integer.v);
-                case DOUBLE:
+                case DOUBLE_:
                     return Object_initDouble(p1->data.Double.v + p2->data.Double.v);
                 case RATIO:
                     return Object_initDouble(p1->data.Double.v + p2->data.Ratio.numer/p2->data.Ratio.denom);
@@ -62,7 +62,7 @@ Object * add_2(Object * p1, Object * p2){
             switch (p2->type) {
                 case INTEGER:
                     return add_rat(p1->data.Ratio.numer, p1->data.Ratio.denom, p2->data.Integer.v, 1);
-                case DOUBLE:
+                case DOUBLE_:
                     return Object_initDouble(p1->data.Ratio.numer/p1->data.Ratio.denom + p2->data.Double.v);
                 case RATIO:
                     return add_rat(p1->data.Ratio.numer, p1->data.Ratio.denom, p2->data.Ratio.numer, p2->data.Ratio.denom);
@@ -94,7 +94,7 @@ Object * sub_2(Object * p1, Object * p2){
             switch (p2->type) {
                 case INTEGER:
                     return Object_initInteger(p1->data.Integer.v - p2->data.Integer.v);
-                case DOUBLE:
+                case DOUBLE_:
                     return Object_initDouble(p1->data.Integer.v - p2->data.Double.v);
                 case RATIO:
                     return sub_rat(p1->data.Integer.v, 1,
@@ -104,11 +104,11 @@ Object * sub_2(Object * p1, Object * p2){
                     return GLOBAL_NULL;
             }
             break;
-        case DOUBLE:
+        case DOUBLE_:
             switch (p2->type) {
                 case INTEGER:
                     return Object_initDouble(p1->data.Double.v - p2->data.Integer.v);
-                case DOUBLE:
+                case DOUBLE_:
                     return Object_initDouble(p1->data.Double.v - p2->data.Double.v);
                 case RATIO:
                     return Object_initDouble(p1->data.Double.v - p2->data.Ratio.numer/p2->data.Ratio.denom);
@@ -121,7 +121,7 @@ Object * sub_2(Object * p1, Object * p2){
             switch (p2->type) {
                 case INTEGER:
                     return sub_rat(p1->data.Ratio.numer, p1->data.Ratio.denom, p2->data.Integer.v, 1);
-                case DOUBLE:
+                case DOUBLE_:
                     return Object_initDouble(p1->data.Ratio.numer/p1->data.Ratio.denom - p2->data.Double.v);
                 case RATIO:
                     return sub_rat(p1->data.Ratio.numer, p1->data.Ratio.denom, p2->data.Ratio.numer, p2->data.Ratio.denom);
@@ -154,7 +154,7 @@ Object * mul_2(Object * p1, Object * p2){
             switch (p2->type) {
                 case INTEGER:
                     return Object_initInteger(p1->data.Integer.v * p2->data.Integer.v);
-                case DOUBLE:
+                case DOUBLE_:
                     return Object_initDouble(p1->data.Integer.v * p2->data.Double.v);
                 case RATIO:
                     return mul_rat(p1->data.Integer.v, 1,
@@ -164,11 +164,11 @@ Object * mul_2(Object * p1, Object * p2){
                     return GLOBAL_NULL;
             }
             break;
-        case DOUBLE:
+        case DOUBLE_:
             switch (p2->type) {
                 case INTEGER:
                     return Object_initDouble(p1->data.Double.v * p2->data.Integer.v);
-                case DOUBLE:
+                case DOUBLE_:
                     return Object_initDouble(p1->data.Double.v * p2->data.Double.v);
                 case RATIO:
                     return Object_initDouble(p1->data.Double.v * p2->data.Ratio.numer/p2->data.Ratio.denom);
@@ -181,7 +181,7 @@ Object * mul_2(Object * p1, Object * p2){
             switch (p2->type) {
                 case INTEGER:
                     return mul_rat(p1->data.Ratio.numer, p1->data.Ratio.denom, p2->data.Integer.v, 1);
-                case DOUBLE:
+                case DOUBLE_:
                     return Object_initDouble(p1->data.Ratio.numer/p1->data.Ratio.denom * p2->data.Double.v);
                 case RATIO:
                     return mul_rat(p1->data.Ratio.numer, p1->data.Ratio.denom, p2->data.Ratio.numer, p2->data.Ratio.denom);
@@ -215,7 +215,7 @@ Object * div_2(Object * p1, Object * p2){
             switch (p2->type) {
                 case INTEGER:
                     return div_rat(p1->data.Integer.v, 1, p2->data.Integer.v, 1); // only this one use div_rat
-                case DOUBLE:
+                case DOUBLE_:
                     return Object_initDouble(p1->data.Integer.v / p2->data.Double.v);
                 case RATIO:
                     return div_rat(p1->data.Integer.v, 1,
@@ -225,11 +225,11 @@ Object * div_2(Object * p1, Object * p2){
                     return GLOBAL_NULL;
             }
             break;
-        case DOUBLE:
+        case DOUBLE_:
             switch (p2->type) {
                 case INTEGER:
                     return Object_initDouble(p1->data.Double.v / p2->data.Integer.v);
-                case DOUBLE:
+                case DOUBLE_:
                     return Object_initDouble(p1->data.Double.v / p2->data.Double.v);
                 case RATIO:
                     return Object_initDouble(p1->data.Double.v / p2->data.Ratio.numer/p2->data.Ratio.denom);
@@ -242,7 +242,7 @@ Object * div_2(Object * p1, Object * p2){
             switch (p2->type) {
                 case INTEGER:
                     return div_rat(p1->data.Ratio.numer, p1->data.Ratio.denom, p2->data.Integer.v, 1);
-                case DOUBLE:
+                case DOUBLE_:
                     return Object_initDouble(p1->data.Ratio.numer/p1->data.Ratio.denom / p2->data.Double.v);
                 case RATIO:
                     return div_rat(p1->data.Ratio.numer, p1->data.Ratio.denom, p2->data.Ratio.numer, p2->data.Ratio.denom);
@@ -313,7 +313,7 @@ Object *builtin_vector_push(Object ** params, uint32_t param_num){
     for(i = 1; i < param_num; i++){
         if(length == size){
             if(vec->data.Vector.resizable){
-                vec->data.Vector.v = realloc(vec->data.Vector.v, sizeof(Object*) * (size * 2)); // increase size
+                vec->data.Vector.v = (Object**)realloc(vec->data.Vector.v, sizeof(Object*) * (size * 2)); // increase size
                 vec->data.Vector.size *= 2;
             }
             else{
@@ -348,7 +348,7 @@ int32_t num_equal_2(Object * p1, Object * p2){
             switch (p2->type) {
                 case INTEGER:
                     return (p1->data.Integer.v == p2->data.Integer.v) ? 1 : 0;
-                case DOUBLE:
+                case DOUBLE_:
                     return (p1->data.Integer.v == p2->data.Double.v) ? 1 : 0;
                 case RATIO:
                     return (p1->data.Integer.v == p2->data.Ratio.numer/p2->data.Ratio.denom) ? 1 : 0;
@@ -358,11 +358,11 @@ int32_t num_equal_2(Object * p1, Object * p2){
                     return 0;
             }
             break;
-        case DOUBLE:
+        case DOUBLE_:
             switch (p2->type) {
                 case INTEGER:
                     return (p1->data.Double.v == p2->data.Integer.v) ?1 : 0;
-                case DOUBLE:
+                case DOUBLE_:
                     return (p1->data.Double.v == p2->data.Double.v) ? 1 : 0;
                 case RATIO:
                     return (p1->data.Double.v == p2->data.Ratio.numer/p2->data.Ratio.denom) ? 1 : 0;
@@ -376,7 +376,7 @@ int32_t num_equal_2(Object * p1, Object * p2){
             switch (p2->type) {
                 case INTEGER:
                     return (p1->data.Ratio.numer/p1->data.Ratio.denom == p2->data.Integer.v) ? 1 : 0;
-                case DOUBLE:
+                case DOUBLE_:
                     return Object_initDouble(p1->data.Ratio.numer/p1->data.Ratio.denom == p2->data.Double.v)? 1 : 0;
                 case RATIO:
                     return (p1->data.Ratio.numer/p1->data.Ratio.denom == p2->data.Ratio.numer/p2->data.Ratio.denom)? 1 : 0;
@@ -412,7 +412,7 @@ int32_t lt_2(Object * p1, Object * p2){
             switch (p2->type) {
                 case INTEGER:
                     return (p1->data.Integer.v < p2->data.Integer.v) ? 1 : 0;
-                case DOUBLE:
+                case DOUBLE_:
                     return (p1->data.Integer.v < p2->data.Double.v) ? 1 : 0;
                 case RATIO:
                     return (p1->data.Integer.v < p2->data.Ratio.numer/p2->data.Ratio.denom) ? 1 : 0;
@@ -422,11 +422,11 @@ int32_t lt_2(Object * p1, Object * p2){
                     return 0;
             }
             break;
-        case DOUBLE:
+        case DOUBLE_:
             switch (p2->type) {
                 case INTEGER:
                     return (p1->data.Double.v < p2->data.Integer.v) ?1 : 0;
-                case DOUBLE:
+                case DOUBLE_:
                     return (p1->data.Double.v < p2->data.Double.v) ? 1 : 0;
                 case RATIO:
                     return (p1->data.Double.v < p2->data.Ratio.numer/p2->data.Ratio.denom) ? 1 : 0;
@@ -441,7 +441,7 @@ int32_t lt_2(Object * p1, Object * p2){
             switch (p2->type) {
                 case INTEGER:
                     return (p1->data.Ratio.numer/p1->data.Ratio.denom < p2->data.Integer.v) ? 1 : 0;
-                case DOUBLE:
+                case DOUBLE_:
                     return Object_initDouble(p1->data.Ratio.numer/p1->data.Ratio.denom < p2->data.Double.v)? 1 : 0;
                 case RATIO:
                     return (p1->data.Ratio.numer/p1->data.Ratio.denom < p2->data.Ratio.numer/p2->data.Ratio.denom)? 1 : 0;
@@ -476,7 +476,7 @@ int32_t le_2(Object * p1, Object * p2){
             switch (p2->type) {
                 case INTEGER:
                     return (p1->data.Integer.v <= p2->data.Integer.v) ? 1 : 0;
-                case DOUBLE:
+                case DOUBLE_:
                     return (p1->data.Integer.v <= p2->data.Double.v) ? 1 : 0;
                 case RATIO:
                     return (p1->data.Integer.v <= p2->data.Ratio.numer/p2->data.Ratio.denom) ? 1 : 0;
@@ -486,11 +486,11 @@ int32_t le_2(Object * p1, Object * p2){
                     return 0;
             }
             break;
-        case DOUBLE:
+        case DOUBLE_:
             switch (p2->type) {
                 case INTEGER:
                     return (p1->data.Double.v <= p2->data.Integer.v) ?1 : 0;
-                case DOUBLE:
+                case DOUBLE_:
                     return (p1->data.Double.v <= p2->data.Double.v) ? 1 : 0;
                 case RATIO:
                     return (p1->data.Double.v <= p2->data.Ratio.numer/p2->data.Ratio.denom) ? 1 : 0;
@@ -505,7 +505,7 @@ int32_t le_2(Object * p1, Object * p2){
             switch (p2->type) {
                 case INTEGER:
                     return (p1->data.Ratio.numer/p1->data.Ratio.denom <= p2->data.Integer.v) ? 1 : 0;
-                case DOUBLE:
+                case DOUBLE_:
                     return Object_initDouble(p1->data.Ratio.numer/p1->data.Ratio.denom <= p2->data.Double.v)? 1 : 0;
                 case RATIO:
                     return (p1->data.Ratio.numer/p1->data.Ratio.denom <= p2->data.Ratio.numer/p2->data.Ratio.denom)? 1 : 0;
@@ -536,7 +536,7 @@ Object *builtin_num_le(Object ** params, uint32_t param_num){
     return GLOBAL_TRUE;
 }
 int32_t eq_2(Object * p1, Object * p2){
-    if(( p1->type == INTEGER || p1->type == DOUBLE || p1->type == RATIO) && (p2->type == INTEGER || p2->type == DOUBLE || p2->type == RATIO)){
+    if(( p1->type == INTEGER || p1->type == DOUBLE_ || p1->type == RATIO) && (p2->type == INTEGER || p2->type == DOUBLE_ || p2->type == RATIO)){
         return num_equal_2(p1, p2);
     }
     return (p1 == p2) ? 1 : 0;
@@ -698,7 +698,7 @@ Object * builtin_file_read(Object ** params, uint32_t param_num){
     uint64_t size = ftell(file);
     rewind(file);
     
-    char* content = calloc(size + 1, 1);
+    char* content = (char*)calloc(size + 1, 1);
     
     fread(content,1,size,file);
     
@@ -726,13 +726,13 @@ Object * builtin_int_to_string(Object ** params, uint32_t param_num){
     switch(param_num){
         case 1:
             sprintf(b, "%lld", (long long int)params[0]->data.Integer.v);
-            o = malloc(sizeof(char) * (strlen(b) + 1));
+            o = (char*)malloc(sizeof(char) * (strlen(b) + 1));
             strcpy(o, b);
             return Object_initString(o, strlen(o));
         case 2:
             d = params[1]->data.String.v;
             sprintf(b, d, params[0]->data.Integer.v);
-            o = malloc(sizeof(char) * (strlen(b) + 1));
+            o = (char*)malloc(sizeof(char) * (strlen(b) + 1));
             strcpy(o, b);
             return Object_initString(o, strlen(o));
         default:
@@ -749,13 +749,13 @@ Object * builtin_float_to_string(Object ** params, uint32_t param_num){
     switch(param_num){
         case 1:
             sprintf(b, "%.20f", params[0]->data.Double.v);
-            o = malloc(sizeof(char) * (strlen(b) + 1));
+            o = (char*)malloc(sizeof(char) * (strlen(b) + 1));
             strcpy(o, b);
             return Object_initString(o, strlen(o));
         case 2:
             d = params[1]->data.String.v;
             sprintf(b, d, params[0]->data.Double.v);
-            o = malloc(sizeof(char) * (strlen(b) + 1));
+            o = (char*)malloc(sizeof(char) * (strlen(b) + 1));
             strcpy(o, b);
             return Object_initString(o, strlen(o));
         default:
@@ -791,7 +791,7 @@ Object * builtin_string_to_int(Object ** params, uint32_t param_num){
 }
 // 37 string->float
 Object * builtin_string_to_float(Object ** params, uint32_t param_num){
-    return Object_initInteger(atof(params[0]->data.String.v));
+    return Object_initDouble(atof(params[0]->data.String.v));
 }
 // 38 ratio?
 Object * builtin_ratio_type(Object ** params, uint32_t param_num){
@@ -801,7 +801,7 @@ Object * builtin_ratio_type(Object ** params, uint32_t param_num){
 Object * builtin_numer(Object ** params, uint32_t param_num){
     Object * p = params[0];
     switch (p->type) {
-        case INTEGER: case DOUBLE:
+        case INTEGER: case DOUBLE_:
             return p;
         case RATIO:
             return Object_initInteger(p->data.Ratio.numer);
@@ -814,7 +814,7 @@ Object * builtin_numer(Object ** params, uint32_t param_num){
 Object * builtin_denom(Object ** params, uint32_t param_num){
     Object * p = params[0];
     switch (p->type) {
-        case INTEGER: case DOUBLE:
+        case INTEGER: case DOUBLE_:
             return Object_initInteger(1);
         case RATIO:
             return Object_initInteger(p->data.Ratio.denom);
@@ -850,7 +850,7 @@ Object * builtin_typeof(Object ** params, uint32_t param_num){
     switch (params[0]->type) {
         case INTEGER:
             return INTEGER_STRING;
-        case DOUBLE:
+        case DOUBLE_:
             return FLOAT_STRING;
         case RATIO:
             return RATIO_STRING;
@@ -877,8 +877,8 @@ Object * builtin_cos(Object ** params, uint32_t param_num){
     Object * p = params[0];
     switch (p->type) {
         case INTEGER:
-            return Object_initDouble(cos(p->data.Integer.v));
-        case DOUBLE:
+            return Object_initDouble(cos((double)p->data.Integer.v));
+        case DOUBLE_:
             return Object_initDouble(cos(p->data.Double.v));
         case RATIO:
             return Object_initDouble(cos((double)p->data.Ratio.numer / p->data.Ratio.denom));
@@ -892,8 +892,8 @@ Object * builtin_sin(Object ** params, uint32_t param_num){
     Object * p = params[0];
     switch (p->type) {
         case INTEGER:
-            return Object_initDouble(sin(p->data.Integer.v));
-        case DOUBLE:
+			return Object_initDouble(sin((double)p->data.Integer.v));
+        case DOUBLE_:
             return Object_initDouble(sin(p->data.Double.v));
         case RATIO:
             return Object_initDouble(sin((double)p->data.Ratio.numer / p->data.Ratio.denom));
@@ -907,8 +907,8 @@ Object * builtin_tan(Object ** params, uint32_t param_num){
     Object * p = params[0];
     switch (p->type) {
         case INTEGER:
-            return Object_initDouble(tan(p->data.Integer.v));
-        case DOUBLE:
+			return Object_initDouble(tan((double)p->data.Integer.v));
+        case DOUBLE_:
             return Object_initDouble(tan(p->data.Double.v));
         case RATIO:
             return Object_initDouble(tan((double)p->data.Ratio.numer / p->data.Ratio.denom));
@@ -922,8 +922,8 @@ Object * builtin_acos(Object ** params, uint32_t param_num){
     Object * p = params[0];
     switch (p->type) {
         case INTEGER:
-            return Object_initDouble(acos(p->data.Integer.v));
-        case DOUBLE:
+			return Object_initDouble(acos((double)p->data.Integer.v));
+        case DOUBLE_:
             return Object_initDouble(acos(p->data.Double.v));
         case RATIO:
             return Object_initDouble(acos((double)p->data.Ratio.numer / p->data.Ratio.denom));
@@ -937,8 +937,8 @@ Object * builtin_asin(Object ** params, uint32_t param_num){
     Object * p = params[0];
     switch (p->type) {
         case INTEGER:
-            return Object_initDouble(asin(p->data.Integer.v));
-        case DOUBLE:
+			return Object_initDouble(asin((double)p->data.Integer.v));
+        case DOUBLE_:
             return Object_initDouble(asin(p->data.Double.v));
         case RATIO:
             return Object_initDouble(asin((double)p->data.Ratio.numer / p->data.Ratio.denom));
@@ -952,8 +952,8 @@ Object * builtin_atan(Object ** params, uint32_t param_num){
     Object * p = params[0];
     switch (p->type) {
         case INTEGER:
-            return Object_initDouble(atan(p->data.Integer.v));
-        case DOUBLE:
+			return Object_initDouble(atan((double)p->data.Integer.v));
+        case DOUBLE_:
             return Object_initDouble(atan(p->data.Double.v));
         case RATIO:
             return Object_initDouble(atan((double)p->data.Ratio.numer / p->data.Ratio.denom));
@@ -967,8 +967,8 @@ Object * builtin_cosh(Object ** params, uint32_t param_num){
     Object * p = params[0];
     switch (p->type) {
         case INTEGER:
-            return Object_initDouble(cosh(p->data.Integer.v));
-        case DOUBLE:
+			return Object_initDouble(cosh((double)p->data.Integer.v));
+        case DOUBLE_:
             return Object_initDouble(cosh(p->data.Double.v));
         case RATIO:
             return Object_initDouble(cosh((double)p->data.Ratio.numer / p->data.Ratio.denom));
@@ -982,8 +982,8 @@ Object * builtin_sinh(Object ** params, uint32_t param_num){
     Object * p = params[0];
     switch (p->type) {
         case INTEGER:
-            return Object_initDouble(sinh(p->data.Integer.v));
-        case DOUBLE:
+			return Object_initDouble(sinh((double)p->data.Integer.v));
+        case DOUBLE_:
             return Object_initDouble(sinh(p->data.Double.v));
         case RATIO:
             return Object_initDouble(sinh((double)p->data.Ratio.numer / p->data.Ratio.denom));
@@ -997,8 +997,8 @@ Object * builtin_tanh(Object ** params, uint32_t param_num){
     Object * p = params[0];
     switch (p->type) {
         case INTEGER:
-            return Object_initDouble(tanh(p->data.Integer.v));
-        case DOUBLE:
+			return Object_initDouble(tanh((double)p->data.Integer.v));
+        case DOUBLE_:
             return Object_initDouble(tanh(p->data.Double.v));
         case RATIO:
             return Object_initDouble(tanh((double)p->data.Ratio.numer / p->data.Ratio.denom));
@@ -1013,8 +1013,8 @@ Object * builtin_log(Object ** params, uint32_t param_num){
     Object * p = params[0];
     switch (p->type) {
         case INTEGER:
-            return Object_initDouble(log(p->data.Integer.v));
-        case DOUBLE:
+			return Object_initDouble(log((double)p->data.Integer.v));
+        case DOUBLE_:
             return Object_initDouble(log(p->data.Double.v));
         case RATIO:
             return Object_initDouble(log((double)p->data.Ratio.numer / p->data.Ratio.denom));
@@ -1028,8 +1028,8 @@ Object * builtin_exp(Object ** params, uint32_t param_num){
     Object * p = params[0];
     switch (p->type) {
         case INTEGER:
-            return Object_initDouble(exp(p->data.Integer.v));
-        case DOUBLE:
+			return Object_initDouble(exp((double)p->data.Integer.v));
+        case DOUBLE_:
             return Object_initDouble(exp(p->data.Double.v));
         case RATIO:
             return Object_initDouble(exp((double)p->data.Ratio.numer / p->data.Ratio.denom));
@@ -1043,8 +1043,8 @@ Object * builtin_log10(Object ** params, uint32_t param_num){
     Object * p = params[0];
     switch (p->type) {
         case INTEGER:
-            return Object_initDouble(log10(p->data.Integer.v));
-        case DOUBLE:
+			return Object_initDouble(log10((double)p->data.Integer.v));
+        case DOUBLE_:
             return Object_initDouble(log10(p->data.Double.v));
         case RATIO:
             return Object_initDouble(log10((double)p->data.Ratio.numer / p->data.Ratio.denom));
@@ -1061,8 +1061,8 @@ Object * builtin_pow(Object ** params, uint32_t param_num){
         case INTEGER:
             switch (p2->type) {
                 case INTEGER:
-                    return Object_initInteger(pow(p1->data.Integer.v, p2->data.Integer.v));
-                case DOUBLE:
+					return Object_initInteger(pow((double)p1->data.Integer.v, (double)p2->data.Integer.v));
+                case DOUBLE_:
                     return Object_initDouble(pow(p1->data.Integer.v, p2->data.Double.v));
                 case RATIO:
                     return Object_initDouble(pow(p1->data.Integer.v, p2->data.Ratio.numer / (double)p2->data.Ratio.denom));
@@ -1070,11 +1070,11 @@ Object * builtin_pow(Object ** params, uint32_t param_num){
                     printf("ERROR: Function math-pow invalid param type");
                     return GLOBAL_NULL;
             }
-        case DOUBLE:
+        case DOUBLE_:
             switch (p2->type) {
                 case INTEGER:
-                    return Object_initDouble(pow(p1->data.Double.v, p2->data.Integer.v));
-                case DOUBLE:
+					return Object_initDouble(pow((double)p1->data.Double.v, (double)p2->data.Integer.v));
+                case DOUBLE_:
                     return Object_initDouble(pow(p1->data.Double.v, p2->data.Double.v));
                 case RATIO:
                     return Object_initDouble(pow(p1->data.Double.v, p2->data.Ratio.numer / (double)p2->data.Ratio.denom));
@@ -1085,10 +1085,10 @@ Object * builtin_pow(Object ** params, uint32_t param_num){
         case RATIO:
             switch (p2->type) {
                 case INTEGER:
-                    return Object_initRatio(pow(p1->data.Ratio.numer, p2->data.Integer.v),
-                                            pow(p1->data.Ratio.denom, p2->data.Integer.v));
+					return Object_initRatio(pow((double)p1->data.Ratio.numer, (double)p2->data.Integer.v),
+											pow((double)p1->data.Ratio.denom, (double)p2->data.Integer.v));
                     break;
-                case DOUBLE:
+                case DOUBLE_:
                     return Object_initDouble(pow((double)p1->data.Ratio.numer / p1->data.Ratio.denom, p2->data.Double.v));
                 case RATIO:
                     return Object_initDouble(pow((double)p1->data.Ratio.numer / p1->data.Ratio.denom,
@@ -1108,8 +1108,8 @@ Object * builtin_sqrt(Object ** params, uint32_t param_num){
     Object * p = params[0];
     switch (p->type) {
         case INTEGER:
-            return Object_initDouble(sqrt(p->data.Integer.v));
-        case DOUBLE:
+			return Object_initDouble(sqrt((double)p->data.Integer.v));
+        case DOUBLE_:
             return Object_initDouble(sqrt(p->data.Double.v));
         case RATIO:
             return Object_initDouble(sqrt((double)p->data.Ratio.numer / p->data.Ratio.denom));
@@ -1123,8 +1123,8 @@ Object * builtin_ceil(Object ** params, uint32_t param_num){
     Object * p = params[0];
     switch (p->type) {
         case INTEGER:
-            return Object_initDouble(ceil(p->data.Integer.v));
-        case DOUBLE:
+			return Object_initDouble(ceil((double)p->data.Integer.v));
+        case DOUBLE_:
             return Object_initDouble(ceil(p->data.Double.v));
         case RATIO:
             return Object_initDouble(ceil((double)p->data.Ratio.numer / p->data.Ratio.denom));
@@ -1138,8 +1138,8 @@ Object * builtin_floor(Object ** params, uint32_t param_num){
     Object * p = params[0];
     switch (p->type) {
         case INTEGER:
-            return Object_initDouble(floor(p->data.Integer.v));
-        case DOUBLE:
+			return Object_initDouble(floor((double)p->data.Integer.v));
+        case DOUBLE_:
             return Object_initDouble(floor(p->data.Double.v));
         case RATIO:
             return Object_initDouble(floor((double)p->data.Ratio.numer / p->data.Ratio.denom));

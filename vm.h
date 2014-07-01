@@ -1,4 +1,4 @@
-//
+﻿//
 //  vm.h
 //  walley
 //
@@ -81,6 +81,10 @@ Object *VM(/*uint16_t * instructions,*/
     int16_t functions_list_length = 0;
     uint64_t hash_val;
 
+	uint64_t integer__;
+	Table_Pair * table_pairs;
+
+
     pc = CONSTANT_TABLE_INSTRUCTIONS_TRACK_INDEX;
     // run CONSTANT_TABLE_INSTRUCTIONS first to load constant
     while (pc != CONSTANT_TABLE_INSTRUCTIONS->length) {
@@ -118,7 +122,7 @@ Object *VM(/*uint16_t * instructions,*/
                 accumulator = Object_initString(created_string, string_length);
                 accumulator->use_count = 1;
                 if (Constant_Pool_Length == Constant_Pool_Size) {
-                    Constant_Pool = realloc(Constant_Pool, sizeof(Object*) * Constant_Pool_Size * 2);
+                    Constant_Pool = (Object**)realloc(Constant_Pool, sizeof(Object*) * Constant_Pool_Size * 2);
                     Constant_Pool_Size *= 2;
                 }
                 // push to Constant_Pool
@@ -209,7 +213,7 @@ Object *VM(/*uint16_t * instructions,*/
                         // free accumulator is necessary
                         Object_free(accumulator);
                     
-                        uint64_t integer__ = (uint64_t)(((uint64_t)instructions[pc + 1] << 48) |
+                        integer__ = (uint64_t)(((uint64_t)instructions[pc + 1] << 48) |
                                                                 ((uint64_t)instructions[pc + 2] << 32) |
                                                                 ((uint64_t)instructions[pc + 3] << 16) |
                                                                 ((uint64_t)instructions[pc + 4]));
@@ -460,7 +464,7 @@ Object *VM(/*uint16_t * instructions,*/
                                 accumulator = Table_getval(v, temp);
                                 */
                                 hash_val = hash(temp->data.String.v, v->data.Table.size); // get hash value
-                                Table_Pair * table_pairs = v->data.Table.vec[hash_val];
+                                table_pairs = v->data.Table.vec[hash_val];
                                 while (table_pairs!=NULL) {
                                     if (table_pairs->key == temp || strcmp(temp->data.String.v, table_pairs->key->data.String.v) == 0) {
                                         accumulator = table_pairs->value;
@@ -746,7 +750,7 @@ Object *VM(/*uint16_t * instructions,*/
                             // get value from object
                             OBJECT_FIND_PROPERTY:
                                 hash_val = hash(temp->data.String.v, v->data.Table.size); // get hash value
-                                Table_Pair * table_pairs = v->data.Table.vec[hash_val];
+                                table_pairs = v->data.Table.vec[hash_val];
                                 while (table_pairs!=NULL) {
                                     if (table_pairs->key == temp || strcmp(temp->data.String.v, table_pairs->key->data.String.v) == 0) {
                                         accumulator = table_pairs->value;
@@ -926,7 +930,7 @@ Object *VM(/*uint16_t * instructions,*/
                 i = -1;
             TABLE_GET_BEGIN_TO_FIND_VALUE:
                 v = accumulator; // get table.
-                Table_Pair * table_pairs = v->data.Table.vec[hash_val];
+                table_pairs = v->data.Table.vec[hash_val];
                 while (table_pairs != NULL) {
                     if (table_pairs->key == temp || strcmp(temp->data.String.v, table_pairs->key->data.String.v) == 0) { // find
                         accumulator = table_pairs->value;

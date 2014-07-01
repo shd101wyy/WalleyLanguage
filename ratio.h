@@ -85,7 +85,8 @@ void number_debug(Object * x){
         case INTEGER:
             printf("Integer %ld\n", x->data.Integer.v);
             break;
-        case DOUBLE:
+        case 
+			:
             printf("Float %lf\n", x->data.Double.v);
             break;
         case RATIO:

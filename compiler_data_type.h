@@ -96,16 +96,16 @@ struct Module{
  * init module
  */
 Module * Module_init(){
-    Module * m = malloc(sizeof(Module));
+    Module * m = (Module*)malloc(sizeof(Module));
     m->size = 8;
     m->length = 0;
-    m->variable_offset = malloc(sizeof(uint16_t) * m->size);
+    m->variable_offset = (uint16_t*)malloc(sizeof(uint16_t) * m->size);
     return m;
 }
 void Module_addOffset(Module * m, uint16_t offset){
     if(m->length == m->size){ // reach maximum
         m->size*=2;
-        m->variable_offset = realloc(m->variable_offset, sizeof(uint16_t)*m->size);
+        m->variable_offset = (uint16_t*)realloc(m->variable_offset, sizeof(uint16_t)*m->size);
     }
     m->variable_offset[m->length] = offset;
     m->length++;
@@ -132,7 +132,7 @@ typedef struct Variable_Table_Frame{
     init vtf
  */
 Variable_Table_Frame * VTF_init(uint32_t size){
-    Variable_Table_Frame * vtf = malloc(sizeof(Variable_Table_Frame));
+	Variable_Table_Frame * vtf = (Variable_Table_Frame*)malloc(sizeof(Variable_Table_Frame));
     vtf->var_names = (char**)malloc(sizeof(char*)*size);
     vtf->length = 0;
     vtf->use_count = 0;
@@ -189,7 +189,7 @@ typedef struct Variable_Table{
   init Variable Table
  */
 Variable_Table * VT_init(){
-    Variable_Table * vt = malloc(sizeof(Variable_Table));
+	Variable_Table * vt = (Variable_Table*)malloc(sizeof(Variable_Table));
     vt->frames[0] = VTF_init(FRAME0_SIZE);
     vt->frames[0]->use_count = 1; // in use
     
@@ -296,7 +296,7 @@ Variable_Table * VT_copy(Variable_Table * vt){
     Variable_Table * return_vt;
     uint32_t length = vt->length;
     uint32_t i;
-    return_vt = malloc(sizeof(Variable_Table));
+	return_vt = (Variable_Table*)malloc(sizeof(Variable_Table));
     return_vt->length = length;
     for (i = 0; i < length; i++) {
         return_vt->frames[i] = vt->frames[i]; // 没有copy frame deeply
@@ -351,8 +351,8 @@ typedef struct Macro{
 }Macro;
 
 Macro * Macro_init(char * macro_name, Object * clauses, Variable_Table * vt){
-    Macro * m = malloc(sizeof(Macro));
-    char * s = malloc(sizeof(char)*(strlen(macro_name)+1));
+    Macro * m = (Macro*)malloc(sizeof(Macro));
+    char * s = (char*)malloc(sizeof(char)*(strlen(macro_name)+1));
     strcpy(s, macro_name);
 
     m->macro_name = s;
@@ -374,7 +374,7 @@ Object * Macro_copy_clauses(Object * clauses){
                         Macro_copy_clauses(cdr(clauses)));
         case INTEGER:
             return cons(Object_initInteger(v->data.Integer.v), Macro_copy_clauses(cdr(clauses)));
-        case DOUBLE:
+        case DOUBLE_:
             return cons(Object_initDouble(v->data.Double.v), Macro_copy_clauses(cdr(clauses)));
         case PAIR:
             return cons(Macro_copy_clauses(v),
@@ -421,10 +421,10 @@ typedef struct MacroTableFrame{
 }MacroTableFrame;
 
 MacroTableFrame * MTF_init(int32_t size){
-    MacroTableFrame * o = malloc(sizeof(MacroTableFrame));
+	MacroTableFrame * o = (MacroTableFrame*)malloc(sizeof(MacroTableFrame));
     o->size = size;
     o->length = 0;
-    o->array = malloc(sizeof(Macro*) * (o->size));
+    o->array = (Macro**)malloc(sizeof(Macro*) * (o->size));
     return o;
 }
 /*
@@ -436,7 +436,7 @@ typedef struct MacroTable {
 }MacroTable;
 
 MacroTable * MT_init(){
-    MacroTable * o = malloc(sizeof(MacroTable));
+	MacroTable * o = (MacroTable*)malloc(sizeof(MacroTable));
     o->length = 1; // only have one frame
     o->frames[0] = MTF_init(64);
     return o;
@@ -475,7 +475,7 @@ MacroTable * MT_copy(MacroTable * mt){
     MacroTable * return_mt;
     uint32_t length = mt->length;
     uint32_t i;
-    return_mt = malloc(sizeof(MacroTable));
+	return_mt = (MacroTable*)malloc(sizeof(MacroTable));
     return_mt->length = length;
     for (i = 0; i < length; i++) {
         return_mt->frames[i] = mt->frames[i]; // 没有copy frame deeply
@@ -558,9 +558,9 @@ int checkModuleLoaded(Loaded_Modules ** m, char * abs_path, Variable_Table_Frame
         }
         m_ = m_->next;
     }
-    Loaded_Modules * new_m = malloc(sizeof(Loaded_Modules));
+	Loaded_Modules * new_m = (Loaded_Modules*)malloc(sizeof(Loaded_Modules));
     new_m->next = *m;
-    new_m->file_abs_path = malloc(sizeof(char) * (1 + strlen(abs_path)));
+    new_m->file_abs_path = (char*)malloc(sizeof(char) * (1 + strlen(abs_path)));
     strcpy(new_m->file_abs_path, abs_path);
     new_m->offset = 0; // 这里可能有错
     

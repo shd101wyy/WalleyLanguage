@@ -1,4 +1,4 @@
-//
+﻿//
 //  data_type.c
 //  walley
 //
@@ -70,7 +70,7 @@ void Object_free(Object * o);
 typedef enum {
     NULL_,
 	INTEGER,
-	DOUBLE,
+	DOUBLE_,
 	RATIO,
 	STRING,
 	PAIR,
@@ -196,7 +196,7 @@ Object * Object_initInteger(int64_t v){
  */
 Object * Object_initDouble(double v){
     Object * o = allocateObject();
-    o->type = DOUBLE;
+    o->type = DOUBLE_;
     o->data.Double.v = v;
     return o;
 }
@@ -206,7 +206,7 @@ Object * Object_initDouble(double v){
 Object * Object_initString(char * v, uint64_t string_length){
     Object * o = allocateObject();
     o->type = STRING;
-    o->data.String.v = malloc(sizeof(char)*(string_length + 1));
+    o->data.String.v = (char*)malloc(sizeof(char)*(string_length + 1));
     if(o->data.String.v == NULL)
     {
         printf("ERROR:Out of memory\n");
@@ -292,7 +292,7 @@ Object * Object_initTable(uint64_t size){
     o->type = TABLE;
     o->data.Table.length = 0;
     o->data.Table.size = size;
-    o->data.Table.vec = calloc(size, sizeof(Table_Pair*));
+    o->data.Table.vec = (Table_Pair**)calloc(size, sizeof(Table_Pair*));
     o->data.Table.proto = NULL;
     o->use_count = 0;
     return o;
@@ -321,8 +321,8 @@ void rehash(Object * t){
     uint64_t hash_value;
     Table_Pair * p;
     Table_Pair * temp;
-    Object * keys[original_size];
-    Object * values[original_size];
+	Object ** keys = (Object**)malloc(sizeof(Object) * original_size); //[original_size];
+	Object ** values = (Object**)malloc(sizeof(Object) * original_size); // [original_size];
     Table_Pair * new_Table_Pair;
     
     for(i = 0; i < original_size; i++){
@@ -341,15 +341,14 @@ void rehash(Object * t){
     // free vec
     free(t->data.Table.vec);
     t->data.Table.size = t->data.Table.size * 2; // double size
-    //t->vec = malloc(sizeof(Table_Pair*) * t->size); // realloc
-    t->data.Table.vec = calloc(t->data.Table.size, sizeof(Table_Pair*)); // realloc
+    t->data.Table.vec = (Table_Pair**)calloc(t->data.Table.size, sizeof(Table_Pair*)); // realloc
     
     // rehash
     for(i = 0; i < j; i++){
         key = keys[i];
         value = values[i];
         // create new Table_Pair
-        new_Table_Pair = malloc(sizeof(Table_Pair));
+        new_Table_Pair = (Table_Pair*)malloc(sizeof(Table_Pair));
         new_Table_Pair->key = key;
         new_Table_Pair->value = value;
         
@@ -363,6 +362,9 @@ void rehash(Object * t){
             t->data.Table.vec[hash_value] = new_Table_Pair;
         }
     }
+
+	free(keys);
+	free(values);
 }
 
 /*
@@ -390,7 +392,7 @@ void Table_setval(Object *t, Object * key, Object * value){
     Table_Pair * table_pairs = t->data.Table.vec[hash_value];
     Table_Pair * new_table_pair;
     Table_Pair * temp_table_pair;
-    new_table_pair = malloc(sizeof(Table_Pair));
+    new_table_pair = (Table_Pair*)malloc(sizeof(Table_Pair));
     new_table_pair->key = key;
     new_table_pair->value = value;
     
