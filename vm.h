@@ -946,6 +946,10 @@ Object *VM(/*uint16_t * instructions,*/
                 accumulator->use_count++;
                 global_frame->array[instructions[pc + 1]] = accumulator;
                 /*
+                 TODO :
+                    这个以后是为了 compile 得到 .wac file之后
+                    还可以eval, 或者 load .wac file
+                 
                 if (GLOBAL_PUSH_SAVE_TO_VT) {
                     printf("need to save\n");
                     Module_addOffset(module, instructions[pc + 1]);
