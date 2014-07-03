@@ -176,6 +176,8 @@
     (VTF-push vtf :file-abs-path)           ;;  global 73
     (VTF-push vtf :float->int64t)           ;;  float  74 
     (VTF-push vtf :table-length)            ;;  table  75
+    (VTF-push vtf :string-char-code-at)     ;;  string 76
+    (VTF-push vtf :string-from-char-code)   ;;  string 77
     vt ;; return vt
     ))
 
@@ -196,7 +198,7 @@
 (def VT-add-new-empty-frame
   (fn [vt]
     (vector:push! vt (Make-Variable-Table-Frame))))
-
+;; if not found, return ()
 (def VT-find 
   (fn [vt var-name module]
     ;; check local
@@ -218,7 +220,8 @@
           #(0 (module var-name)) ;; in module
           (if (GLOBAL-MODULE var-name)  
             #(0 (GLOBAL-MODULE var-name)) ;; in global module
-            #(-1, -1)))))))
+            () ;; not found
+            ))))))
 
 (def Make-Lambda-for-Compilation
   (fn []
@@ -350,22 +353,23 @@
     (def input-str-length (string:length input-str))
                                         ;format string
                                         ;eg ""Hello World"" -> Hello World
+    (print input-str-length)
     (def format-string 
       (fn [i output-str]
-        (if (= i input-str-length)
+        (if (= i (- input-str-length 1))
           output-str
           (format-string (+ i 1)
                          (string-append output-str
-                                        (if (eq? input-str[i] "\\")
-                                          (cond (eq? input-str[(+ i 1)] 'a)
+                                        (if (string=? input-str[i] "\\")
+                                          (cond (string=? input-str[(+ i 1)] 'a)
                                                 "\a"
-                                                (eq? input-str[(+ i 1)] 't)
+                                                (string=? input-str[(+ i 1)] 't)
                                                 "\t"
-                                                (eq? input-str[(+ i 1)] 'n)
+                                                (string=? input-str[(+ i 1)] 'n)
                                                 "\n"
-                                                (eq? input-str[(+ i 1)] "\\")
+                                                (string=? input-str[(+ i 1)] "\\")
                                                 "\\"
-                                                (eq? input-str[(+ i 1)] "\"")
+                                                (string=? input-str[(+ i 1)] "\"")
                                                 "\""
                                                 :else 
                                                 (begin (error "Invalid String Slash")
@@ -373,8 +377,26 @@
                                                        (print "\n")
                                                        ""))
                                           input-str[i]))))))
-    (def s (format-string 0 "")) ;; format string
+    (def s (format-string 1 "")) ;; format string
     (def s-length (string:length s))
+    (print input-str)
+    (print s)
+    (print s-length)
+    (def compile-formatted-string 
+      (fn [i]
+        (if (= (+ i 1)
+               s-length)
+          (Insts-push CONSTANT-TABLE-INSTRUCTIONS
+                      (& (<< (string:char-code-at s i) 8)
+                         0xFF00))
+          (if (= i
+                 s-length)
+            (Insts-push CONSTANT-TABLE-INSTRUCTIONS
+                        0x0000)
+            (begin (Insts-push CONSTANT-TABLE-INSTRUCTIONS
+                               (| (<< (string:char-code-at s i) 8)
+                                  (string:char-code-at s (+ i 1))))
+                   (compile-formatted-string (+ i 2)))))))
     
     ;; check s in constant table
     (if (GLOBAL-CONSTANT-TABLE-FOR-COMPILATION s) 
@@ -390,8 +412,8 @@
              (Insts-push CONSTANT-TABLE-INSTRUCTIONS opcode:CONST_STRING)
              (Insts-push CONSTANT-TABLE-INSTRUCTIONS s-length) 
 
-             ;; load each char
-             
+             ;; compile formatted string
+             (compile-formatted-string 0)
              0))))
 
 
@@ -418,7 +440,26 @@
          (compile-float insts l)
 
          (string? l) ;; type of l is string
-         ()
+         (if (string=? l[0] "\"")
+           ;; compile string
+           (compile-string insts l) 
+           ;; get variable
+           (let [v (VT-find vt 
+                            l
+                            module)]
+             (if v
+               ;; found
+               (begin (Insts-push insts (| (<< opcode:GET 12) ;; frame index
+                                           v[0]))
+                      (Insts-push insts v[1])                 ;; value index
+                      (if (or (eq? l 'break)                  ;; meet break, continue : return from fn
+                              (eq? l 'continue))
+                        (begin (Insts-push insts (<< opcode:RETURN 12))
+                               0)
+                        0))
+               ;; not found
+               (begin (error (string:append "Undefined variable " l))
+                      0))))
          
          (list? l)  ;; type of l is list
          ()
@@ -433,7 +474,7 @@
 ;; test compiler
 (def insts (Make-Instructions))
 (compiler insts 
-          -12.4
+          "\"abcd\""
           ()
           0
           0
@@ -442,3 +483,4 @@
           0
           0)
 (Insts-print insts)
+(Insts-print CONSTANT-TABLE-INSTRUCTIONS)

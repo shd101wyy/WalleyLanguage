@@ -646,7 +646,7 @@ Object *builtin_string_append(Object ** params, uint32_t param_num){
     strcpy(out_, s1->data.String.v);
     strcat(out_, s2->data.String.v);
     //out[sum_length] = 0;
-    s1 = Object_initString(out_, sum_length);
+    s1 = Object_initString(out_, sum_length - 1);
     free(out_);
     return s1;
 }
