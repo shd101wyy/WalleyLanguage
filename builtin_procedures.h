@@ -1290,5 +1290,10 @@ Object * builtin_abs_path(Object ** params, uint32_t param_num){
 #endif
     return Object_initString(abs_path, strlen(abs_path));
 }
+// 74 float->int64
+Object * builtin_float_to_int64(Object ** params, uint32_t param_num){
+    uint64_t * unsigned_int_ = (uint64_t *)&(params[0]->data.Double.v); // get hex
+    return Object_initInteger(*unsigned_int_);
+}
 
 #endif

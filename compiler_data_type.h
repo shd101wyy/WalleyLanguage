@@ -278,6 +278,7 @@ Variable_Table * VT_init(){
     VT_push(vt, 0, "&");   // 71 &
     VT_push(vt, 0, "|");   // 72 |
     VT_push(vt, 0, "file-abs-path"); // 73 abs-path
+    VT_push(vt, 0, "float->int64");  // 74 float
     return vt;
 }
 

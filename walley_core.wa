@@ -475,6 +475,7 @@
 
 (def float
   {:->string float->string
+   :->int64 float->int64
    })
 
 (def ratio 

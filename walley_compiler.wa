@@ -176,7 +176,7 @@
     (VTF-push vtf :&)                       ;;  global 71
     (VTF-push vtf :|)                       ;;  global 72
     (VTF-push vtf :file-abs-path)           ;;  global 73
-   
+    (VTF-push vtf :float->int64t)           ;;  float  74 
     vt ;; return vt
     ))
 
