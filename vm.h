@@ -67,6 +67,7 @@ Object *VM(/*uint16_t * instructions,*/
     Object * temp; // temp use
     Object * temp2;
     Environment_Frame * global_frame = env->frames[0];
+    Variable_Table_Frame * global_vtf = vt->frames[0];
     
     Environment_Frame *BUILTIN_PRIMITIVE_PROCEDURE_STACK = EF_init_with_size(MAX_STACK_SIZE); // for builtin primitive procedure calculation
     BUILTIN_PRIMITIVE_PROCEDURE_STACK->use_count = 1; // cannot free it
@@ -944,6 +945,16 @@ Object *VM(/*uint16_t * instructions,*/
             case GLOBAL_PUSH: // push global variable
                 accumulator->use_count++;
                 global_frame->array[instructions[pc + 1]] = accumulator;
+                /*
+                if (GLOBAL_PUSH_SAVE_TO_VT) {
+                    printf("need to save\n");
+                    Module_addOffset(module, instructions[pc + 1]);
+                    global_vtf->var_names[instructions[pc + 1]] = Constant_Pool[instructions[pc + 2]]->data.String.v;
+                    printf("save %s\n", Constant_Pool[instructions[pc + 2]]->data.String.v);
+                }
+                else{
+                    printf("doesn't need to save\n");
+                }*/
                 pc += 3;
                 continue;
             default:

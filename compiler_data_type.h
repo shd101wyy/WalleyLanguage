@@ -174,7 +174,7 @@ void VTF_free(Variable_Table_Frame * vtf){
     define Variable Table
  */
 #define VARIABLE_TABLE_MAX_SIZE 64
-#define FRAME0_SIZE 1024
+#define FRAME0_SIZE 4096
 #define MAX_VAR_NAME_LENGTH 32
 /* Variable Table Data Structure */
 typedef struct Variable_Table{

@@ -32,6 +32,7 @@ static MacroTable * GLOBAL_MACRO_TABLE;
 
 static Loaded_Modules * LOADED_MODULES;
 
+static int8_t GLOBAL_PUSH_SAVE_TO_VT = 1;
 
 Environment *createEnvironment(); // init env
 

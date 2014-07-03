@@ -96,6 +96,8 @@ void Walley_Repl(){
     Lexer * p;
     Object * o;
     
+    GLOBAL_PUSH_SAVE_TO_VT = false; // GLOBAL_PUSH的时候不用把变量名字加入vt
+    
     //Instructions * insts = Insts_init();
     //Variable_Table * vt = VT_init();
     //Environment * env = createEnvironment();
@@ -110,14 +112,6 @@ void Walley_Repl(){
      * todo: windows platform
      *
      */
-    // run walley_core.wa
-    /*
-    Walley_Run_File_for_VM("/usr/local/lib/walley/walley_core.wa", // assume is this folder
-                           insts,
-                           vt,
-                           env,
-                           mt);
-    */
     // run walley_core.wa (walley_core.h)
     Walley_RunString(WALLEY_CORE_CONTENT);
     
@@ -227,6 +221,8 @@ void Walley_Run_File(char * file_name){
     Lexer * p;
     Object * o;
     
+    GLOBAL_PUSH_SAVE_TO_VT = false; // GLOBAL_PUSH的时候不用把变量名字加入vt
+    
 /*
     Instructions * insts = Insts_init();
     Variable_Table * vt = VT_init();
@@ -240,14 +236,6 @@ void Walley_Run_File(char * file_name){
     MacroTable * mt = GLOBAL_MACRO_TABLE;
     
     
-    // run walley_core.wa
-    /*
-    Walley_Run_File_for_VM("/usr/local/lib/walley/walley_core.wa", // assume is this folder
-                           insts,
-                           vt,
-                           env,
-                           mt);
-    */
     // run walley_core.wa (walley_core.h)
     Walley_RunString(WALLEY_CORE_CONTENT);
     
@@ -291,6 +279,8 @@ void Walley_Run_Compiled_File(char * file_name){
     
     // init walley
     Walley_init();
+    
+    GLOBAL_PUSH_SAVE_TO_VT = true; // GLOBAL_PUSH的时候用把变量名字加入vt
     
     Instructions * insts = NULL; //  = GLOBAL_INSTRUCTIONS;
     //Variable_Table * vt = GLOBAL_VARIABLE_TABLE;
@@ -435,6 +425,7 @@ void Walley_Compile(char * file_name){
     SwitchWorkingDirectory(working_path);
     
     COMPILATION_MODE = 1; // if under compilation mode, no print necessary
+    GLOBAL_PUSH_SAVE_TO_VT = false; // GLOBAL_PUSH的时候不用把变量名字加入vt
 
     // read content from file
     FILE* file = fopen(abs_path, "r");
@@ -471,14 +462,6 @@ void Walley_Compile(char * file_name){
     Environment * env = GLOBAL_ENVIRONMENT;
     MacroTable * mt = GLOBAL_MACRO_TABLE;
     
-    // run walley_core.wa
-    /*
-    Walley_Run_File_for_VM("/usr/local/lib/walley/walley_core.wa", // assume is this folder
-                           insts,
-                           vt,
-                           env,
-                           mt);
-     */
     // run walley_core.wa (walley_core.h)
     Walley_RunString(WALLEY_CORE_CONTENT);
     
