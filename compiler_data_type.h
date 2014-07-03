@@ -33,6 +33,7 @@
 #define OBJECT_GET_SELF 0xC
 #define OBJECT_GET_PARENT 0xD
 #define TABLE_GET 0xE
+#define GLOBAL_PUSH 0xF
 
 
 /*

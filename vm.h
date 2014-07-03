@@ -66,6 +66,7 @@ Object *VM(/*uint16_t * instructions,*/
     Object * v;
     Object * temp; // temp use
     Object * temp2;
+    Environment_Frame * global_frame = env->frames[0];
     
     Environment_Frame *BUILTIN_PRIMITIVE_PROCEDURE_STACK = EF_init_with_size(MAX_STACK_SIZE); // for builtin primitive procedure calculation
     BUILTIN_PRIMITIVE_PROCEDURE_STACK->use_count = 1; // cannot free it
@@ -606,22 +607,6 @@ Object *VM(/*uint16_t * instructions,*/
                                     printf("ERROR: eval function is only run time supported");
                                     vm_error_jump
                                 }
-                                /*
-                                Instructions * temp_insts = Insts_init();
-                                temp->use_count++;
-                                accumulator = compiler_begin(temp_insts,
-                                                             temp->type == STRING?
-                                                             parser(lexer(temp->data.String.v)) : temp,
-                                                             vt,
-                                                             NULL,
-                                                             NULL,
-                                                             1,
-                                                             original_env,
-                                                             mt);
-                                temp->use_count--;
-                                
-                                free(temp_insts->array);
-                                free(temp_insts);*/
                                 
                                 // get value to compile
                                 temp = temp->type == STRING ? parser(lexer(temp->data.String.v))
@@ -715,12 +700,12 @@ Object *VM(/*uint16_t * instructions,*/
                                         current_frame_pointer = temp_frame;
                                         goto eval_user_defined_lambda;
                                     default:
-                                        printf("ERROR: Invalid lambda\n");
+                                        printf("ERROR1: Invalid lambda\n");
                                         vm_error_jump
                                 }
                                 
                             default:
-                                printf("ERROR: Invalid Lambda\n");
+                                printf("ERROR2: Invalid Lambda\n");
                                 // TODO: Object_free(v)
                                 Object_free(accumulator);
                                 accumulator = GLOBAL_NULL;
@@ -868,7 +853,7 @@ Object *VM(/*uint16_t * instructions,*/
                                 goto VM_END;
                         }
                     default:
-                        printf("ERROR: Invalid Lambda\n");
+                        printf("ERROR3: Invalid Lambda\n");
                         Object_free(accumulator);
                         accumulator = GLOBAL_NULL;
                         goto VM_END;
@@ -955,6 +940,12 @@ Object *VM(/*uint16_t * instructions,*/
                     pc = pc + 5;
                     continue;
                 }
+                
+            case GLOBAL_PUSH: // push global variable
+                accumulator->use_count++;
+                global_frame->array[instructions[pc + 1]] = accumulator;
+                pc += 2;
+                continue;
             default:
                 printf("ERROR: Invalid opcode %d\n", opcode);
                 vm_error_jump

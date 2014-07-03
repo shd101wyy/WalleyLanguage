@@ -716,10 +716,19 @@ int16_t compiler(Instructions * insts,
                     LOADED_MODULES->offset = set_index;// save offset
                 }
                 
-                // add instruction
-                Insts_push(insts, SET_TOP << 12);
-                Insts_push(insts, set_index);
-                return 0;
+                // global
+                if (vt->length == 1) {
+                    Insts_push(insts, GLOBAL_PUSH << 12);
+                    Insts_push(insts, set_index);
+                    return 0;
+                }
+                // local
+                else{
+                    // add instruction
+                    Insts_push(insts, SET_TOP << 12);
+                    Insts_push(insts, set_index);
+                    return 0;
+                }
             }
             else if(str_eq(tag, "set!")){
                 // check eg (set! x 0 12) case
