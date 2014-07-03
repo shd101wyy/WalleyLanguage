@@ -944,7 +944,7 @@ Object *VM(/*uint16_t * instructions,*/
             case GLOBAL_PUSH: // push global variable
                 accumulator->use_count++;
                 global_frame->array[instructions[pc + 1]] = accumulator;
-                pc += 2;
+                pc += 3;
                 continue;
             default:
                 printf("ERROR: Invalid opcode %d\n", opcode);
