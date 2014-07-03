@@ -177,6 +177,7 @@
     (VTF-push vtf :|)                       ;;  global 72
     (VTF-push vtf :file-abs-path)           ;;  global 73
     (VTF-push vtf :float->int64t)           ;;  float  74 
+    (VTF-push vtf :table-length)            ;;  table  75
     vt ;; return vt
     ))
 
@@ -185,7 +186,7 @@
 (def GLOBAL-VT (VT-init))
 (def GLOBAL-MODULE GLOBAL-VT[0]:var-names) ;; def global module, ~which is not initialized yet~
 (def GLOBAL-LOADED-MODULES #[])            ;; save the abs path of loaded file
-
+(def GLOBAL-CONSTANT-TABLE-FOR-COMPILATION {})   ;; save constant
 
 ;; variable table push variable table frame
 (def VT-push-frame 

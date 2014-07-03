@@ -1302,4 +1302,9 @@ Object * builtin_float_to_int64(Object ** params, uint32_t param_num){
     return Object_initInteger(*unsigned_int_);
 }
 
+//  75 table-length
+Object * builtin_table_length(Object ** params, uint32_t param_num){
+    return Object_initInteger(params[0]->data.Table.length);
+}
+
 #endif

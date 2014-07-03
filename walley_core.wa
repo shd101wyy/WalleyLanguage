@@ -440,7 +440,7 @@
   {:keys table-keys
    :delete table-delete
    :foreach table-foreach
-   })
+   :length table-length})
 (def string
   {:slice string-slice
    :length string-length
