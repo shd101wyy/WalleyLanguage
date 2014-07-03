@@ -787,7 +787,13 @@ Object * builtin_display_string(Object ** params, uint32_t param_num){
 // 36 string->int
 Object * builtin_string_to_int(Object ** params, uint32_t param_num){
     // 以后用atol
-    return Object_initInteger(atoi(params[0]->data.String.v));
+    char * v = params[0]->data.String.v;
+    char * t = NULL;
+    if (strlen(v) >= 3 && v[0] == '0' && v[1] == 'x') { // hex
+        return Object_initInteger(strtoull(v, &t, 16));
+    }
+    else
+        return Object_initInteger(strtoull(v, &t, 10));
 }
 // 37 string->float
 Object * builtin_string_to_float(Object ** params, uint32_t param_num){
