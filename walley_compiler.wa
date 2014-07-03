@@ -63,3 +63,174 @@
 ;(def x (Make-Instructions))
 ;(Insts-push x 12)
 ;(Insts-print x)
+
+;; def module
+;; module saves variables names and their offsets
+;; under global scope
+(def Make-Module 
+  (fn []
+    {}))
+
+;; make variable table frame
+(def Make-Variable-Table-Frame 
+  (fn []
+    {:var-names {}
+     :length     0}))
+;; push variable name to variable table frame
+(def VTF-push 
+  (fn [vtf v]
+    (set! ((vtf :var-names) v) vtf:length)
+    (set! vtf:length (+ vtf:length 1))))
+;; make variable table
+;; vector that store the variable table frame
+(def Make-Variable-Table
+  (fn []
+    #[]))
+;; initialize a variable table
+(def VT-init
+  (fn []
+    (def vt #[])  ;;; def a variable table
+    (def vtf (Make-Variable-Table-Frame))  ;;; def a variable table frame 
+    (vector:push! vt vtf) ;;; add this variable table frame to variable table
+   
+    ;; add predefined variable name
+    ;; set frame0                        ;;    module
+    (VTF-push vtf :cons)                   ;;  global 0
+    (VTF-push vtf :car)                    ;;  global 1
+    (VTF-push vtf :cdr)                    ;;  global 2
+    (VTF-push vtf :+)                      ;;  global 3
+    (VTF-push vtf :-)                      ;;  global 4
+    (VTF-push vtf :*)                      ;;  global 5
+    (VTF-push vtf :/)                      ;;  global 6
+    (VTF-push vtf :Vector!)                ;;  global 7 
+    (VTF-push vtf :Vector)                 ;;  global 8
+    (VTF-push vtf :vector-length)          ;;  vector 9 
+    
+    (VTF-push vtf :vector-push!)           ;;  vector 10 
+    (VTF-push vtf :vector-pop!)            ;;  vector 11 
+    (VTF-push vtf :=)                      ;;  global 12 
+    (VTF-push vtf :<)                      ;;  global 13
+    (VTF-push vtf :<=)                     ;;  global 14 
+    (VTF-push vtf :eq?)                    ;;  global 15
+    (VTF-push vtf :eval)                   ;;  global 16 
+    (VTF-push vtf :exit)                   ;;  global 17
+    (VTF-push vtf :>)                      ;;  global 18
+    (VTF-push vtf :>=)                     ;;  global 19
+    
+    (VTF-push vtf :parse)                  ;;  global 20
+    (VTF-push vtf :random)                 ;;  global 21 
+    (VTF-push vtf :strcmp)                 ;;  global 22 
+    (VTF-push vtf :string-slice)           ;;  string 23 
+    (VTF-push vtf :string-length)          ;;  string 24 
+    (VTF-push vtf :string-append)          ;;  string 25 
+    (VTF-push vtf :Table)                  ;;  global 26 
+    (VTF-push vtf :table-keys)             ;;  table 27 
+    (VTF-push vtf :table-delete)           ;;  table 28 
+    (VTF-push vtf :file-read)              ;;  file 29 
+    
+    (VTF-push vtf :file-write)             ;;  file 30 
+    (VTF-push vtf :sys-argv)               ;;  sys  31
+    (VTF-push vtf :int->string)            ;;  int  32 
+    (VTF-push vtf :float->string)          ;;  float 33 
+    (VTF-push vtf :input)                  ;;  global 34
+    (VTF-push vtf :print)                  ;;  global 35 
+    (VTF-push vtf :string->int)            ;;  string 36 
+    (VTF-push vtf :string->float)          ;;  string 37 
+    (VTF-push vtf :ratio?)                 ;;  global 38 
+    (VTF-push vtf :ratio-numer)            ;;  ratio 39 
+    
+    (VTF-push vtf :ratio-denom)            ;;  ratio 40 
+    (VTF-push vtf :gensym)                 ;;  global 41 
+    (VTF-push vtf :add-proto)              ;;  global 42 
+    (VTF-push vtf :proto)                  ;;  global 43 
+    (VTF-push vtf :typeof)                 ;;  global 44
+    (VTF-push vtf :math-cos)               ;;  math  45
+    (VTF-push vtf :math-sin)               ;;  math 46 
+    (VTF-push vtf :math-tan)               ;;  math 47 
+    (VTF-push vtf :math-acos)              ;;  math 48 
+    (VTF-push vtf :math-asin)              ;;  math 49
+    
+    (VTF-push vtf :math-atan)              ;;  math 50 
+    (VTF-push vtf :math-cosh)              ;;  math 51 
+    (VTF-push vtf :math-sinh)              ;;  math 52
+    (VTF-push vtf :math-tanh)              ;;  math 53
+    (VTF-push vtf :math-log)               ;;  math 54
+    (VTF-push vtf :math-exp)               ;;  math 55
+    (VTF-push vtf :math-log10)             ;;  math 56
+    (VTF-push vtf :math-pow)               ;;  math 57
+    (VTF-push vtf :math-sqrt)              ;;  math 58
+    (VTF-push vtf :math-ceil)              ;;  math 59
+    
+    (VTF-push vtf :math-floor)             ;;  math 60 
+    (VTF-push vtf :string-find)            ;;  string 61 
+    (VTF-push vtf :string-replace)         ;;  string 62 
+    (VTF-push vtf :apply)                  ;;  global 63 
+    (VTF-push vtf :vector-slice)           ;;  vector 64 
+    (VTF-push vtf :set-car!)               ;;  global 65 
+    (VTF-push vtf :set-cdr!)               ;;  global 66 
+    (VTF-push vtf :sys-cmd)                ;;  sys 67
+    (VTF-push vtf :<<)                     ;;  global 68
+    (VTF-push vtf :>>)                     ;;  global 69
+    
+    (VTF-push vtf :>>>)                     ;;  global 70
+    (VTF-push vtf :&)                       ;;  global 71
+    (VTF-push vtf :|)                       ;;  global 72
+    (VTF-push vtf :file-abs-path)           ;;  global 73
+   
+    vt ;; return vt
+    ))
+
+(def GLOBAL-VT (VT-init))
+(def GLOBAL-MODULE GLOBAL-VT[0]:var-names) ;; def global module, ~which is not initialized yet~
+
+;; variable table push variable table frame
+(def VT-push-frame 
+  (fn [vt vtf]
+    (vector:push! vt vtf)))
+
+;; variable table push empty frame
+(def VT-add-new-empty-frame
+  (fn [vt]
+    (vector:push! vt (Make-Variable-Table-Frame))))
+
+(def VT-find 
+  (fn [vt var-name module]
+    ;; check local
+    ;; if find return offset, otherwise return ()
+    (def check-local
+      (fn [vt i]
+        (if (= i 0)
+          () ;; didn't find
+          ;; check current frame
+          (if (vt[i]:var-names var-name)
+            #(i (vt[i]:var-names var-name)) ;; find
+            (check-local vt (- i 1)) ;; continue
+            ))))
+    ;; check module
+    (let [a (check-local vt (- (vector:length vt) 1))]
+      (if a
+        a ;; find in local
+        (if (module var-name) 
+          #(0 (module var-name)) ;; in module
+          (if (GLOBAL-MODULE var-name)  
+            #(0 (GLOBAL-MODULE var-name)) ;; in global module
+            #(-1, -1)))))))
+
+(def Make-Lambda-for-Compilation
+  (fn []
+    {:param-num 0
+     :variadic-place 0
+     :start-pc 0
+     :variable-table ()
+     :is-tail-call 0}
+    ))
+
+;; Macro data structure
+(def Make-Macro
+  (fn [macro-name clauses vt]
+    {:macro-name macro-name
+     :clauses clauses
+     :vt vt}))
+
+
+
