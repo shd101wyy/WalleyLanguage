@@ -180,8 +180,12 @@
     vt ;; return vt
     ))
 
+;; several GLOBAL variables
+
 (def GLOBAL-VT (VT-init))
 (def GLOBAL-MODULE GLOBAL-VT[0]:var-names) ;; def global module, ~which is not initialized yet~
+(def GLOBAL-LOADED-MODULES #[])            ;; save the abs path of loaded file
+
 
 ;; variable table push variable table frame
 (def VT-push-frame 
@@ -234,3 +238,139 @@
 
 
 
+;; begin to define compiler 
+(def compiler-begin ())
+(def compiler ())
+
+;; quote list
+;; (quote (1 2)) => (cons 1 (cons 2 ()))
+(def quote-list
+  (fn [l]
+    (if (null? l)
+      ()
+      (let [v (car l)]
+        (if (pair? v)
+          (cons 'cons 
+                (cons (quote-list v)
+                      (cons (quote-list (cdr l))
+                            ())))
+          (if (and (string? v)
+                   (eq? v "."))
+            (cons 'quote 
+                  (cons (car (cdr l))
+                        ()))
+            (cons 'cons
+                  (cons (cons 'quote 
+                              (cons v ()))
+                        (cons (quote-list (cdr l))
+                              ())))))))))
+
+(def quasiquote-list 
+  (fn [l]
+    (if (null? l)
+      ()
+      (let [v (car l)]
+        (cons (pair? v)
+              ;=>
+              (cond (and (string? (car v))
+                         (eq? (car v) 'unquote))
+                    ;=>
+                    (cons 'cons
+                          (cons (cadr v)
+                                (cons (quasiquote-list (cdr l))
+                                      ())))
+                    (and (string? (car v))
+                         (eq? (car v) 'unquote-splice))
+                    ;=>
+                    (cons 'append
+                          (cons (cadr v)
+                                (cons (quasiquote-list (cdr l)
+                                                       ()))))
+                    :else
+                    ;=>
+                    (cons 'cons
+                          (cons (quasiquote-list v)
+                                (cons (quasiquote-list (cdr l)
+                                                       ()))))
+                    )
+              
+              (and (string? v)
+                   (eq? v "."))
+              ;=>
+              (cons 'quote 
+                    (cons (cadr l)
+                          ()))
+              
+              :else
+              ;=>
+              (cons 'cons
+                    (cons (cons 'quote
+                                (cons v ()))
+                          (cons (quasiquote-list (cdr l))
+                                ()))))))))
+
+
+;; compile doesn't support macro yet
+(set! compiler 
+      (fn [insts 
+           l
+           vt
+           tail-call-flag
+           parent-func-name
+           function-for-compilation
+           env
+           mt
+           module]
+        (cond 
+         (null? l) ;; type of l is  null
+         (begin (Insts-push insts opcode:CONST_NULL) 
+                0) ;; return 0
+         (integer? l) ;; type of l is integer
+         (if (and (>= l 0)
+                  (< l 250))
+           ;; load from constant table directly
+           (begin (Insts-push insts opcode:CONST_LOAD)
+                  (Insts-push insts l)
+                  0) ;; return 0
+           (begin
+            ;; construct integer 
+            (Insts-push insts opcode:CONST_INTEGER)
+            (Insts-push insts (>>> (& 0xFFFF000000000000 l)
+                                  48))
+            (Insts-push insts (>>> (& 0x0000FFFF00000000 l)
+                                  32))
+            (Insts-push insts (>>> (& 0x00000000FFFF0000 l)
+                                  16))
+            (Insts-push insts (>>> (& 0x000000000000FFFF l)
+                                   0))
+            0) ;; return 0
+           )
+         
+         (float? l) ;; type of l is float
+         ()
+
+         (string? l) ;; type of l is string
+         ()
+         
+         (list? l)  ;; type of l is list
+         ()
+
+         :else
+         (begin (error "Invalid Expression")
+                (print l)
+                (print "\n"))
+         )
+        ))
+
+;; test compiler
+(def insts (Make-Instructions))
+(compiler insts 
+          -12
+          ()
+          0
+          0
+          0
+          0
+          0
+          0)
+(Insts-print insts)

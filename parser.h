@@ -134,10 +134,10 @@ Object * parser(Lexer * le){
                 temp = Object_initString(l[i], strlen(l[i]));
             else if(isInteger(l[i])){
                 if (strlen(l[i]) >= 3 && l[i][0] == '0' && l[i][1] == 'x') { // hex
-                    temp = Object_initInteger(strtol(l[i], &t, 16));
+                    temp = Object_initInteger(strtoull(l[i], &t, 16));
                 }
                 else
-                    temp = Object_initInteger(strtol(l[i], &t, 10));
+                    temp = Object_initInteger(strtoull(l[i], &t, 10));
             }
             else if(isDouble(l[i]))
                 temp = Object_initDouble(strtod(l[i], &t));

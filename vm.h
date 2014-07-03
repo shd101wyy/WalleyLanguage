@@ -148,12 +148,12 @@ Object *VM(/*uint16_t * instructions,*/
      * bug code: (def test (fn [l n] (if (= n 0) (car l) (test (cdr l) (- n 1)))))
      * fixed:     tail call error. forget to free object
      */
-    /*
+/*
     for (i = start_pc; i < end_pc; i++) {
         printf("%x ", instructions[i]);
     }
     printf("\n");
-    */
+*/
     
     pc = start_pc;
     while(pc != end_pc){
@@ -203,10 +203,11 @@ Object *VM(/*uint16_t * instructions,*/
                         // free accumulator is necessary
                         Object_free(accumulator);
                         
+                        // 必须cast (uint64_t) 要不然有错
                         accumulator = Object_initInteger((int64_t)(((uint64_t)instructions[pc + 1] << 48) |
                                                                 ((uint64_t)instructions[pc + 2] << 32) |
-                                                                (instructions[pc + 3] << 16) |
-                                                                (instructions[pc + 4])));
+                                                                ((uint64_t)instructions[pc + 3] << 16) |
+                                                                ((uint64_t)instructions[pc + 4])));
                         pc = pc + 5;
                         continue;
                     case CONST_FLOAT: // 64 bit double
