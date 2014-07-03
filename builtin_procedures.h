@@ -1279,4 +1279,16 @@ Object * builtin_bitwise_and(Object ** params, uint32_t param_num){
 Object * builtin_bitwise_or(Object ** params, uint32_t param_num){
     return Object_initInteger(params[0]->data.Integer.v | params[1]->data.Integer.v);
 }
+// 73 abs_path
+Object * builtin_abs_path(Object ** params, uint32_t param_num){
+    char abs_path[256];
+    // get absolute path
+#ifdef WIN32
+    GetFullPathName((TCHAR*)params[0]->data.String.v, 256, (TCHAR*)abs_path, NULL); // I don't know is this correct
+#else
+    realpath(params[0]->data.String.v, abs_path);
+#endif
+    return Object_initString(abs_path, strlen(abs_path));
+}
+
 #endif

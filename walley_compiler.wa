@@ -1,0 +1,65 @@
+;; walley language compiler
+;; by Yiyi Wang
+;; all rights reserved
+
+
+;; def opcodes
+(def opcode 
+  {:SET 0x0 
+   :GET 0x1
+   :CONST 0x2
+   
+   :CONST_INTEGER 0x2100
+   :CONST_FLOAT 0x2200
+   :CONST_STRING 0x2300
+   :CONST_NULL 0x2400
+   :CONST_LOAD 0x2500
+
+   :MAKELAMBDA 0x3
+   :RETURN 0x4
+   :NEWFRAME 0x5
+   :PUSH_ARG 0x6
+   :CALL 0x7
+   :JMP 0x8
+   :TEST 0x9
+   :SET_TOP 0xA
+   :TAIL_CALL_PUSH 0xB
+   :OBJECT_GET_SELF 0xC
+   :OBJECT_GET_PARENT 0xD
+   :TABLE_GET 0xE
+   })
+
+;; generate instructions data structions
+(def Make-Instructions 
+  (fn []
+    {:array #[]
+     :start-pc 0
+     }))
+
+;; insts push instructions
+(def Insts-push 
+  (fn [insts v]
+    (vector:push! insts:array v)))
+;; insts to string
+(def Insts->string 
+  (fn [insts]
+    (def insts-array insts:array)
+    (def insts-length (vector:length insts-array))
+    (def helper 
+      (fn [count output]
+        (if (= count insts-length)
+          output
+          (helper (+ count 1)
+                  (string-append output 
+                                 (int:->string insts-array[count]
+                                               "%04x "))))))
+    (helper 0 "")))
+;; print insts
+(def Insts-print 
+  (fn [insts]
+    (print (Insts->string insts))))
+
+;; test instructions
+;(def x (Make-Instructions))
+;(Insts-push x 12)
+;(Insts-print x)

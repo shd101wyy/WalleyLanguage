@@ -277,6 +277,7 @@ Variable_Table * VT_init(){
     VT_push(vt, 0, ">>>"); // 70 >>>
     VT_push(vt, 0, "&");   // 71 &
     VT_push(vt, 0, "|");   // 72 |
+    VT_push(vt, 0, "file-abs-path"); // 73 abs-path
     return vt;
 }
 

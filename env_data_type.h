@@ -379,7 +379,7 @@ Environment_Frame *createFrame0(){
     EF_set_builtin_lambda(frame, &builtin_unsigned_right_shift); // global
     EF_set_builtin_lambda(frame, &builtin_bitwise_and);       // global
     EF_set_builtin_lambda(frame, &builtin_bitwise_or);        // global
-    
+    EF_set_builtin_lambda(frame, &builtin_abs_path);          // file
 
     
     frame->length = count; // set length

@@ -425,7 +425,7 @@
    :slice vector-slice
    :->list vector->list
    :find vector-find
-   :vector vector-foreach
+   :foreach vector-foreach
    })
 (def list 
   {:length list-length
@@ -485,6 +485,7 @@
 (def file
   {:read file-read
    :write file-write
+   :abs-path file-abs-path
    })
 
 (def sys
