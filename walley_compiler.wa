@@ -309,24 +309,10 @@
                           (cons (quasiquote-list (cdr l))
                                 ()))))))))
 
-
-;; compile doesn't support macro yet
-(set! compiler 
-      (fn [insts 
-           l
-           vt
-           tail-call-flag
-           parent-func-name
-           function-for-compilation
-           env
-           mt
-           module]
-        (cond 
-         (null? l) ;; type of l is  null
-         (begin (Insts-push insts opcode:CONST_NULL) 
-                0) ;; return 0
-         (integer? l) ;; type of l is integer
-         (if (and (>= l 0)
+;; compile integer
+(def compile-integer 
+  (fn [insts l]
+    (if (and (>= l 0)
                   (< l 250))
            ;; load from constant table directly
            (begin (Insts-push insts opcode:CONST_LOAD)
@@ -344,10 +330,41 @@
             (Insts-push insts (>>> (& 0x000000000000FFFF l)
                                    0))
             0) ;; return 0
-           )
+           )))
+(def compile-float
+  (fn [insts v]
+    (def l (float->int64 v))
+    (Insts-push insts opcode:CONST_INTEGER)
+    (Insts-push insts (>>> (& 0xFFFF000000000000 l)
+                                  48))
+    (Insts-push insts (>>> (& 0x0000FFFF00000000 l)
+                                  32))
+    (Insts-push insts (>>> (& 0x00000000FFFF0000 l)
+                                  16))
+    (Insts-push insts (>>> (& 0x000000000000FFFF l)
+                           0))
+    0)) ;; return 0
+
+;; compile doesn't support macro yet
+(set! compiler 
+      (fn [insts 
+           l
+           vt
+           tail-call-flag
+           parent-func-name
+           function-for-compilation
+           env
+           mt
+           module]
+        (cond 
+         (null? l) ;; type of l is  null
+         (begin (Insts-push insts opcode:CONST_NULL) 
+                0) ;; return 0
+         (integer? l) ;; type of l is integer
+         (compile-integer insts l)
          
          (float? l) ;; type of l is float
-         ()
+         (compile-float insts l)
 
          (string? l) ;; type of l is string
          ()
@@ -365,7 +382,7 @@
 ;; test compiler
 (def insts (Make-Instructions))
 (compiler insts 
-          -12
+          -12.4
           ()
           0
           0
