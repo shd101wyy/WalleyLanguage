@@ -416,8 +416,6 @@
              (compile-formatted-string 0)
              0))))
 
-
-
 ;; compile doesn't support macro yet
 (set! compiler 
       (fn [insts 
@@ -440,7 +438,7 @@
          (compile-float insts l)
 
          (string? l) ;; type of l is string
-         (if (string=? l[0] "\"")
+         (if (and (> (string:length l) 0) (string=? l[0] "\""))
            ;; compile string
            (compile-string insts l) 
            ;; get variable
@@ -474,13 +472,16 @@
 ;; test compiler
 (def insts (Make-Instructions))
 (compiler insts 
-          "\"abcd\""
-          ()
+          "Table"
+          GLOBAL-VT
           0
           0
           0
           0
           0
-          0)
+          GLOBAL-MODULE)
+(print "\n Constant: \n")
+;(Insts-print CONSTANT-TABLE-INSTRUCTIONS)
+
+(print "\n\n Instructions: \n")
 (Insts-print insts)
-(Insts-print CONSTANT-TABLE-INSTRUCTIONS)
