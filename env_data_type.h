@@ -374,6 +374,12 @@ Environment_Frame *createFrame0(){
     EF_set_builtin_lambda(frame, &builtin_set_car);           // global
     EF_set_builtin_lambda(frame, &builtin_set_cdr);           // global
     EF_set_builtin_lambda(frame, &builtin_system);            // global
+    EF_set_builtin_lambda(frame, &builtin_left_shift);        // global
+    EF_set_builtin_lambda(frame, &builtin_right_shift);       // global
+    EF_set_builtin_lambda(frame, &builtin_unsigned_right_shift); // global
+    EF_set_builtin_lambda(frame, &builtin_bitwise_and);       // global
+    EF_set_builtin_lambda(frame, &builtin_bitwise_or);        // global
+    
 
     
     frame->length = count; // set length

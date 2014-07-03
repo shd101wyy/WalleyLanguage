@@ -1259,4 +1259,24 @@ Object * builtin_system(Object ** params, uint32_t param_num){
     return GLOBAL_NULL;
 }
 
+// 68 <<
+Object * builtin_left_shift(Object ** params, uint32_t param_num){
+    return Object_initInteger(params[0]->data.Integer.v << params[1]->data.Integer.v);
+}
+// 69 >>  signed right shift
+Object * builtin_right_shift(Object ** params, uint32_t param_num){
+    return Object_initInteger(params[0]->data.Integer.v >> params[1]->data.Integer.v);
+}
+// 70 >>> unsigned right shift
+Object * builtin_unsigned_right_shift(Object ** params, uint32_t param_num){
+    return Object_initInteger((uint64_t)params[0]->data.Integer.v >> params[1]->data.Integer.v);
+}
+// 71 & bitwise-and
+Object * builtin_bitwise_and(Object ** params, uint32_t param_num){
+    return Object_initInteger(params[0]->data.Integer.v & params[1]->data.Integer.v);
+}
+// 72 | bitwise-or
+Object * builtin_bitwise_or(Object ** params, uint32_t param_num){
+    return Object_initInteger(params[0]->data.Integer.v | params[1]->data.Integer.v);
+}
 #endif

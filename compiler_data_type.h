@@ -271,7 +271,12 @@ Variable_Table * VT_init(){
     VT_push(vt, 0, "set-car!"); // 65       // global 65
     VT_push(vt, 0, "set-cdr!"); // 66       // global 66
     VT_push(vt, 0, "sys-cmd"); // 67            // sys 67
-    // VT_push(vt, 0, "Object"); // 68         // global 68
+    VT_push(vt, 0, "<<"); // 68 <<
+    VT_push(vt, 0, ">>"); // 69 >>
+    
+    VT_push(vt, 0, ">>>"); // 70 >>>
+    VT_push(vt, 0, "&");   // 71 &
+    VT_push(vt, 0, "|");   // 72 |
     return vt;
 }
 

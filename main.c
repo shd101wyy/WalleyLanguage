@@ -32,7 +32,7 @@ int main(int argc, char *argv[]){
     // Walley_Run_File("/Users/wangyiyi/∞Ÿ∂»‘∆Õ¨≤Ω≈Ã/Github/Walley0.3/walley/walley/tutorial.wa");
     //return 0;
     if (argc == 1) {
-        printf("\nWalley Language 0.3.8480\n");
+        printf("\nWalley Language 0.3.8483\n");
         printf("Copyright (c) 2012-2014 Yiyi Wang\n");
         printf("All Rights Reserved\n\n");
         Walley_Repl();
