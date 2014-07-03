@@ -449,6 +449,8 @@
    :->float string->float
    :find string-find
    :replace string-replace
+   :char-code-at string-char-code-at
+   :from-char-code string-from-char-code
    })
 
 (def math 

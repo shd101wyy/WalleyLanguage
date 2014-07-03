@@ -280,6 +280,8 @@ Variable_Table * VT_init(){
     VT_push(vt, 0, "file-abs-path"); // 73 abs-path
     VT_push(vt, 0, "float->int64");  // 74 float
     VT_push(vt, 0, "table-length");  // 75 table
+    VT_push(vt, 0, "string-char-code-at"); // 76 string
+    VT_push(vt, 0, "string-from-char-code"); // 77 string
     return vt;
 }
 

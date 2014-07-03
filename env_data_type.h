@@ -382,6 +382,8 @@ Environment_Frame *createFrame0(){
     EF_set_builtin_lambda(frame, &builtin_abs_path);          // file
     EF_set_builtin_lambda(frame, &builtin_float_to_int64);          // float
     EF_set_builtin_lambda(frame, &builtin_table_length); // table
+    EF_set_builtin_lambda(frame, &builtin_string_char_code_at); // string
+    EF_set_builtin_lambda(frame, &builtin_string_from_char_code); // string
     frame->length = count; // set length
     return frame;
 }

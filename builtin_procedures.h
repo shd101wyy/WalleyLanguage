@@ -1307,4 +1307,23 @@ Object * builtin_table_length(Object ** params, uint32_t param_num){
     return Object_initInteger(params[0]->data.Table.length);
 }
 
+//  76 string-char-code-at
+// (string-char-code-at "hi" 0) => 104
+Object * builtin_string_char_code_at(Object ** params, uint32_t param_num){
+    return Object_initInteger(params[0]->data.String.v[params[1]->data.Integer.v]);
+}
+
+//  77 string-from-char-code
+Object * builtin_string_from_char_code(Object ** params, uint32_t param_num){
+    char * s = malloc(sizeof(char) * (param_num + 1));
+    uint16_t i;
+    Object * o;
+    for (i = 0; i < param_num; i++) {
+        s[i] = params[i]->data.Integer.v;
+    }
+    s[i] = 0;
+    o = Object_initString(s, param_num);
+    free(s);
+    return o;
+}
 #endif
