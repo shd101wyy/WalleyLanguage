@@ -459,8 +459,55 @@
                (begin (error (string:append "Undefined variable " l))
                       0))))
          
-         (list? l)  ;; type of l is list
-         ()
+         (list? l)  ;; type of l is list 
+         (let [tag (car l)]
+           (cond (eq? tag 'quote)  ;; (quote (1 2 3)) (quote abc)
+                 (let [v (cadr l)]
+                   (cond (or (null? v)    ;; () 12 12.3 just compile them
+                             (integer? v)
+                             (double? v))
+                         (compiler insts
+                                   v
+                                   vt
+                                   tail-call-flag
+                                   parent-func-name
+                                   function-for-compilation
+                                   env
+                                   mt
+                                   module)
+                         (list? v)        ;; list
+                         (compiler insts
+                                   (quote-list v)
+                                   vt 
+                                   tail-call-flag 
+                                   parent-func-name 
+                                   function-for-compilation 
+                                   env 
+                                   mt 
+                                   module)
+                         
+                         (and (string? v)  ;; atom symbol
+                              (not (string=? v[0] "'")))
+                         (let [that-symbol (string-append "\"" (string-append v "\""))]
+                           (compiler insts 
+                                     that-symbol 
+                                     vt 
+                                     tail-call-flag 
+                                     parent-func-name 
+                                     function-for-compilation 
+                                     env 
+                                     mt 
+                                     module))
+                         :else 
+                         (compiler insts 
+                                   v 
+                                   vt 
+                                   tail-call-flag 
+                                   parent-func-name 
+                                   env 
+                                   mt 
+                                   module)
+                         ))))
 
          :else
          (begin (error "Invalid Expression")
