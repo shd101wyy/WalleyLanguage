@@ -40,6 +40,11 @@
 (def Insts-push 
   (fn [insts v]
     (vector:push! insts:array v)))
+;; insts set instructions
+(def Insts-set!
+  (fn [insts offset v]
+    (insts:array offset v)))
+
 ;; insts to string
 (def Insts->string 
   (fn [insts]
@@ -242,8 +247,16 @@
 
 
 ;; begin to define compiler 
-(def compiler-begin ())
 (def compiler ())
+(def compiler-begin (insts 
+                     l 
+                     vt 
+                     parent-func-name 
+                     function-for-compilation 
+                     eval-flag 
+                     env 
+                     mt 
+                     module))
 
 ;; quote list
 ;; (quote (1 2)) => (cons 1 (cons 2 ()))
@@ -427,42 +440,10 @@
            env
            mt
            module]
-        (cond 
-         (null? l) ;; type of l is  null
-         (begin (Insts-push insts opcode:CONST_NULL) 
-                0) ;; return 0
-         (integer? l) ;; type of l is integer
-         (compile-integer insts l)
-         
-         (float? l) ;; type of l is float
-         (compile-float insts l)
-
-         (string? l) ;; type of l is string
-         (if (and (> (string:length l) 0) (string=? l[0] "\""))
-           ;; compile string
-           (compile-string insts l) 
-           ;; get variable
-           (let [v (VT-find vt 
-                            l
-                            module)]
-             (if v
-               ;; found
-               (begin (Insts-push insts (| (<< opcode:GET 12) ;; frame index
-                                           v[0]))
-                      (Insts-push insts v[1])                 ;; value index
-                      (if (or (eq? l 'break)                  ;; meet break, continue : return from fn
-                              (eq? l 'continue))
-                        (begin (Insts-push insts (<< opcode:RETURN 12))
-                               0)
-                        0))
-               ;; not found
-               (begin (error (string:append "Undefined variable " l))
-                      0))))
-         
-         (list? l)  ;; type of l is list 
-         (let [tag (car l)]
-           (cond (eq? tag 'quote)  ;; (quote (1 2 3)) (quote abc)
-                 (let [v (cadr l)]
+        ;; compile quote
+        (def compile-quote 
+          (fn [] 
+            (let [v (cadr l)]
                    (cond (or (null? v)    ;; () 12 12.3 just compile them
                              (integer? v)
                              (double? v))
@@ -506,15 +487,285 @@
                                    parent-func-name 
                                    env 
                                    mt 
+                                   module)))))
+        (def compile-quasiquote ;; compile quasiquote
+          (fn []
+            (let [v (cadr l)]
+                   (cond (or (null? v)    ;; () 12 12.3 just compile them
+                             (integer? v)
+                             (double? v))
+                         (compiler insts
+                                   v
+                                   vt
+                                   tail-call-flag
+                                   parent-func-name
+                                   function-for-compilation
+                                   env
+                                   mt
                                    module)
-                         ))))
+                         (list? v)   ;; list
+                         (compiler insts
+                                   (quasiquote-list v)
+                                   vt 
+                                   tail-call-flag 
+                                   parent-func-name 
+                                   function-for-compilation 
+                                   env 
+                                   mt
+                                   module)
+                         (and (string? v)  ;; atom symbol
+                              (not (string=? v[0] "'")))
+                         (let [that-symbol (string-append "\"" (string-append v "\""))]
+                           (compiler insts 
+                                     that-symbol 
+                                     vt 
+                                     tail-call-flag 
+                                     parent-func-name 
+                                     function-for-compilation 
+                                     env 
+                                     mt 
+                                     module))
+                         :else 
+                         (compiler insts 
+                                   v 
+                                   vt 
+                                   tail-call-flag 
+                                   parent-func-name 
+                                   env 
+                                   mt 
+                                   module)))))
+        (def compile-if  ;;; compile if (if 1 2 3)
+          (fn [] 
+            (let [test (cadr l)
+                  conseq (caddr l)
+                  alter (if (null? (cdddr l)) () (cadddr l))]
+              ;; compile test
+              (compiler insts 
+                        test 
+                        vt 
+                        () 
+                        parent-func-name 
+                        function-for-compilation 
+                        env 
+                        mt 
+                        module)
+              ;; push test, but now we don't know jump steps
+              (Insts-push insts (<< opcode:TEST 12)) ;; jump over consequence
+              (let [index1 (vector:length insts:array)]
+                (Insts-push insts 0x0000) ;; jump steps
+                ;; compile conseq
+                (compiler-begin insts 
+                                (cons conseq ())
+                                vt 
+                                parent-func-name 
+                                function-for-compilation 
+                                () ;; cannot eval
+                                env 
+                                mt 
+                                module)
+                (let [index2 (vector:length insts:array)]
+                  (Insts-push insts (<< opcode:JMP 12))  ;; jmp 
+                  (Insts-push insts 0x0000)              ;; jump over alternative
+                  (Insts-push insts 0x0000) 
+                  (let [jump-steps (+ (- index2 index1)
+                                      4)]
+                    (Insts-set! insts index1 jump-steps) ;; set jump steps
+                    ;; compile alter
+                    (compiler-begin insts 
+                                    (cons alter ())
+                                    vt 
+                                    parent-func-name 
+                                    function-for-compilation 
+                                    ()  ;; cannot eval
+                                    env 
+                                    mt 
+                                    module)
+                    (let [index3 (vector:length insts:array)
+                          jump-steps (- index3 index2)]
+                      (Insts-set! insts (+ index2 1) (>> (& 0xffff0000 jump-steps)
+                                                         16))
+                      (Insts-set! insts (+ index2 2) (& 0x0000FFFF jump-steps))))
+                  0))))) ;; return 0
+        (def compile-let  ;; not finished
+          (fn [] 
+            (let [chunk (cadr l)]
+              ())))
+        (def compile-make-fn ;; make fn 
+          (fn []
+            (let [params (cadr l)
+                  variadic-place -1 
+                  vt_ (vector:slice vt 0 (vector:length vt)) ;; copy vt
+                  mt_ (vector:slice mt 0 (vector:length mt)) ;; copy mt
+                  temp-top-frame (Make-Variable-Table-Frame)      ;; temp-top-frame
+                  ]
+              (def get-counter-and-set!-variadic-place 
+                (fn [params counter]
+                  (cond (null? params) ;; done
+                            counter 
+                        (not (string? (car params))) ;; invalid param type
+                            (begin (error "Invalid Function Parameter Type\n")
+                                   (print (car params))
+                                   (print "\n")
+                                   0)
+                        (eq? (car params) ".") ;; variadic place
+                            (begin (set! variadic-place counter) ;; set variadic-place
+                                   (VTF-push temp-top-frame (cadr params))
+                                   (+ counter 1))
+                        :else
+                            (begin (VTF-push temp-top-frame (cadr params))
+                                   (get-counter-and-set!-variadic-place (cdr params)
+                                                                        (+ counter 1)))
+                        )))
+              (vector:push! vt_ temp-top-frame)         ;; add a new frame
+              (vector:push! mt_ {})    ;; add a new frame
+              (let [counter (get-counter-and-set!-variadic-place params 
+                                                                 0) ;; get param num
+                    index1 (+ 1 (vector:length insts:array))
+                    start-pc (+ 2 index1)
+                    function-for-compilation_ {:start-pc start-pc
+                                               :param-num counter 
+                                               :variadic-place variadic-place 
+                                               :vt vt_ 
+                                               :is-tail-call 0}
+                    ]
+                (Insts-push insts 
+                            (| (<< opcode:MAKELAMBDA 12)
+                               (| (<< counter 6)
+                                  (| (if (= variadic-place -1) 0 (<< variadic-place 1))
+                                     (if (= variadic-place -1) 0 1)))))
+                (Insts-push insts 0x0000) ;; steps that needed to jump over lambda
+                (Insts-push insts 0x0000) ;; used to save frame length
+                (compiler-begin insts ;; compile body
+                                (cddr l)
+                                vt_ 
+                                parent-func-name 
+                                function-for-compilation_ 
+                                () 
+                                env 
+                                mt_ 
+                                module)
+                (Insts-push insts (<< opcode:RETURN 12)) ;; push RETURN opcode
+                (let [index2 (vector:length insts:array)
+                      ]
+                  (Insts-set! insts index1 (+ (- index2 index1) 1)) ;; set jump steps
+                  (Insts-set! insts (+ index1 1)  ;; save frame length
+                              (if (= variadic-place -1)
+                                (table:length temp-top-frame)
+                                64))
+                  0)))))  
+        (def compile-call-fn 
+          (fn [] 
+            (def compile-params  ;; compile params and return params-num
+              (fn [params num]
+                (if (null? params)
+                  num
+                  (begin (compiler insts  ;; compile param
+                                   (car params)
+                                   vt 
+                                   ()
+                                   parent-func-name 
+                                   function-for-compilation 
+                                   env 
+                                   mt 
+                                   module)
+                         (Insts-push insts (<< opcode:PUSH_ARG 12))
+                         (compile-params (cdr params) (+ num 1))))))
+            ;; TODO check macro
+            (if tail-call-flag 
+              ;; tail call
+              (begin   ;; tail call, so no new frame
+               ())     ;; TODO : support tail call
+              
+              ;; not tail call
+              ;;
+              (begin (compiler insts  ;; compile function first
+                               (car l)
+                               vt 
+                               () 
+                               parent-func-name 
+                               function-for-compilation 
+                               env 
+                               mt 
+                               module)
+                     (Insts-push insts (<< opcode:NEWFRAME 12)) ;; create new frame
+                     (Insts-push insts (| (<< opcode:CALL 12)
+                                          (& 0x0fff (compile-params (cdr l) ;; compile params
+                                                                    0))))
+                     0))))
+
+        (cond 
+         (null? l) ;; type of l is  null
+         (begin (Insts-push insts opcode:CONST_NULL) 
+                0) ;; return 0
+         (integer? l) ;; type of l is integer
+         (compile-integer insts l)
+         
+         (float? l) ;; type of l is float
+         (compile-float insts l)
+
+         (string? l) ;; type of l is string
+         (if (and (> (string:length l) 0) (string=? l[0] "\""))
+           ;; compile string
+           (compile-string insts l) 
+           ;; get variable
+           (let [v (VT-find vt 
+                            l
+                            module)]
+             (if v
+               ;; found
+               (begin (Insts-push insts (| (<< opcode:GET 12) ;; frame index
+                                           v[0]))
+                      (Insts-push insts v[1])                 ;; value index
+                      (if (or (eq? l 'break)                  ;; meet break, continue : return from fn
+                              (eq? l 'continue))
+                        (begin (Insts-push insts (<< opcode:RETURN 12))
+                               0)
+                        0))
+               ;; not found
+               (begin (error (string:append "Undefined variable " l))
+                      0))))
+         
+         (list? l)  ;; type of l is list 
+         (let [tag (car l)]
+           (cond (eq? tag 'quote)  ;; (quote (1 2 3)) (quote abc)
+                     (compile-quote)   ;; compile quote
+                 (eq? tag 'quasiquote) ;; quasiquote
+                     (compile-quasiquote) ;; compile quasiquote
+                 (eq? tag 'def)
+                     ()
+                 (eq? tag 'set!)
+                     ()
+                 (eq? tag 'load)
+                     ()
+                 (eq? tag 'require)
+                     ()
+                 (eq? tag 'if)
+                     (compile-if)
+                 (eq? tag 'begin)
+                     (compiler-begin insts 
+                                     (cdr l)
+                                     vt 
+                                     parent-func-name 
+                                     function-for-compilation 
+                                     ()  ;; cannot eval
+                                     env 
+                                     mt)
+                 (eq? tag 'let)
+                     (compile-let)
+                 (or (eq? tag 'lambda)
+                     (eq? tag 'fn))
+                     (compile-make-fn)
+                 (eq? tag 'defmacro)
+                     ()
+                 :else ;;; call fn
+                     (compile-call-fn)
+                 ))  
 
          :else
          (begin (error "Invalid Expression")
                 (print l)
                 (print "\n"))
-         )
-        ))
+         )))
 
 ;; test compiler
 (def insts (Make-Instructions))
