@@ -1,3 +1,1 @@
-(print "test4 file\n")
-(def x 12)
-{:x x}
+(print "Hello Here")

@@ -349,24 +349,24 @@
 (def compile-integer 
   (fn [insts l]
     (if (and (>= l 0)
-                  (< l 250))
-           ;; load from constant table directly
-           (begin (Insts-push insts opcode:CONST_LOAD)
-                  (Insts-push insts l)
-                  0) ;; return 0
-           (begin
-            ;; construct integer 
-            (Insts-push insts opcode:CONST_INTEGER)
-            (Insts-push insts (>>> (& 0xFFFF000000000000 l)
-                                  48))
-            (Insts-push insts (>>> (& 0x0000FFFF00000000 l)
-                                  32))
-            (Insts-push insts (>>> (& 0x00000000FFFF0000 l)
-                                  16))
-            (Insts-push insts (>>> (& 0x000000000000FFFF l)
-                                   0))
-            0) ;; return 0
-           )))
+             (< l 250))
+      ;; load from constant table directly
+      (begin (Insts-push insts opcode:CONST_LOAD)
+             (Insts-push insts l)
+             0) ;; return 0
+      (begin
+       ;; construct integer 
+       (Insts-push insts opcode:CONST_INTEGER)
+       (Insts-push insts (>>> (& 0xFFFF000000000000 l)
+                              48))
+       (Insts-push insts (>>> (& 0x0000FFFF00000000 l)
+                              32))
+       (Insts-push insts (>>> (& 0x00000000FFFF0000 l)
+                              16))
+       (Insts-push insts (>>> (& 0x000000000000FFFF l)
+                              0))
+       0) ;; return 0
+      )))
 (def compile-float
   (fn [insts v]
     (def l (float->int64 v))
@@ -386,7 +386,6 @@
     (def input-str-length (string:length input-str))
                                         ;format string
                                         ;eg ""Hello World"" -> Hello World
-    (print input-str-length)
     (def format-string 
       (fn [i output-str]
         (if (= i (- input-str-length 1))
@@ -412,9 +411,9 @@
                                           input-str[i]))))))
     (def s (format-string 1 "")) ;; format string
     (def s-length (string:length s))
-    (print input-str)
-    (print s)
-    (print s-length)
+                                        ;(print input-str)
+                                        ;(print s)
+                                        ;(print s-length)
     (def compile-formatted-string 
       (fn [i]
         (if (= (+ i 1)
@@ -439,8 +438,11 @@
              0) ;; return 0
       ;; doesn't exist
       (begin (Insts-push insts opcode:CONST_LOAD)  ;; load from table
-             (Insts-push insts (table:length GLOBAL-CONSTANT-TABLE-FOR-COMPILATION)) ;; save offset
-             (GLOBAL-CONSTANT-TABLE-FOR-COMPILATION s (table:length GLOBAL-CONSTANT-TABLE-FOR-COMPILATION))  ;; save to constant table
+             (Insts-push insts (+ (table:length GLOBAL-CONSTANT-TABLE-FOR-COMPILATION)
+                                  250)) ;; save offset ;; + 250 because 0~250 integers are stored in constant table
+             (GLOBAL-CONSTANT-TABLE-FOR-COMPILATION s 
+                                                    (+ (table:length GLOBAL-CONSTANT-TABLE-FOR-COMPILATION)
+                                                       250))  ;; save to constant table
              ;; constant table instructions
              (Insts-push CONSTANT-TABLE-INSTRUCTIONS opcode:CONST_STRING)
              (Insts-push CONSTANT-TABLE-INSTRUCTIONS s-length) 
@@ -461,9 +463,7 @@
            env
            mt
            module]
-        (print "Compiler Function\n")
-        (print l)
-        (print "\n")
+     
         ;; compile quote
         (def compile-quote 
           (fn [] 
@@ -915,20 +915,119 @@
                     (print "\n"))
              )))
 
-;; test compiler
-(def insts (Make-Instructions))
-(compiler insts 
-          '(def x 12)
-          GLOBAL-VT
-          ()
-          0
-          0
-          0
-          0
-          GLOBAL-MODULE)
-(print "\n Constant: \n")
-(Insts-print CONSTANT-TABLE-INSTRUCTIONS)
+(def compile-file-with-output
+  (fn [compile-file 
+       output-file]
+    (def write-insts-to-file
+      (fn [insts]
+        (def write-insts 
+          (fn [insts-array count length output-str]
+            (if (= count length)
+              output-str 
+              (write-insts insts-array 
+                           (+ count 1)
+                           length 
+                           (string-append output-str 
+                                          (int:->string insts-array[count]
+                                                        "%04x "))))))
+        (def write-string "")
+        ;; first 64 bits, length of CONSTANT_TABLE_INSTRUCTIONS
+                (set! write-string 
+              (string-append write-string
+                             (int:->string (>> (& 0xFFFF000000000000
+                                                  (vector:length CONSTANT-TABLE-INSTRUCTIONS:array))
+                                               48)
+                                           "%04x ")))
+        (set! write-string 
+              (string-append write-string
+                             (int:->string (>> (& 0x0000FFFF00000000
+                                                  (vector:length CONSTANT-TABLE-INSTRUCTIONS:array))
+                                               32)
+                                           "%04x ")))
+        (set! write-string 
+              (string-append write-string
+                             (int:->string (>> (& 0x00000000FFFF0000
+                                                  (vector:length CONSTANT-TABLE-INSTRUCTIONS:array))
+                                               16)
+                                           "%04x ")))
+        (set! write-string 
+              (string-append write-string
+                             (int:->string (>> (& 0x000000000000FFFF
+                                                  (vector:length CONSTANT-TABLE-INSTRUCTIONS:array))
+                                               0)
+                                           "%04x ")))
+        ;; second 64 bits, length of INSTRUCTIONS
+        (set! write-string 
+              (string-append write-string
+                             (int:->string (>> (& 0xFFFF000000000000
+                                                  (vector:length insts:array))
+                                               48)
+                                           "%04x ")))
+        (set! write-string 
+              (string-append write-string
+                             (int:->string (>> (& 0x0000FFFF00000000
+                                                  (vector:length insts:array))
+                                               32)
+                                           "%04x ")))
+        (set! write-string 
+              (string-append write-string
+                             (int:->string (>> (& 0x00000000FFFF0000
+                                                  (vector:length insts:array))
+                                               16)
+                                           "%04x ")))
+        (set! write-string 
+              (string-append write-string
+                             (int:->string (>> (& 0x000000000000FFFF
+                                                  (vector:length insts:array))
+                                               0)
+                                           "%04x ")))
+        ;; reserved 0x0000
+        (set! write-string (string-append write-string "0000 "))
+        ;; write CONSTANT TABLE INSTRUCTIONS
+        (set! write-string (write-insts CONSTANT-TABLE-INSTRUCTIONS:array 
+                                        0 
+                                        (vector:length CONSTANT-TABLE-INSTRUCTIONS:array)
+                                        write-string))
+        ;; write INSTRUCTIONS
+        (set! write-string (write-insts insts:array 
+                                        0 
+                                        (vector:length insts:array)
+                                        write-string))
+        (file:write output-file write-string)))
+    (def compile-begin 
+      (fn [l insts]
+        (if (null? l)
+          (write-insts-to-file insts)
+          (begin (compiler insts
+                           (car l)
+                           GLOBAL-VT
+                           ()
+                           0
+                           0
+                           0
+                           0
+                           GLOBAL-MODULE)
+                 (compile-begin (cdr l)
+                                insts)))))
+    (let [o (parse (file:read compile-file))]
+      (compile-begin o (Make-Instructions)))))
 
-(print "\n\n Instructions: \n")
-(Insts-print insts)
-(print "Hi")
+(compile-file-with-output "test4.wa" "test4_compiled.wac")
+
+;; test compiler
+;(def insts (Make-Instructions))
+;(compiler insts 
+;          '(def x 12)
+;          GLOBAL-VT
+;          ()
+;          0
+;          0
+;          0
+;          0
+;          GLOBAL-MODULE)
+;(print "\n Constant: \n")
+;(Insts-print CONSTANT-TABLE-INSTRUCTIONS)
+
+;(print "\n\n Instructions: \n")
+;(Insts-print insts)
+;(print "Hi")

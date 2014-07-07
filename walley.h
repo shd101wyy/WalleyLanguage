@@ -498,7 +498,7 @@ void Walley_Compile(char * file_name){
     file = fopen(file_name_buffer, "w");
     uint64_t i;
     
-    // first 64 bytes, length of CONSTANT_TABLE_INSTRUCTIONS
+    // first 64 bits, length of CONSTANT_TABLE_INSTRUCTIONS
     sprintf(inst_buffer, "%04x ", (uint16_t)((CONSTANT_TABLE_INSTRUCTIONS->length & 0xFFFF000000000000) >> 48));
     fputs(inst_buffer, file);
     sprintf(inst_buffer, "%04x ", (uint16_t)((CONSTANT_TABLE_INSTRUCTIONS->length & 0x0000FFFF00000000) >> 32));
@@ -508,7 +508,7 @@ void Walley_Compile(char * file_name){
     sprintf(inst_buffer, "%04x ", (uint16_t)((CONSTANT_TABLE_INSTRUCTIONS->length & 0x000000000000FFFF) >> 0));
     fputs(inst_buffer, file);
 
-    // seconds 64 bytes, length of INSTRUCTIONS
+    // seconds 64 bits, length of INSTRUCTIONS
     sprintf(inst_buffer, "%04x ", (uint16_t)((insts->length & 0xFFFF000000000000) >> 48));
     fputs(inst_buffer, file);
     sprintf(inst_buffer, "%04x ", (uint16_t)((insts->length & 0x0000FFFF00000000) >> 32));
