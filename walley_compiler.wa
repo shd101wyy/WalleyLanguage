@@ -27,6 +27,7 @@
    :OBJECT_GET_SELF 0xC
    :OBJECT_GET_PARENT 0xD
    :TABLE_GET 0xE
+   :GLOBAL_PUSH 0xF
    })
 
 ;; generate instructions data structions
@@ -227,6 +228,21 @@
             #(0 (GLOBAL-MODULE var-name)) ;; in global module
             () ;; not found
             ))))))
+;; new version VT-find
+(set! VT-find 
+  (fn [vt var-name]
+    ;; check local
+    ;; if find return offset, otherwise return ()
+    (def check-local
+      (fn [vt i]
+        (if (= i -1)
+          () ;; didn't find
+          ;; check current frame
+          (if (vt[i] var-name)
+            #(i (vt[i] var-name)) ;; find
+            (check-local vt (- i 1)) ;; continue
+            ))))
+    (check-local vt (- (vector:length vt) 1))))
 
 (def Make-Lambda-for-Compilation
   (fn []
@@ -445,6 +461,9 @@
            env
            mt
            module]
+        (print "Compiler Function\n")
+        (print l)
+        (print "\n")
         ;; compile quote
         (def compile-quote 
           (fn [] 
@@ -591,10 +610,40 @@
                                                          16))
                       (Insts-set! insts (+ index2 2) (& 0x0000FFFF jump-steps))))
                   0))))) ;; return 0
+        ;; compile let
+        ;; eg (let [a 12 b 20 a 1] (+ a b))
         (def compile-let  ;; not finished
           (fn [] 
-            (let [chunk (cadr l)]
-              ())))
+            (def make-vars ;; [a 12 b 20 a 1] => ((def a 12) (def b 20) (set! a 1))
+              (fn [chunk vars-table]
+                (if (null? chunk)
+                  ()
+                  (let [v (vars-table (car chunk))]
+                    (if v
+                      ;; already existed
+                      (cons (List 'set! (car chunk) (cadr chunk))
+                            (make-vars (cddr chunk) vars-table))
+                      ;; doesn't exit
+                      (begin (vars-table (car chunk) 1) ;; add this variable to table
+                             (cons (List 'def (car chunk) (cadr chunk))
+                                   (make-vars (cddr chunk) vars-table))))))))
+            (let [chunk (cadr l) ;; (a 12 b 20 a 1)
+                  body (cddr l)  ;; ((+ a b))
+                  vars (make-vars chunk {}) ;; ((def a 12) (def b 20) (set! a 1))
+                  reorganized-body `((fn [] ~@vars ~@body))
+                  ]
+              (print "Compile Let\n")
+              (print reorganized-body);
+              (print "\n")
+              (compiler insts ;; compile reorganized-body 
+                        reorganized-body
+                        vt 
+                        tail-call-flag 
+                        parent-func-name 
+                        function-for-compilation 
+                        env 
+                        mt 
+                        module))))
         (def compile-make-fn ;; make fn 
           (fn []
             (let [params (cadr l)
@@ -697,7 +746,101 @@
                                           (& 0x0fff (compile-params (cdr l) ;; compile params
                                                                     0))))
                      0))))
-
+        ;; compile def
+        ;; eg (def x 12)
+        (def compile-def 
+          (fn [] 
+            (let [var-name (cadr l)
+                  var-value (if (null? (cddr l))
+                              ()
+                              (caddr l))
+                  top-frame vt[(- (vector:length vt) 1)]
+                  already-existed? (top-frame var-name)
+                  set-index (table:length top-frame)]
+              (if already-existed? 
+                ;; already existed
+                (begin (error (str "Variable " var-name " already existed\n"))
+                       (print "EXP: ")
+                       (print l)
+                       (print "\n")
+                       0)
+                ;; define new variable
+                (begin (top-frame var-name (table:length top-frame)) ;; add var-name to top-frame
+                       ;; compile value
+                       (compiler insts 
+                                 var-value 
+                                 vt 
+                                 tail-call-flag 
+                                 (if (and (list? var-value) ;; check tail call
+                                          (or (eq? (car var-value) 'fn)
+                                              (eq? (car var-value) 'lambda)))
+                                   var-name
+                                   parent-func-name)
+                                 function-for-compilation
+                                 env 
+                                 mt 
+                                 module)
+                       (if (= (vector:length vt) 1)
+                         ;; global
+                         (begin (Insts-push insts (<< opcode:GLOBAL_PUSH 12))
+                                (Insts-push insts set-index)
+                                (Insts-push insts 0x0000) ;; var-name string offset in constant table; this is not used now.
+                                0)
+                         ;; local
+                         (begin (Insts-push insts (<< opcode:SET_TOP 12))
+                                (Insts-push insts set-index)
+                                0)))))))
+        
+        ;; compile-set!
+        ;; eg (set! x 12)
+        (def compile-set!
+          (fn [] 
+            (if (list? (cadr l))
+              ;; var-name is list
+              ;; eg (def x #[1,2,3])
+              ;;    (set! x[0] 14)  => (x 0 3)
+              ;;    (def z #[#[1,2] 3])
+              ;;    (set! z[0][0] 3) => ((z 0) 0 3)
+              (compiler insts 
+                        (list:append (cadr l)
+                                     (cddr l))
+                        vt 
+                        tail-call-flag 
+                        parent-func-name 
+                        function-for-compilation 
+                        env 
+                        mt 
+                        module)
+              (let [var-name (cadr l)
+                    var-value (if (null? (cddr l)) () (caddr l))
+                    found-offset (VT-find vt var-name)
+                    ]
+                (if found-offset
+                  ;; found variable
+                  (begin (compiler insts  ;; compile var-value
+                                   var-value
+                                   vt 
+                                   tail-call-flag 
+                                   (if (and (list? var-value) ;; check tail call
+                                            (or (eq? (car var-value) 'fn)
+                                                (eq? (car var-value) 'lambda)))
+                                     var-name
+                                     parent-func-name)
+                                   function-for-compilation 
+                                   env 
+                                   mt 
+                                   module)
+                         (Insts-push insts (| (<< opcode:SET 12)
+                                              (& 0x0FFF found-offset[0])))
+                         (Insts-push insts found-offset[1])
+                         0)
+                  ;; didn't find
+                  (begin (error (str "Undefined variable: " var-name "\n")
+                                (print "With Exp: ")
+                                (print l)
+                                (print "\n")
+                                0)))))))
+        
         (cond 
          (null? l) ;; type of l is  null
          (begin (Insts-push insts opcode:CONST_NULL) 
@@ -736,10 +879,10 @@
                      (compile-quote)   ;; compile quote
                  (eq? tag 'quasiquote) ;; quasiquote
                      (compile-quasiquote) ;; compile quasiquote
-                 (eq? tag 'def)
-                     ()
+                 (eq? tag 'def)       ;; define variable
+                     (compile-def)    ;; compile define expression
                  (eq? tag 'set!)
-                     ()
+                     (compile-set!)
                  (eq? tag 'load)
                      ()
                  (eq? tag 'require)
@@ -773,19 +916,19 @@
              )))
 
 ;; test compiler
-;(def insts (Make-Instructions))
-;(compiler insts 
-;          "Table"
-;          GLOBAL-VT
-;          0
-;          0
-;          0
-;          0
-;          0
-;          GLOBAL-MODULE)
-;(print "\n Constant: \n")
-;(Insts-print CONSTANT-TABLE-INSTRUCTIONS)
+(def insts (Make-Instructions))
+(compiler insts 
+          '(def x 12)
+          GLOBAL-VT
+          ()
+          0
+          0
+          0
+          0
+          GLOBAL-MODULE)
+(print "\n Constant: \n")
+(Insts-print CONSTANT-TABLE-INSTRUCTIONS)
 
-;(print "\n\n Instructions: \n")
-;(Insts-print insts)
-;(print "Hi")
+(print "\n\n Instructions: \n")
+(Insts-print insts)
+(print "Hi")

@@ -67,7 +67,7 @@ Object *VM(/*uint16_t * instructions,*/
     Object * temp; // temp use
     Object * temp2;
     Environment_Frame * global_frame = env->frames[0];
-    Variable_Table_Frame * global_vtf = vt->frames[0];
+    //Variable_Table_Frame * global_vtf = vt->frames[0];
     
     Environment_Frame *BUILTIN_PRIMITIVE_PROCEDURE_STACK = EF_init_with_size(MAX_STACK_SIZE); // for builtin primitive procedure calculation
     BUILTIN_PRIMITIVE_PROCEDURE_STACK->use_count = 1; // cannot free it
