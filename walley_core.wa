@@ -23,6 +23,8 @@
 (def string? (lambda [v] (eq? (typeof v) 'string)))
 (def fn? lambda?)
 
+(def not (fn [a] (if a () 1)))
+
 ;; append and reverse functions.
 ;; which will be used for macro expansion
 (def append 

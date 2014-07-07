@@ -248,15 +248,19 @@
 
 ;; begin to define compiler 
 (def compiler ())
-(def compiler-begin (insts 
-                     l 
-                     vt 
-                     parent-func-name 
-                     function-for-compilation 
-                     eval-flag 
-                     env 
-                     mt 
-                     module))
+(def compiler-begin 
+  (fn [insts 
+       l 
+       vt 
+       parent-func-name 
+       function-for-compilation 
+       eval-flag 
+       env 
+       mt 
+       module]
+    0))
+;(def compiler ())
+
 
 ;; quote list
 ;; (quote (1 2)) => (cons 1 (cons 2 ()))
@@ -428,6 +432,7 @@
              ;; compile formatted string
              (compile-formatted-string 0)
              0))))
+(print "\n Implementing Compiler\n")
 
 ;; compile doesn't support macro yet
 (set! compiler 
@@ -444,96 +449,96 @@
         (def compile-quote 
           (fn [] 
             (let [v (cadr l)]
-                   (cond (or (null? v)    ;; () 12 12.3 just compile them
-                             (integer? v)
-                             (double? v))
-                         (compiler insts
-                                   v
-                                   vt
-                                   tail-call-flag
-                                   parent-func-name
-                                   function-for-compilation
-                                   env
-                                   mt
-                                   module)
-                         (list? v)        ;; list
-                         (compiler insts
-                                   (quote-list v)
-                                   vt 
-                                   tail-call-flag 
-                                   parent-func-name 
-                                   function-for-compilation 
-                                   env 
-                                   mt 
-                                   module)
-                         
-                         (and (string? v)  ;; atom symbol
-                              (not (string=? v[0] "'")))
-                         (let [that-symbol (string-append "\"" (string-append v "\""))]
-                           (compiler insts 
-                                     that-symbol 
-                                     vt 
-                                     tail-call-flag 
-                                     parent-func-name 
-                                     function-for-compilation 
-                                     env 
-                                     mt 
-                                     module))
-                         :else 
-                         (compiler insts 
-                                   v 
-                                   vt 
-                                   tail-call-flag 
-                                   parent-func-name 
-                                   env 
-                                   mt 
-                                   module)))))
+              (cond (or (null? v)    ;; () 12 12.3 just compile them
+                        (integer? v)
+                        (float? v))
+                    (compiler insts
+                              v
+                              vt
+                              tail-call-flag
+                              parent-func-name
+                              function-for-compilation
+                              env
+                              mt
+                              module)
+                    (list? v)        ;; list
+                    (compiler insts
+                              (quote-list v)
+                              vt 
+                              tail-call-flag 
+                              parent-func-name 
+                              function-for-compilation 
+                              env 
+                              mt 
+                              module)
+                    
+                    (and (string? v)  ;; atom symbol
+                         (not (string=? v[0] "'")))
+                    (let [that-symbol (string-append "\"" (string-append v "\""))]
+                      (compiler insts 
+                                that-symbol 
+                                vt 
+                                tail-call-flag 
+                                parent-func-name 
+                                function-for-compilation 
+                                env 
+                                mt 
+                                module))
+                    :else 
+                    (compiler insts 
+                              v 
+                              vt 
+                              tail-call-flag 
+                              parent-func-name 
+                              env 
+                              mt 
+                              module)))))
         (def compile-quasiquote ;; compile quasiquote
           (fn []
             (let [v (cadr l)]
-                   (cond (or (null? v)    ;; () 12 12.3 just compile them
-                             (integer? v)
-                             (double? v))
-                         (compiler insts
-                                   v
-                                   vt
-                                   tail-call-flag
-                                   parent-func-name
-                                   function-for-compilation
-                                   env
-                                   mt
-                                   module)
-                         (list? v)   ;; list
-                         (compiler insts
-                                   (quasiquote-list v)
-                                   vt 
-                                   tail-call-flag 
-                                   parent-func-name 
-                                   function-for-compilation 
-                                   env 
-                                   mt
-                                   module)
-                         (and (string? v)  ;; atom symbol
-                              (not (string=? v[0] "'")))
-                         (let [that-symbol (string-append "\"" (string-append v "\""))]
-                           (compiler insts 
-                                     that-symbol 
-                                     vt 
-                                     tail-call-flag 
-                                     parent-func-name 
-                                     function-for-compilation 
-                                     env 
-                                     mt 
-                                     module))
-                         :else 
-                         (compiler insts 
-                                   v 
-                                   vt 
-                                   tail-call-flag 
-                                   parent-func-name 
-                                   env 
-                                   mt 
-                                   module)))))
+              (cond (or (null? v)    ;; () 12 12.3 just compile them
+                        (integer? v)
+                        (float? v))
+                    (compiler insts
+                              v
+                              vt
+                              tail-call-flag
+                              parent-func-name
+                              function-for-compilation
+                              env
+                              mt
+                              module)
+                    (list? v)   ;; list
+                    (compiler insts
+                              (quasiquote-list v)
+                              vt 
+                              tail-call-flag 
+                              parent-func-name 
+                              function-for-compilation 
+                              env 
+                              mt
+                              module)
+                    (and (string? v)  ;; atom symbol
+                         (not (string=? v[0] "'")))
+                    (let [that-symbol (string-append "\"" (string-append v "\""))]
+                      (compiler insts 
+                                that-symbol 
+                                vt 
+                                tail-call-flag 
+                                parent-func-name 
+                                function-for-compilation 
+                                env 
+                                mt 
+                                module))
+                    :else 
+                    (compiler insts 
+                              v 
+                              vt 
+                              tail-call-flag 
+                              parent-func-name 
+                              env 
+                              mt 
+                              module)))))
         (def compile-if  ;;; compile if (if 1 2 3)
           (fn [] 
             (let [test (cadr l)
@@ -762,24 +767,25 @@
                  ))  
 
          :else
-         (begin (error "Invalid Expression")
-                (print l)
-                (print "\n"))
-         )))
+             (begin (error "Invalid Expression")
+                    (print l)
+                    (print "\n"))
+             )))
 
 ;; test compiler
-(def insts (Make-Instructions))
-(compiler insts 
-          "Table"
-          GLOBAL-VT
-          0
-          0
-          0
-          0
-          0
-          GLOBAL-MODULE)
-(print "\n Constant: \n")
+;(def insts (Make-Instructions))
+;(compiler insts 
+;          "Table"
+;          GLOBAL-VT
+;          0
+;          0
+;          0
+;          0
+;          0
+;          GLOBAL-MODULE)
+;(print "\n Constant: \n")
 ;(Insts-print CONSTANT-TABLE-INSTRUCTIONS)
 
-(print "\n\n Instructions: \n")
-(Insts-print insts)
+;(print "\n\n Instructions: \n")
+;(Insts-print insts)
+;(print "Hi")

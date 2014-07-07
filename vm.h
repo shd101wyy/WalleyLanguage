@@ -176,7 +176,9 @@ Object *VM(/*uint16_t * instructions,*/
                     Object_free(v);
                 }
                 else{
-                    printf("VM ERROR: SET INDEX ERROR, plz report this error and send ur code to author through github...");
+                    
+                    printf("VM ERROR: SET INDEX ERROR, plz report this error and send ur code to author through github...\n");
+                    printf("value index %d, frame length %d\n", value_index, env->frames[frame_index]->length);
                     exit(0);
                 }
                 env->frames[frame_index]->array[value_index] = accumulator; // set value
@@ -945,6 +947,7 @@ Object *VM(/*uint16_t * instructions,*/
             case GLOBAL_PUSH: // push global variable
                 accumulator->use_count++;
                 global_frame->array[instructions[pc + 1]] = accumulator;
+                global_frame->length++;
                 /*
                  TODO :
                     这个以后是为了 compile 得到 .wac file之后
