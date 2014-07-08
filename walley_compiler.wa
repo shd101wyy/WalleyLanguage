@@ -439,10 +439,11 @@
       ;; doesn't exist
       (begin (Insts-push insts opcode:CONST_LOAD)  ;; load from table
              (Insts-push insts (+ (table:length GLOBAL-CONSTANT-TABLE-FOR-COMPILATION)
-                                  250)) ;; save offset ;; + 250 because 0~250 integers are stored in constant table
+                                  270)) ;; save offset ;; + 270 because 0~270 are already occupied
+             ;; TODO : in the future, change 270 to 250.
              (GLOBAL-CONSTANT-TABLE-FOR-COMPILATION s 
                                                     (+ (table:length GLOBAL-CONSTANT-TABLE-FOR-COMPILATION)
-                                                       250))  ;; save to constant table
+                                                       270))  ;; save to constant table
              ;; constant table instructions
              (Insts-push CONSTANT-TABLE-INSTRUCTIONS opcode:CONST_STRING)
              (Insts-push CONSTANT-TABLE-INSTRUCTIONS s-length) 

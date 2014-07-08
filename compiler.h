@@ -671,6 +671,10 @@ int16_t compiler(Instructions * insts,
                         if (str_eq(var_name->data.String.v,
                                    vt->frames[0]->var_names[module->variable_offset[i]])) {
                             printf("DEFINITION ERROR: variable: %s already defined\n", var_name->data.String.v);
+                            
+                            string = to_string(l);
+                            printf("           EXP: %s\n", string);
+                            free(string);
                             return 0;
                         }
                     }
@@ -686,6 +690,9 @@ int16_t compiler(Instructions * insts,
                         if (str_eq(var_name->data.String.v,
                                    frame->var_names[j])) {
                             printf("DEFINITION ERROR: variable: %s already defined\n", var_name->data.String.v);
+                            string = to_string(l);
+                            printf("           EXP: %s\n", string);
+                            free(string);
                             return 0;
                         }
                     }
@@ -720,7 +727,8 @@ int16_t compiler(Instructions * insts,
                 if (vt->length == 1) {
                     Insts_push(insts, GLOBAL_PUSH << 12);
                     Insts_push(insts, set_index);
-                    
+                    Insts_push(insts , 0x0000);
+                    /*
                     // check variable name existed?
                     var_value = Table_getval(CONSTANT_TABLE_FOR_COMPILATION, var_name);
                     if (var_value != GLOBAL_NULL) { // already existed
@@ -754,7 +762,7 @@ int16_t compiler(Instructions * insts,
                         if(find_end == false){
                             Insts_push(CONSTANT_TABLE_INSTRUCTIONS, 0x0000); // add end
                         }
-                    }
+                    }*/
                     return 0;
                 }
                 // local
@@ -806,6 +814,10 @@ int16_t compiler(Instructions * insts,
                 VT_find(vt, var_name->data.String.v, vt_find, module);
                 if (vt_find[0] == -1) {
                     printf("SET! ERROR: undefined variable %s \n", var_name->data.String.v);
+                    string = to_string(l);
+                    printf("       EXP: %s\n", string);
+                    free(string);
+
                     return 0;
                 }
                 else{
@@ -873,6 +885,11 @@ int16_t compiler(Instructions * insts,
                     printf("ERROR: Failed to load %s\n", file_name);
                     Insts_push(insts, CONST_NULL);
                     free(file_name_ptr);
+                    
+                    string = to_string(l);
+                    printf("  EXP: %s\n", string);
+                    free(string);
+                    
                     return 0; // return 0 means already loaded or error
                 }
                 char * content;
@@ -908,6 +925,9 @@ int16_t compiler(Instructions * insts,
             else if (str_eq(tag, "require")){
                 if (vt->length != 1) {
                     printf("ERROR: require at invalid scope\n");
+                    string = to_string(l);
+                    printf("  EXP: %s\n", string);
+                    free(string);
                     return 0;
                 }
                 else{
@@ -957,6 +977,11 @@ int16_t compiler(Instructions * insts,
                         printf("ERROR: Failed to require %s\n", file_name);
                         Insts_push(insts, CONST_NULL);
                         free(file_name_ptr);
+                        
+                        string = to_string(l);
+                        printf("  EXP: %s\n", string);
+                        free(string);
+                        
                         return 0; // return 0 means already loaded or error
                     }
                     char * content;
@@ -1150,6 +1175,9 @@ int16_t compiler(Instructions * insts,
                     }
                     if (car(params)->type != STRING) {
                         printf("ERROR: Invalid Function Parameter type\n");
+                        string = to_string(l);
+                        printf("  EXP: %s\n", string);
+                        free(string);
                         return 0;
                     }
                     if (str_eq(car(params)->data.String.v,
@@ -1541,7 +1569,10 @@ int16_t compiler(Instructions * insts,
             }
         default:
             
-            printf("ERROR: Invalid Data\n%s\n",to_string(l));
+            printf("ERROR: Invalid Data\n");
+            string = to_string(l);
+            printf("  EXP: %s\n", string);
+            free(string);
             return 0;
             break;
     }
