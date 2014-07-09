@@ -498,18 +498,32 @@ int16_t compiler(Instructions * insts,
                     // printf("%s doesn't exist %ld\n", s, CONSTANT_TABLE_FOR_COMPILATION_LENGTH);
                     CONSTANT_TABLE_FOR_COMPILATION_LENGTH++;
                 }
+                /*
+                if(strcmp("你", s) == 0){
+                    printf("找到了你\n");
+                }*/
                 
                 Insts_push(CONSTANT_TABLE_INSTRUCTIONS, CONST_STRING);
                 Insts_push(CONSTANT_TABLE_INSTRUCTIONS, length);
                 find_end = false;
                 for (i = 0; i < length; i = i + 2) {
                     if(i + 1 == length){
-                        Insts_push(CONSTANT_TABLE_INSTRUCTIONS, (s[i] << 8) & 0xFF00);
+                        Insts_push(CONSTANT_TABLE_INSTRUCTIONS, ((int32_t)s[i] << 8) & 0xFF00);
                         find_end = true;
                         break;
                     }
                     else {
-                        Insts_push(CONSTANT_TABLE_INSTRUCTIONS, (s[i] << 8) | s[i+1]);
+                        /*
+                        if(strcmp("你", s) == 0){
+                            printf("找到了你\n");
+                            printf("%d\n", s[i]);
+                            printf("%d\n", s[i + 1]);
+                            printf("%x\n", (int16_t)s[i] << 8);
+                            printf("%x\n", (uint32_t)((int32_t)s[i] << 8) | ((int32_t)s[i+1] & 0xFF));
+                            printf("%d\n", (int8_t)(((((int16_t)s[i] << 8) | s[i + 1]) & 0xFF00) >> 8)  );
+                        }*/
+                        // 这里原来出错了, 现在支持负数
+                        Insts_push(CONSTANT_TABLE_INSTRUCTIONS, (uint32_t)((int32_t)s[i] << 8) | ((int32_t)s[i+1] & 0xFF));
                     }
                 }
                 if(find_end == false){
