@@ -217,6 +217,18 @@
       (list-foreach (cdr l)
                      f))
     ))
+;;
+;; '((a . 12) (b . 20)) like list made table
+;;
+(def list-assoc 
+  (fn [l key]
+    (if (null? l)
+      ()
+      (if (eq? key (car (car l)))
+        (cdr (car l))
+        (list-assoc (cdr l)
+               key)))))
+
 
 ;; ############## VECTOR ########################
 ;; vector->list
@@ -437,6 +449,7 @@
    :append list-append
    :->vector list->vector
    :foreach list-foreach
+   :assoc list-assoc
    })
 (def table
   {:keys table-keys
