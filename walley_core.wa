@@ -22,6 +22,7 @@
 (def table? (lambda [v] (eq? (typeof v) 'table)))
 (def string? (lambda [v] (eq? (typeof v) 'string)))
 (def fn? lambda?)
+(def object? [v] (eq? (typeof v) 'object))
 
 (def not (fn [a] (if a () 1)))
 
