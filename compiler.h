@@ -675,11 +675,18 @@ int16_t compiler(Instructions * insts,
                 // 不支持 scheme 类似的 (def (add a b) (+ a b))
                 if (cddr(l)->type == NULL_)
                     var_value = GLOBAL_NULL;
-                else
+                // check (def add [a b] (+ a b)) like expression
+                else if (cdddr(l) != GLOBAL_NULL){
+                    // Here might exist problems
+                    // need to free var_value later.
+                    var_value = cons(LAMBDA_STRING,
+                                     cons(caddr(l), cdddr(l)));
+                }
+                else{
                     var_value = caddr(l);
+                }
                 var_existed = false;
-                
-                // var_index = -1;
+
                 if (vt->length == 1) { // check module
                     for (i = 0; i < module->length; i++) {
                         if (str_eq(var_name->data.String.v,
