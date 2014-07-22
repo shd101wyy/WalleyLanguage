@@ -239,7 +239,7 @@ Variable_Table * VT_init(){
     VT_push(vt, 0, "print");                // global 35
     VT_push(vt, 0, "string->int");                // string 36
     VT_push(vt, 0, "string->float");              // string 37
-    VT_push(vt, 0, "ratio?");               // global 38
+    VT_push(vt, 0, "null?");               // global 38
     VT_push(vt, 0, "ratio-numer");                // ratio  39
 
     VT_push(vt, 0, "ratio-denom");                // ratio  40

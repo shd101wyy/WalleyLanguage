@@ -343,7 +343,7 @@ Environment_Frame *createFrame0(){
     EF_set_builtin_lambda(frame, &builtin_string_to_int);    // string
     EF_set_builtin_lambda(frame, &builtin_string_to_float);  // string
     
-    EF_set_builtin_lambda(frame, &builtin_ratio_type);       // global
+    EF_set_builtin_lambda(frame, &builtin_null_type);       // global
     EF_set_builtin_lambda(frame, &builtin_numer);            // ratio
     EF_set_builtin_lambda(frame, &builtin_denom);            // ratio
     EF_set_builtin_lambda(frame, &builtin_gensym);           // global

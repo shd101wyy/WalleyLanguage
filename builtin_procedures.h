@@ -799,9 +799,10 @@ Object * builtin_string_to_int(Object ** params, uint32_t param_num){
 Object * builtin_string_to_float(Object ** params, uint32_t param_num){
     return Object_initDouble(atof(params[0]->data.String.v));
 }
-// 38 ratio?
-Object * builtin_ratio_type(Object ** params, uint32_t param_num){
-    return params[0]->type == RATIO ? GLOBAL_TRUE : GLOBAL_NULL;
+// 因为要经常用到 null? 函数
+// 38 null?
+Object * builtin_null_type(Object ** params, uint32_t param_num){
+    return params[0] == GLOBAL_NULL ? GLOBAL_TRUE : GLOBAL_NULL;
 }
 // 39 numer
 Object * builtin_numer(Object ** params, uint32_t param_num){
