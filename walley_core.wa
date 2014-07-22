@@ -55,8 +55,8 @@
 ;; (defn func-name args . body)
 (defmacro defn
   [(func_name args . body)
-  `(def ~func_name (lambda ~args ~@body))
-  ]
+   `(def ~func_name (lambda ~args ~@body))
+   ]
   )
 
 
@@ -117,26 +117,26 @@
                                         (+ r 1)))))
           (list-length-iter n 0)))
 ;; list-slice-helper
-(defn list-slice-helper [l end]
+(def list-slice-helper [l end]
   (if (= end 0)
     ()
     (cons (car l)
           (list-slice-helper (cdr l)
                              (- end 1)))))
-(defn list-slice-remove-head [l start]
+(def list-slice-remove-head [l start]
   (if (= start 0)
     l
     (list-slice-remove-head (cdr l)
                             (- start 1))))
 ;; list-slice
-(defn list-slice  [l start end]
+(def list-slice  [l start end]
           (set! end (or end (list-length l)))
           (list-slice-helper (list-slice-remove-head l start)
                              (- end start)))
 ;; str
 ;; eg (str "Hello " "World") -> "Hello World"
-(defn str [. b]
-  (defn str-iter [b]
+(def str [. b]
+  (def str-iter [b]
     (if (null? b)
     ""
     (string-append (car b)
@@ -145,7 +145,7 @@
 
 
 ;; get length of several data types
-(defn len [b] 
+(def len [b] 
   (if (null? b)
     0
     (if (string? b)
@@ -162,26 +162,26 @@
 ;; string<?
 ;; string>=?
 ;; string<=?
-(defn string=? [a b] (= (strcmp a b) 0))
-(defn string>? [a b] (> (strcmp a b) 0))
-(defn string<? [a b] (< (strcmp a b) 0))
-(defn string>=? [a b] (>= (strcmp a b) 0))
-(defn string<=? [a b] (<= (strcmp a b) 0))
+(def string=? [a b] (= (strcmp a b) 0))
+(def string>? [a b] (> (strcmp a b) 0))
+(def string<? [a b] (< (strcmp a b) 0))
+(def string>=? [a b] (>= (strcmp a b) 0))
+(def string<=? [a b] (<= (strcmp a b) 0))
 
 ;; **
 (def ** math-pow)
 ;; ########################### LIST ############################
 ;; some functions for list
 
-(defn caar [x] (car (car x)))
-(defn cadr [x] (car (cdr x)))
-(defn cddr [x] (cdr (cdr x)))
-(defn caddr [x] (car (cdr (cdr x))))
-(defn cdddr [x] (cdr (cdr (cdr x))))
-(defn cadddr [x] (car (cdr (cdr (cdr x)))))
+(def caar [x] (car (car x)))
+(def cadr [x] (car (cdr x)))
+(def cddr [x] (cdr (cdr x)))
+(def caddr [x] (car (cdr (cdr x))))
+(def cdddr [x] (cdr (cdr (cdr x))))
+(def cadddr [x] (car (cdr (cdr (cdr x)))))
 
 (def list-reverse reverse)
-(defn list-ref [l i]
+(def list-ref [l i]
   (if (= i 0)
     (car l)
     (list-ref (cdr l)
@@ -190,8 +190,8 @@
 ;; list-append
 ;; eg (list-append '(1 2) '(4 5)) => '(1 2 4 5)
 ;; eg (list-append '(1 2) 4) => '(1 2 4)
-(defn list-append [l0 l1]
-  (defn list-append-iter0 [l0]
+(def list-append [l0 l1]
+  (def list-append-iter0 [l0]
     (if (null? l0)
       l1
       (cons (car l0) 
@@ -201,8 +201,8 @@
     (begin (set! l1 (cons l1 '()))
            (list-append-iter0 l0))))
 ;; list->vector
-(defn list->vector [l]
-  (defn list->vector-iter [l output]
+(def list->vector [l]
+  (def list->vector-iter [l output]
     (if (null? l)
       output
       (list->vector-iter (cdr l) 
@@ -210,7 +210,7 @@
   (list->vector-iter l #[]))
 
 ;; (list-for-each '(1 2 3 4) (lambda [n] (print n)))
-(defn list-foreach [l f]
+(def list-foreach [l f]
   (if (null? l)
     ()
     (if (eq? (f (car l)) 'break)
@@ -233,9 +233,9 @@
 
 ;; ############## VECTOR ########################
 ;; vector->list
-(defn vector->list [v]
+(def vector->list [v]
   (def length (vector-length v))
-  (defn vector->list-iter [v i]
+  (def vector->list-iter [v i]
     (if (= i length)
       '()
       (cons v[i]
@@ -245,10 +245,10 @@
 
 ;; vector-find
 ;; find element in vector and return its index
-(defn vector-find [v o start-index]
+(def vector-find [v o start-index]
   (set! start-index (or start-index 0))
   (def length (vector-length v))
-  (defn vector-find-iter [i]
+  (def vector-find-iter [i]
     (if (= i length)
       -1 ;; didn't find
       (if (eq? v[i]
@@ -260,9 +260,9 @@
 ;; vector-foreach
 ;; eg (vector-foreach #[1,2,3,4] (lambda [i] (if (= i 3) break (print i))))
 ;; will print 1 2
-(defn vector-foreach [v f]
+(def vector-foreach [v f]
   (def v-length (vector-length v))
-  (defn vector-foreach-iter [count]
+  (def vector-foreach-iter [count]
     (if (= count v-length)
       ()
       (if (eq? (f count v[count]) 'break) ;; break
@@ -271,9 +271,9 @@
   (vector-foreach-iter 0))
 
 ;; table-foreach
-(defn table-foreach [t f]
+(def table-foreach [t f]
   (def keys (table-keys t))
-  (defn table-foreach-iter [keys]
+  (def table-foreach-iter [keys]
     (if (null? keys)
       ()
       (if (eq? (f (car keys)
@@ -288,7 +288,7 @@
 ;; pair       => list-foreach
 ;; vector     => vector-foreach
 ;; dictionary => dictionary-foreach
-(defn foreach [value func]
+(def foreach [value func]
   (def t (typeof value))
   (cond (eq? t 'pair)   (list-foreach value func)
         (eq? t 'vector) (vector-foreach value func)
@@ -296,7 +296,7 @@
         else (print "ERROR: Function foreach invalid param type")))
 
 ;; slice
-(defn slice [v start end]
+(def slice [v start end]
   (def t (typeof v))
   (set! end (or end (cond (eq? t 'pair) (list-length v)
                           (eq? t 'string) (string-length v)
@@ -309,8 +309,8 @@
 ;; times function
 ;; eg 
 ;; (times 5 (lambda [n] (print n))) => 0 1 2 3 4
-(defn times [n f]
-  (defn times-iter [c]
+(def times [n f]
+  (def times-iter [c]
     (if (= c n)
       ()
       (begin (f c)
@@ -322,9 +322,9 @@
 ;; (for 10 0 -1 (lambda [i] (print i))) => 10987654321
 ;; (for 3 (lambda [i] (print i))) => 0 1 2
 ;; only support integer param
-(defn for_fn [start end step f]
+(def for_fn [start end step f]
   (def judge-sign (if (> step 0) >= <=))
-  (defn for-iter [i]
+  (def for-iter [i]
     (if (judge-sign i end)
       ()
       (if (eq? (f i) 'break)
@@ -347,14 +347,14 @@
 ;;##################### map #####################
 ;; map one parameters
 ;; (map1 square '(3 4)) => (9 16)
-(defn map1 [f p]
+(def map1 [f p]
   (if (null? p)
     '()
     (cons (f (car p))
           (map1 f (cdr p)))))
 ;; map variadic parameters
 ;; (map + '(3 4) '(5 6)) => '(8 10)
-(defn map [f p0 . p]
+(def map [f p0 . p]
   ;(print p)
   ;(print (apply f (map1 car (cons p0 p))))
   (if (null? p0)
@@ -364,7 +364,7 @@
 
 
 
-(defn apply-test [f p0 . p]
+(def apply-test [f p0 . p]
   (apply f (map1 car (cons p0 p))))
 
 ;; ##################### filter ##################
@@ -391,9 +391,9 @@
 ;; eg (reduce + '(3 4 5)) => (+ (+ 3 4) 5)
 ;; (reduce f l)
 ;; where f has to have two parameters
-(defn reduce [f l param-num]
+(def reduce [f l param-num]
   (set! param-num (if param-num param-num 2)) ;; default is 2
-  (defn get-num-element-list [l num] ;; eg '(3 4 5) 2 => '(3 4)
+  (def get-num-element-list [l num] ;; eg '(3 4 5) 2 => '(3 4)
     (if (= num 0)
       '()
       (if (null? l)
@@ -401,11 +401,11 @@
         (cons (car l)
             (get-num-element-list (cdr l)
                                   (- num 1))))))
-  (defn cdrn [l num] ;; eg '(3 4 5) 2 => '(5)
+  (def cdrn [l num] ;; eg '(3 4 5) 2 => '(5)
     (if (= num 0)
       l
       (cdrn (cdr l) (- num 1))))
-  (defn reduce-iter [f l param-num-1 acc]
+  (def reduce-iter [f l param-num-1 acc]
     (if (null? l)
       acc
       (reduce-iter f 
@@ -419,7 +419,7 @@
 ;; #################### curry #####################
 ;; curry function
 ;; eg (((curry + 1) 2) 3) => 6
-(defn curry [func . arg]
+(def curry [func . arg]
   (fn [. another-arg]
     (apply func (list-append arg another-arg))))
 
