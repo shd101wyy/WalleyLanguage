@@ -354,17 +354,17 @@ cadr caddr cddr are already defined, so u don't need to define them again.
 We learnt how to use the <strong>quote</strong> to stop the evaluation of the S expression and get pair or string as result.  
 In Walley Language, there are also other ways to make a pair.
 The first new lambda that I will introduce to u
-is <strong>list</strong>.  
+is <strong>List</strong>.  
 Consider the following code:
 ```lisp
-(list 'a 'b 'c)
+(List 'a 'b 'c)
 ```
 this code will give use the pair <strong>(a b c)</strong>.  
-In contrast to <strong>quote</strong>, <strong>list</strong> will evaluate all of its parameters and connect them to generate a list(pair)  
+In contrast to <strong>quote</strong>, <strong>List</strong> will evaluate all of its parameters and connect them to generate a list(pair)  
 So the following code:  
 ```lisp
 (def x 12)
-(list x 'x)
+(List x 'x)
 ```
 will generate pair <strong>(12 x)</strong>  
 where  
