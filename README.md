@@ -545,7 +545,7 @@ So let's try to write a lambda that gets the absolute value of a number.
 That's all for <strong>cond ;)</strong>.  
 ------------------------------------------
 ### A new data type: Table  
-Table is a data type in walley language.  
+<strong>Table</strong> is a data type in walley language.  
 It is a kind of hash table, which uses string as keyword.  
 To define an empty table, we can write:  
 ```lisp
@@ -575,7 +575,7 @@ current functions related to table:
 Variable <strong> table </strong> is a table that contains above functions.
 To get keys in a table:
 ```lisp
-(table:keys my-table) ;; => return list '(y add add)
+(table:keys my-table) ;; => return list '(y add x)
 ```
 To get length of a table:
 ```lisp
@@ -583,7 +583,7 @@ To get length of a table:
 ```
 To delete a value from table according to keyword:  
 ```lisp
-(table:delete! my-table 'x) ;; remove its value. if success return true, otherwise return ()
+(table:delete! my-table 'x) ;; remove its value. if delete value successfully, return true, otherwise return ()
 ```
 
 To iterate a table:
