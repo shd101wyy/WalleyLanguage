@@ -609,7 +609,7 @@ To iterate a table:
 ### Prototype Based Object Oriented Programming
 walley language implements prototype based oop like  
 
-[Io]:http://en.wikipedia.org/wiki/Io_(programming_language)  
+[Io]:(http://en.wikipedia.org/wiki/Io_(programming_language))  
 
 Let's start with some examples.  
 
