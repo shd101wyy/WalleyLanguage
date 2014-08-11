@@ -454,7 +454,7 @@
    })
 (def table
   {:keys table-keys
-   :delete table-delete
+   :delete! table-delete
    :foreach table-foreach
    :length table-length})
 (def string

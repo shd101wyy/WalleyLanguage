@@ -543,6 +543,63 @@ So let's try to write a lambda that gets the absolute value of a number.
         (- 0 n))))
 ```
 That's all for <strong>cond ;)</strong>.  
+------------------------------------------
+### A new data type: Table  
+Table is a data type in walley language.  
+It is a kind of hash table, which uses string as keyword.  
+To define an empty table, we can write:  
+```lisp
+(def my-table {})
+```
+To add key/value pair to table:  
+```lisp
+(set! my-table:x 12)      ;; now the table is like {:x 12}
+(set! my-table:y 15)      ;; now the table is like {:x 12, :y 15}
+(set! my-table:add (lambda [a b] (+ a b))) ;;      {:y 15, :add #<user-defined-lambda (_ _)>, :x 12}
+```
+
+To access a value according to keyword:
+```lisp
+my-table:x      ;; => 12
+(print my-table:x)  ;; will print 12
+my-table:y      ;; => 15
+(my-table:add 3 4)  ;; => 7
+(my-table:add my-table:x my-table:y) ;; => 27
+```
+current functions related to table:  
+- keys
+- foreach
+- length
+- delete  
+
+Variable <strong> table </strong> is a table that contains above functions.
+To get keys in a table:
+```lisp
+(table:keys my-table) ;; => return list '(y add add)
+```
+To get length of a table:
+```lisp
+(table:length my-table) ;; => return 3
+```
+To delete a value from table according to keyword:  
+```lisp
+(table:delete! my-table 'x) ;; remove its value. if success return true, otherwise return ()
+```
+
+To iterate a table:
+```lisp
+(def a-table {:a 1 :b 2 :c 3}) ;; define a table
+(table:foreach a-table (lambda [key val]
+                          (print key)
+                          (print " ")
+                          (print val)
+                          (print "\n") ;; newline
+                          ))
+                          ;; the code above will print
+                          ;; c 3
+                          ;; b 2
+                          ;; a 1
+```
 
 ------------------------------------------
 ### Eval Lisp in Lisp
