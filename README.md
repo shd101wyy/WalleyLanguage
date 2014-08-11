@@ -677,6 +677,23 @@ Suppose we want to define a small dog object:
 
 ```
 ------------------------------------------
+### I am Lazy  
+Because I am too lazy to type "lambda" each time, now lambda can also be defined using "fn"  
+The following two lines of codes are the same:  
+```lisp  
+(def add (fn [a b] (+ a b)))
+(def add (lambda [a b] (+ a b)))
+```
+
+Also we can define fn in this way:  
+```lisp
+(def add (fn [a b] (+ a b)))
+;; same as  
+(def add [a b] (+ a b))
+```
+~(*_*)~  
+
+------------------------------------------
 ### Eval Lisp in Lisp
 So far, we have learnt several lambdas
 - car
@@ -737,7 +754,7 @@ Some terms that I used in this tutorial are actually wrong, I use them just to o
 
 
 
-    
+
 ```  
 ----
 #### 福利
