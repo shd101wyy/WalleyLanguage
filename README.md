@@ -586,6 +586,11 @@ To delete a value from table according to keyword:
 (table:delete! my-table 'x) ;; remove its value. if delete value successfully, return true, otherwise return ()
 ```
 
+To check a value is a table:
+```lisp
+(table? my-table)  ;; => true
+```
+
 To iterate a table:
 ```lisp
 (def a-table {:a 1 :b 2 :c 3}) ;; define a table
@@ -600,7 +605,77 @@ To iterate a table:
                           ;; b 2
                           ;; a 1
 ```
+------------------------------------------
+### Prototype Based Object Oriented Programming
+walley language implements prototype based oop like  
+[Io programming language]:http://en.wikipedia.org/wiki/Io_(programming_language)  
 
+Let's start with some examples.  
+
+<strong>Object</strong> is a special data type.  
+we will build other objects based on Object.  
+so what is <strong>Object</strong>.
+```lisp
+(print Object) ;; => {:clone #<user-defined-lambda (_)>, :type Object}
+```
+<strong>Object</strong> is a special <strong> Table </strong> that has two properties:  
+- clone
+- type  
+To access the key/value from an object is the same as referring key/value from an table:  
+```lisp
+(print Object:type)  ;; => Object
+(print Object:clone) ;; => #<user-defined-lambda (_)>
+```
+
+Now we can define a new object based on Object.  
+Suppose we want to define a small dog object:  
+```lisp
+(def a-small-dog (Object:clone))     ;; so now we create a new object called a-small-dog based on Object
+(print a-small-dog:type)             ;; => Object
+(print a-small-dog)                  ;; => {}
+
+;; to get the proto of an object, use "proto" function
+(proto a-small-dog)                  ;; will re
+
+;; the proto of a-small-dog is Object
+;; so the code below will return 'true
+(eq? (proto a-small-dog) Object)     ;; => true
+
+;; to add property to an Object is the same as Table
+(set! a-small-dog:x 12)              ;; => {:x 12}  
+(set! a-small-dog:y 15)              ;; => {:y 15, :x 12}
+(set! a-small-dog:type 'A-Small-Dog)           ;; => {:type A-Small-Dog, :y 15, :x 12}  
+
+;; so now a-small-dog:type will give us string "A-Small-Dog" instead of "Object" because
+;; this time we overwrite property "type":
+(print a-small-dog:type)                       ;; => A-Small-Dog  
+
+;; the structure of a-small-dog is virtually like:
+;; {:clone #<user-defined-lambda (_)>, :type Object}    Object
+;; {:type A-Small-Dog, :y 15, :x 12}                    a-small-dog
+;; the prototype of a-small-dog is Object
+
+;; now we set "age" of that a-small-dog
+(set! a-small-dog:age 5)            ;; => { :age 5, :type A-Small-Dog, :y 15, :x 12 }
+
+;; to define an object method, we need to add an extra argument to function, which is called "self".
+;; for example, we want to declare a fn that can print the age of a-small-dog:
+(set! a-small-dog:print-age (lambda [self] (print self:age)))
+
+;; to call an object method.
+(a-small-dog:print-age)      ;; => 5
+;; when we call this function, we will pass a-small-dog as the first argument to print-age since a-small-dog is an object and this function is an object method
+;; so now self <=> a-small-dog
+;; and    (print self:age) <=> (print a-small-dog:age)  which print 5
+
+;; consider the following code:
+(def another-small-dog (a-small-dog:clone)) ;; another-small-dog is a new object created based on a-small-dog
+(set! another-small-dog:age 4)              ;; {:age 4}
+(eq? a-small-dog (proto another-small-dog)) ;; true, as the prototype of another-small-dog is a-small-dog
+(another-small-dog:print-age)               ;; will print 5
+
+
+```
 ------------------------------------------
 ### Eval Lisp in Lisp
 So far, we have learnt several lambdas
