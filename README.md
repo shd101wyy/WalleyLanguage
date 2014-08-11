@@ -608,12 +608,13 @@ To iterate a table:
 ------------------------------------------
 ### Prototype Based Object Oriented Programming
 walley language implements prototype based oop like  
-[Io programming language]:http://en.wikipedia.org/wiki/Io_(programming_language)  
+
+[Io]:http://en.wikipedia.org/wiki/Io_(programming_language)  
 
 Let's start with some examples.  
 
 <strong>Object</strong> is a special data type.  
-we will build other objects based on Object.  
+we will build other objects based on <strong>Object</strong>.  
 so what is <strong>Object</strong>.
 ```lisp
 (print Object) ;; => {:clone #<user-defined-lambda (_)>, :type Object}
