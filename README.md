@@ -736,26 +736,33 @@ Some terms that I used in this tutorial are actually wrong, I use them just to o
 [root-of-lisp]:http://www.paulgraham.com/rootsoflisp.html
 [io]:http://iolanguage.org
 
-```  
+```lisp  
+
+;; 下面的这段代码是我在微博上看到的
+;; 感觉很有意思，所哟我用 walley language 伪代码重写。
+
+(def a-life (Life:clone))
+(while (eq? (a-life:get-state) 'alive)
+    (print "I have a new Plan!")
+    (let [a-plan (Plan:clone)]
+        (while (not (a-plan:succeed))
+            (a-plan:struggle)
+            (if (eq? 'fail (a-plan:get-state))
+                (print "Come on!")))
+        (print "What A Beautiful Day!")))
+(print "No Regrets.")
 
 
+生命是一段漫长的旅程。
+想了，就去做。
+输了，从头再来。
+摔了，爬起来继续。
+赢了，还要再往前走。
+死了，没留下任何遗憾。
 
 
+```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-```  
 ----
 #### 福利
 ![](福利/1.jpg?raw=true)
