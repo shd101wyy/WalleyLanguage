@@ -718,7 +718,8 @@ Some terms that I used in this tutorial are actually wrong, I use them just to o
 [sicp]:http://mitpress.mit.edu/sicp/full-text/book/book.html
 [root-of-lisp]:http://www.paulgraham.com/rootsoflisp.html
 [io]:http://iolanguage.org
+
 ----
-福利:
+福利
 ![](福利/1.jpg?raw=true)
 ![](福利/2.jpg?raw=true)
