@@ -31,7 +31,13 @@ char * number_to_string(Object * x){
             sprintf(buffer, "%lf", x->data.Double.v);
             break;
         case RATIO:
-            sprintf(buffer, "%lld/%lld", (long long int)x->data.Ratio.numer, (long long int)x->data.Ratio.denom);
+            if (x->data.Ratio.denom < 0) { // fix (/ -14 18) => 7/-9 bug
+                sprintf(buffer, "-%lld/%lld", (long long int)x->data.Ratio.numer, -(long long int)x->data.Ratio.denom);
+
+            }
+            else{
+                sprintf(buffer, "%lld/%lld", (long long int)x->data.Ratio.numer, (long long int)x->data.Ratio.denom);
+            }
             break;
         default:
             return "()";

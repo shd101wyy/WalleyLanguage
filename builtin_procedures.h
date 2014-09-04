@@ -140,6 +140,19 @@ Object *builtin_sub(Object ** params, uint32_t param_num){
     Object * return_val = params[0];
     Object *p1, * p2;
     int32_t i;
+    if (param_num == 1) { // check (- x) like expression
+        switch (return_val->type) {
+            case INTEGER:
+                return Object_initInteger(-return_val->data.Integer.v);
+            case DOUBLE_:
+                return Object_initDouble(-return_val->data.Double.v);
+            case RATIO:
+                return Object_initRatio(-return_val->data.Ratio.numer, return_val->data.Ratio.denom);
+            default:
+                printf("ERROR: - invalid data type");
+                return GLOBAL_NULL;
+        }
+    }
     for (i = 1; i < param_num; i++) {
         p2 = params[i];
         p1 = return_val;
