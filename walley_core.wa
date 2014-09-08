@@ -4,8 +4,8 @@
 ;; Copyright (c) Yiyi Wang. All rights reserved.
 (def walley-core-author 'Yiyi-Wang)
 (def walley-core-version "0.00029")
-(def walley-language-version "0.3.8486")
-
+(def walley-language-version "0.3.8487")
+(def println [. args] (apply print args) (print "\n"))
 (def break 'break)          ;; for foreach function
 (def continue 'continue)
 
@@ -510,6 +510,25 @@
 (def sys
   {:argv sys-argv
    :cmd sys-cmd
-   }
-)
+   })
 
+(def os
+  {:fork os-fork
+   :getpid os-getpid
+   :getppid os-getppid
+   :waitpid os-waitpid
+   :getenv os-getenv})
+
+
+(def walley-modules {
+     :vector vector
+     :list list
+     :table table
+     :string string
+     :math math
+     :int int
+     :float float
+     :ratio ratio
+     :file file
+     :sys sys
+     :os os })

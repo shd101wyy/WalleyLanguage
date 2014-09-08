@@ -385,6 +385,12 @@ Environment_Frame *createFrame0(){
     EF_set_builtin_lambda(frame, &builtin_table_length); // table
     EF_set_builtin_lambda(frame, &builtin_string_char_code_at); // string
     EF_set_builtin_lambda(frame, &builtin_string_from_char_code); // string
+    EF_set_builtin_lambda(frame, &builtin_os_fork); // os
+    EF_set_builtin_lambda(frame, &builtin_os_getpid); // os
+    EF_set_builtin_lambda(frame, &builtin_os_getppid); // os
+    EF_set_builtin_lambda(frame, &builtin_os_waitpid); // os
+    EF_set_builtin_lambda(frame, &builtin_os_getenv); // os
+    
     frame->length = count; // set length
     return frame;
 }
@@ -431,4 +437,6 @@ Environment *copyEnvironmentAndPushFrame(Environment * old_env, Environment_Fram
     new_env->length+=1;
     return new_env;
 }
+
+
 #endif

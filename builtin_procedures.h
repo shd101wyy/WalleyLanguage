@@ -792,9 +792,14 @@ Object * builtin_display_string(Object ** params, uint32_t param_num){
     if (COMPILATION_MODE) { // under compilation mode, no print
         return GLOBAL_NULL;
     }
-    char * s = to_string(params[0]);
-    printf("%s", s);
-    free(s);
+    uint32_t i = 0;
+    char * s;
+    while ( i < param_num) {
+        s = to_string(params[i]);
+        printf("%s", s);
+        free(s);
+        i++;
+    }
     return GLOBAL_NULL;
 }
 // 36 string->int
@@ -1340,4 +1345,41 @@ Object * builtin_string_from_char_code(Object ** params, uint32_t param_num){
     free(s);
     return o;
 }
+
+// 78 os-fork
+// return pid
+Object * builtin_os_fork(Object ** params, uint32_t param_num){
+    pid_t pid = fork();
+    return Object_initInteger(pid);
+}
+
+// 79 os-getpid
+Object * builtin_os_getpid(Object ** params, uint32_t param_num){
+    return Object_initInteger(getpid());
+}
+
+// 80 os-getppid
+Object * builtin_os_getppid(Object ** params, uint32_t param_num){
+    return Object_initInteger(getppid());
+}
+
+// 81 os-waitpid
+// waitpid(pid, options) return status
+Object * builtin_os_waitpid(Object ** params, uint32_t param_num){
+    int status;
+    if (param_num == 1) {
+        waitpid((pid_t)params[0]->data.Integer.v, &status, 0);
+    }
+    else{
+        waitpid((pid_t)params[0]->data.Integer.v, &status, (pid_t)params[1]->data.Integer.v);
+    }
+    return Object_initInteger(status);
+}
+
+// 82 os-getenv
+Object * builtin_os_getenv(Object ** params, uint32_t param_num){
+    char * val = getenv(params[0]->data.String.v);
+    return Object_initString(val, strlen(val));
+}
+
 #endif

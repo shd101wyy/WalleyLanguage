@@ -283,6 +283,12 @@ Variable_Table * VT_init(){
     VT_push(vt, 0, "table-length");  // 75 table
     VT_push(vt, 0, "string-char-code-at"); // 76 string
     VT_push(vt, 0, "string-from-char-code"); // 77 string
+    VT_push(vt, 0, "os-fork"); // 78  os
+    VT_push(vt, 0, "os-getpid"); // 79 os
+    
+    VT_push(vt, 0, "os-getppid"); // 80 os
+    VT_push(vt, 0, "os-waitpid"); // 81 os
+    VT_push(vt, 0, "os-getenv"); // 82 os
     return vt;
 }
 
