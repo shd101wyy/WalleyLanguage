@@ -924,6 +924,9 @@ int16_t compiler(Instructions * insts,
                 Lexer * p;
                 Object * o;
                 p = lexer(content);
+                if (p == NULL) {
+                    printf("ERROR: parentheses () num doesn't match");
+                }
                 o = parser(p);
                 compiler_begin(insts,
                                o,
@@ -1017,6 +1020,9 @@ int16_t compiler(Instructions * insts,
                     Lexer * p;
                     Object * o;
                     p = lexer(content);
+                    if (p == NULL) {
+                        printf("ERROR: parentheses () num doesn't match");
+                    }
                     o = parser(p);
                 /*
                     // put o inside function

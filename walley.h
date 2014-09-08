@@ -129,6 +129,19 @@ void Walley_Repl(){
         fputs("walley> ", stdout);
         fgets(buffer, 512, stdin);
         p = lexer(buffer);
+        if (p == NULL) { // parenthesis doesn't match
+            char another_buffer[512];
+            strcpy(another_buffer, buffer);
+            while (1) {
+                fputs("        ", stdout);
+                fgets(buffer, 512, stdin);
+                strcat(another_buffer, buffer);
+                p = lexer(another_buffer);
+                if (p != NULL) {
+                    break;
+                }
+            }
+        }
         o = parser(p);
                 
         // compile
@@ -247,6 +260,9 @@ void Walley_Run_File(char * file_name){
     //Object * v;
     
     p = lexer(content);
+    if (p == NULL) {
+        printf("ERROR: parentheses () num doesn't match");
+    }
     o = parser(p);
     
     // compile
@@ -365,6 +381,9 @@ Object * Walley_Run_File_for_VM(char * file_name,
     
     
     p = lexer(content);
+    if (p == NULL) {
+        printf("ERROR: parentheses () num doesn't match");
+    }
     o = parser(p);
     
     // compile
@@ -391,6 +410,9 @@ Object * Walley_RunString(char * input_string){
     int32_t run_eval = true;
     
     p = lexer(input_string);
+    if (p == NULL) {
+        printf("ERROR: parentheses () num doesn't match");
+    }
     o = parser(p);
     
     // compile
@@ -473,6 +495,9 @@ void Walley_Compile(char * file_name){
     //Object * v;
     
     p = lexer(content);
+    if (p == NULL) {
+        printf("ERROR: parentheses () num doesn't match");
+    }
     o = parser(p);
     
     // compile

@@ -292,7 +292,7 @@ Lexer* lexer(char * input_string){
     }
     //Lexer_Debug(output_list);
     if (paren_count!=0) {
-        printf("ERROR: parentheses () num doesn't match");
+        // printf("ERROR: parentheses () num doesn't match");
         Lexer_free(output_list);
         return NULL;
     }

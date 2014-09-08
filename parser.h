@@ -195,16 +195,6 @@ void parser_debug (Object * p){
     }
     printf(")");
 }
-/*
-int main(){
-    char s[1000] = "a";
-    Lexer * p;
-    p = lexer((char*)s);
-    Lexer_Debug(p);
-    
-    Object * o;
-    o = parser(p);
-    return 0;
-}*/
+
 #endif
 #endif

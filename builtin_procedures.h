@@ -620,6 +620,9 @@ Object *builtin_ge(Object ** params, uint32_t param_num){
 // (parse "(def x 12)") => ((def x 12))
 Object *builtin_parse(Object ** params, uint32_t param_num){
     Lexer * l = lexer(params[0]->data.String.v);
+    if (l == NULL) {
+        printf("ERROR: parentheses () num doesn't match");
+    }
     return parser(l);
 }
 // 21 random
