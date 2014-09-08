@@ -6,6 +6,9 @@
 #include "walley.h"
 
 int main(int argc, char *argv[]){
+    
+    signal(SIGINT, quit_program_signal_handler); // register sigint signal handler
+    
     srand((unsigned int)time(NULL)); // set seed
     //printf("Current Working Directory %s\n", getcwd(NULL, 0));
 
@@ -34,7 +37,8 @@ int main(int argc, char *argv[]){
     if (argc == 1) {
         printf("\nWalley Language 0.3.8488\n");
         printf("Copyright (c) 2012-2014 Yiyi Wang\n");
-        printf("All Rights Reserved\n\n");
+        printf("All Rights Reserved\n");
+        printf("Press ctrl-c to quit the program\n\n");
         Walley_Repl();
         return 0;
     }

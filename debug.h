@@ -13,6 +13,7 @@
 #include <ctype.h>
 #include <time.h>
 #include <stdint.h>
+#include <signal.h>
 
 #ifdef WIN32
 #include <windows.h> // windows

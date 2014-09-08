@@ -564,6 +564,12 @@ void Walley_Compile(char * file_name){
     return;
 }
 
+void quit_program_signal_handler(){
+    printf("\n%s\n", "U pressed ctrl-c, program terminated");
+    Walley_Finalize();
+    exit(EXIT_SUCCESS);
+}
+
 
 #endif
 
