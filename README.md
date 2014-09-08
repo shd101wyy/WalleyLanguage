@@ -694,6 +694,22 @@ Also we can define fn in this way:
 ~(*_*)~  
 
 ------------------------------------------
+### Module Management
+- file1.wa
+```lisp
+(def x 12)                  ;; define x
+(def y 20)                  ;; define y
+(def add [a b] (+ a b))     ;; define add
+{:x 12 :add add}            ;; return value to outside
+```
+- file2.wa
+```lisp
+(def file1-module (require 'file1)) ;; load file1
+(print file1-module)                ;; => {:add #<user-defined-lambda (_ _)>, :x 12}
+(file1-module:add file-module:x 4)  ;; => 16
+```
+The same module will only be loaded once.
+------------------------------------------
 ### Eval Lisp in Lisp
 So far, we have learnt several lambdas
 - car
