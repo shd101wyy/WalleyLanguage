@@ -708,7 +708,10 @@ Also we can define fn in this way:
 (print file1-module)                ;; => {:add #<user-defined-lambda (_ _)>, :x 12}
 (file1-module:add file-module:x 4)  ;; => 16
 ```
-The same module will only be loaded once.
+    The same module will only be loaded once.
+
+
+
 ------------------------------------------
 ### Eval Lisp in Lisp
 So far, we have learnt several lambdas
