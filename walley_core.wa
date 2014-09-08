@@ -433,6 +433,11 @@
                       new-object)}) 
 (add-proto Object ()) ;; whose proto is ()
 
+;; ################## Builtin Functions ###########
+(def abs [x] (if (> x 0) x (- x))) ;; abs function
+(def chr [x] (string-from-char-code x)) ;; chr function
+(def ord [x] (string-char-code-at x 0)) ;; ord function
+
 
 ;; modules
 (def vector 
