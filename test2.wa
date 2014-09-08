@@ -1,5 +1,3 @@
-(def x (require 'test3))
-(def test4 (require 'test4))
-;(print test4)
-;(print test4:x)
-(print test4:x)
+(def y (require 'test3))
+(print y)
+(print x)

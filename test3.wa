@@ -1,5 +1,2 @@
-(def test4 (require 'test4))
-(print "test3 file ")
-(print test4)
-;(print test4:x)
-{:x test4:x}
+(def x 12)
+{:x x}

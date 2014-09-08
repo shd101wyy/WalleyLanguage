@@ -797,6 +797,7 @@ Object * builtin_display_string(Object ** params, uint32_t param_num){
     while ( i < param_num) {
         s = to_string(params[i]);
         printf("%s", s);
+        //fputs(s, stdout);
         free(s);
         i++;
     }
@@ -1380,6 +1381,13 @@ Object * builtin_os_waitpid(Object ** params, uint32_t param_num){
 Object * builtin_os_getenv(Object ** params, uint32_t param_num){
     char * val = getenv(params[0]->data.String.v);
     return Object_initString(val, strlen(val));
+}
+
+// 82 sleep
+// (sleep sleep-seconds)
+Object * builtin_sleep(Object ** params, uint32_t param_num){
+    sleep((unsigned int)params[0]->data.Integer.v);
+    return GLOBAL_NULL;
 }
 
 #endif

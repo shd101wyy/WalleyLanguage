@@ -5,7 +5,9 @@
 (def walley-core-author 'Yiyi-Wang)
 (def walley-core-version "0.00029")
 (def walley-language-version "0.3.8487")
-(def println [. args] (apply print args) (print "\n"))
+;(def println [. args] (apply print args) (print "\n"))
+(defmacro println [(. args) `(print ~@args "\n")])
+
 (def break 'break)          ;; for foreach function
 (def continue 'continue)
 

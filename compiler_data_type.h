@@ -289,6 +289,7 @@ Variable_Table * VT_init(){
     VT_push(vt, 0, "os-getppid"); // 80 os
     VT_push(vt, 0, "os-waitpid"); // 81 os
     VT_push(vt, 0, "os-getenv"); // 82 os
+    VT_push(vt, 0, "sleep"); // 83 global
     return vt;
 }
 

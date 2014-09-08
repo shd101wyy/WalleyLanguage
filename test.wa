@@ -53,10 +53,11 @@
 ;-12.4
 ; (def x 12)
 
-(def pid (os-fork))
+(def pid (os:fork))
 (cond (> pid 0) 
       (begin (print "Parnet")
-      	     (os-waitpid pid)
+      	     (os:waitpid pid)
+	     (sleep 3)
 	     (print "Child Finished"))
       (= pid 0) (print "Child")
       :else     (print "Error")
