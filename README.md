@@ -739,7 +739,7 @@ MIT
 ------------------------------------------
 Thanks
 ----
-- [sicp]         - Don't ask, just go read it.
+- [sicp]         - Good Book.
 - [dillinger]    - A very good markdown file editor.  
 - [root-of-lisp] - Good article.
 - ...
