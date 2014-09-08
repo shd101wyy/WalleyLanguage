@@ -20,6 +20,8 @@
 #include <direct.h>
 #else
 #include <unistd.h> // .nix
+#include <sys/types.h>
+#include <sys/wait.h>
 #endif
 
 
