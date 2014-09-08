@@ -63,7 +63,7 @@
 ;      :else     (print "Error")
 ;      )
 
-
+(print "开始Recursion\n")
 (def f [n r] 
      (if (= n 0)
      	 r

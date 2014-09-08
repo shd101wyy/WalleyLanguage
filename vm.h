@@ -293,7 +293,6 @@ Object *VM(/*uint16_t * instructions,*/
                         functions_list[functions_list_length] = accumulator;
                         functions_list_length++;
                         accumulator->use_count++;
-                        
                         pc++;
                         continue;
                     case STRING: case BUILTIN_LAMBDA: case VECTOR: case TABLE: case  INTEGER: case OBJECT: // builtin lambda or vector or table
@@ -875,12 +874,19 @@ Object *VM(/*uint16_t * instructions,*/
                 continue;
             // 不知道到底用不用是有这个opcode
             // def
+            // 这个SET_TOP和TAIL_CALL_PUSH几乎一样
             case SET_TOP: // set to top frame according to index
                 // set value and increase length
+                temp = env->frames[env->length-1]->array[instructions[pc+1]]; // get original
+                accumulator->use_count++;
+                if (temp) { // free old if necessary
+                    temp->use_count--;
+                    Object_free(temp); // free old
+                }
+                else{ // new one. 原来不存在过，所以 length 要 ++。
+                    env->frames[env->length - 1]->length++; // increase length;
+                }
                 env->frames[env->length-1]->array[instructions[pc+1]] = accumulator;
-                env->frames[env->length-1]->length++;
-
-                accumulator->use_count++; // increase use_count
                 pc+=2;
                 accumulator = GLOBAL_NULL;
                 continue;
@@ -893,6 +899,9 @@ Object *VM(/*uint16_t * instructions,*/
                 if (temp) {   // free old if necessary
                     temp->use_count--;
                     Object_free(temp); // free old
+                }
+                else{ // new one. 原来不存在过，所以 length 要 ++。
+                    env->frames[env->length - 1]->length++; // increase length;
                 }
                 env->frames[env->length-1]->array[offset] = accumulator; // set new
                 pc++;

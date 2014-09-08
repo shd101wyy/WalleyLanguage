@@ -749,41 +749,6 @@ int16_t compiler(Instructions * insts,
                     Insts_push(insts, GLOBAL_PUSH << 12);
                     Insts_push(insts, set_index);
                     Insts_push(insts , 0x0000);
-                    /*
-                    // check variable name existed?
-                    var_value = Table_getval(CONSTANT_TABLE_FOR_COMPILATION, var_name);
-                    if (var_value != GLOBAL_NULL) { // already existed
-                        Insts_push(insts, var_value->data.Integer.v);
-                        return 0;
-                    }
-                    else{ // doesn't exist, save to table
-                        Insts_push(insts, CONSTANT_TABLE_FOR_COMPILATION_LENGTH); // load from this offset
-                        
-                        Table_setval(CONSTANT_TABLE_FOR_COMPILATION,
-                                     var_name,
-                                     Object_initInteger(CONSTANT_TABLE_FOR_COMPILATION_LENGTH));
-                        CONSTANT_TABLE_FOR_COMPILATION_LENGTH++;
-                       
-                        length = strlen(var_name->data.String.v);
-                        char * s = var_name->data.String.v;
-                        
-                        Insts_push(CONSTANT_TABLE_INSTRUCTIONS, CONST_STRING);
-                        Insts_push(CONSTANT_TABLE_INSTRUCTIONS, length);
-                        find_end = false;
-                        for (i = 0; i < length; i = i + 2) {
-                            if(i + 1 == length){
-                                Insts_push(CONSTANT_TABLE_INSTRUCTIONS, (s[i] << 8) & 0xFF00);
-                                find_end = true;
-                                break;
-                            }
-                            else {
-                                Insts_push(CONSTANT_TABLE_INSTRUCTIONS, (s[i] << 8) | s[i+1]);
-                            }
-                        }
-                        if(find_end == false){
-                            Insts_push(CONSTANT_TABLE_INSTRUCTIONS, 0x0000); // add end
-                        }
-                    }*/
                     return 0;
                 }
                 // local
