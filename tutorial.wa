@@ -4,7 +4,7 @@
 ;; created by Yiyi Wang
 ;; Copyright (c) Yiyi Wang. All right reserved
 
-(defn tutorial-test [prompt, required-exp compare-func]
+(defn tutorial-test [prompt required-exp compare-func]
   (set! compare-func (if compare-func compare-func eq?))
   (print prompt)
   (def o (input "> "))
@@ -15,7 +15,7 @@
   (if (compare-func output required-exp)
     'true
     (begin (print "\nNah, that is not what I want, try again ;)\n")
-           (tutorial-test prompt required-exp))))
+           (tutorial-test prompt required-exp compare-func))))
 ;; wait...
 (defn tutorial-wait [n]
   (if (= n 0) 0 (tutorial-wait (- n 1))))
