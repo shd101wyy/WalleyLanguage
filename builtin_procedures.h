@@ -785,7 +785,7 @@ Object * builtin_input(Object ** params, uint32_t param_num){
     if(param_num == 1){
         printf("%s", params[0]->data.String.v);
     }
-    char buffer[1024];
+    static char buffer[1024]; // so wont be free again
     fgets(buffer, 1024, stdin);
     return Object_initString(buffer, strlen(buffer) - 1  // 我测试了下貌似得减1要不然length错了
                              );
