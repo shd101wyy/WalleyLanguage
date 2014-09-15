@@ -63,9 +63,50 @@
 ;      :else     (print "Error")
 ;      )
 
-(print "开始Recursion\n")
-(def f [n r] 
+;(print "开始Recursion\n")
+;(def f [n r] 
+;     (if (= n 0)
+;     	 r
+;	 (f (- n 1) (* r n))))
+;(print (f 3 1))
+
+;(def create-list [n result] 
+;     (if (= n 0)
+;     	 result
+;	 (create-list (- n 1) (cons n result))))
+;(print (list:ref (create-list 100000 ()) 99999))
+
+(def create-vector [n result]
      (if (= n 0)
-     	 r
-	 (f (- n 1) (* r n))))
-(print (f 3 1))
+     	 result
+	 (create-vector (- n 1) (vector:push! result n))))
+;(create-vector 100000 #[])
+;(def x (create-vector 100000 #[]))
+;(print x)
+;(foreach x (fn [i] i))
+
+
+
+;; ##################### vector-map ##############
+;; (vector-map1 square #[1 2]) => (1 4)
+(def vector-map1 [f p count result length-of-vector]
+     (if (= count length-of-vector)
+     	 result
+     	 (vector-map1 f p (+ count 1) (vector-push! result (f p[count])) length-of-vector)))
+;; (vector-get-nth-arguments 0 '(#[1,2] #[4,5])) => '(1, 4)
+(def vector-get-nth-arguments [n args]
+     (if (null? args)
+     	 ()
+	 (cons ((car args) n)
+	       (vector-get-nth-arguments n (cdr args)))))
+(def vector-map-helper [f count result length-of-1st-vector p]
+     (if (= count length-of-1st-vector)
+     	 result
+	 (begin	(vector-push! result
+	 	       (apply f (vector-get-nth-arguments count p)))
+		 (vector-map-helper f (+ count 1) result length-of-1st-vector p))))
+(def vector-map [f p . args]
+     (vector-map-helper f 0 #[] (vector-length p) (cons p args))) 
+(print (vector-map1 (fn [x] (* x 2)) #[1,2] 0 #[] 2))
+(print (vector-map + #[1,2] #[3,4]))
+

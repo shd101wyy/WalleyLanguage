@@ -346,7 +346,7 @@
 
 ;; some fundamental functions are here
 
-;;##################### map #####################
+;;##################### list map #####################
 ;; map one parameters
 ;; (map1 square '(3 4)) => (9 16)
 (def map1 [f p]
@@ -365,10 +365,30 @@
           (apply map (cons f (map1 cdr (cons p0 p)))))))
 
 
-
 (def apply-test [f p0 . p]
   (apply f (map1 car (cons p0 p))))
 
+;; ##################### vector-map ##############
+;; (vector-map1 square #[1 2]) => (1 4)
+(def vector-map1 [f p count result length-of-vector]
+     (if (= count length-of-vector)
+     	 result
+     	 (vector-map1 f p (+ count 1) (vector-push! result (f p[count])) length-of-vector)))
+;; (vector-get-nth-arguments 0 '(#[1,2] #[4,5])) => '(1, 4)
+(def vector-get-nth-arguments [n args]
+     (if (null? args)
+     	 ()
+	 (cons ((car args) n)
+	       (vector-get-nth-arguments n (cdr args)))))
+(def vector-map-helper [f count result length-of-1st-vector p]
+     (if (= count length-of-1st-vector)
+     	 result
+	 (begin	(vector-push! result
+			      (apply f (vector-get-nth-arguments count p)))
+		(vector-map-helper f (+ count 1) result length-of-1st-vector p))))
+;; eg (vector-map + #[1,2] #[3,4]) => #[4, 6]
+(def vector-map [f p . args]
+     (vector-map-helper f 0 #[] (vector-length p) (cons p args)))
 ;; ##################### filter ##################
 ;; filter function
 ;; eg (filter is-even '(3 4 5 6)) => '(4 6)
@@ -448,6 +468,7 @@
    :->list vector->list
    :find vector-find
    :foreach vector-foreach
+   :map vector-map
    })
 (def list 
   {:length list-length
@@ -458,6 +479,7 @@
    :->vector list->vector
    :foreach list-foreach
    :assoc list-assoc
+   :map map
    })
 (def table
   {:keys table-keys
