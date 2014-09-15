@@ -785,10 +785,21 @@ Object * builtin_input(Object ** params, uint32_t param_num){
     if(param_num == 1){
         printf("%s", params[0]->data.String.v);
     }
-    static char buffer[1024]; // so wont be free again
-    fgets(buffer, 1024, stdin);
-    return Object_initString(buffer, strlen(buffer) - 1  // 我测试了下貌似得减1要不然length错了
-                             );
+    char * buffer;
+    size_t n;
+    ssize_t read_n = getline(&buffer, &n, stdin);
+    if (read_n > 0 && buffer[read_n - 1] == '\n' ) {
+        buffer[read_n - 1] = '\0';
+        read_n--;
+    }
+    //static char buffer[1024]; // so wont be free again
+    //fgets(buffer, 1024, stdin)
+    ;
+    Object * o = allocateObject();
+    o->type = STRING;
+    o->data.String.v = buffer;
+    o->data.String.length = read_n;
+    return o;
 }
 // 35 display  原先是 display-string
 Object * builtin_display_string(Object ** params, uint32_t param_num){
