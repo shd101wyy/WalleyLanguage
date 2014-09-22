@@ -89,24 +89,52 @@
 
 ;; ##################### vector-map ##############
 ;; (vector-map1 square #[1 2]) => (1 4)
-(def vector-map1 [f p count result length-of-vector]
-     (if (= count length-of-vector)
-     	 result
-     	 (vector-map1 f p (+ count 1) (vector-push! result (f p[count])) length-of-vector)))
+;(def vector-map1 [f p count result length-of-vector]
+;     (if (= count length-of-vector)
+;     	 result
+;     	 (vector-map1 f p (+ count 1) (vector-push! result (f p[count])) length;-of-vector)))
 ;; (vector-get-nth-arguments 0 '(#[1,2] #[4,5])) => '(1, 4)
-(def vector-get-nth-arguments [n args]
-     (if (null? args)
-     	 ()
-	 (cons ((car args) n)
-	       (vector-get-nth-arguments n (cdr args)))))
-(def vector-map-helper [f count result length-of-1st-vector p]
-     (if (= count length-of-1st-vector)
-     	 result
-	 (begin	(vector-push! result
-	 	       (apply f (vector-get-nth-arguments count p)))
-		 (vector-map-helper f (+ count 1) result length-of-1st-vector p))))
-(def vector-map [f p . args]
-     (vector-map-helper f 0 #[] (vector-length p) (cons p args))) 
-(print (vector-map1 (fn [x] (* x 2)) #[1,2] 0 #[] 2))
-(print (vector-map + #[1,2] #[3,4]))
+;(def vector-get-nth-arguments [n args]
+;     (if (null? args)
+;     	 ()
+;	 (cons ((car args) n)
+;	       (vector-get-nth-arguments n (cdr args)))))
+;(def vector-map-helper [f count result length-of-1st-vector p]
+;     (if (= count length-of-1st-vector)
+;     	 result
+;	 (begin	(vector-push! result
+;	 	       (apply f (vector-get-nth-arguments count p)))
+;		 (vector-map-helper f (+ count 1) result length-of-1st-vector p;))))
+;(def vector-map [f p . args]
+;     (vector-map-helper f 0 #[] (vector-length p) (cons p args))) 
+;(print (vector-map1 (fn [x] (* x 2)) #[1,2] 0 #[] 2))
+;(print (vector-map + #[1,2] #[3,4]))
+
+
+;; convert infix math expression to prefix math expression
+;; eg (infix '(3 + 5 * 6)) => (+ 3 (* 5 6))
+; + 3 * 5 6
+;(def infix [x]
+;     )
+
+
+
+
+
+(def while-func	[test body]
+     (if (test)
+	 (begin (body) (while-func test body))
+       ()))
+(def x 1)
+(while-func (fn [] (< x 10))
+	    (fn [] (print x)
+		   (set! x (+ x 1))))
+
+
+
+
+
+
+
+
 

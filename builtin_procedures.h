@@ -465,9 +465,10 @@ int32_t lt_2(Object * p1, Object * p2){
             }
             break;
         default:
-            printf("ERROR: < invalid data type\n");
-            printf("     :%s\n", to_string(p1));
-            return 0;
+            return (uint64_t)p1 < (uint64_t)p2 ? 1 : 0;
+            //printf("ERROR: < invalid data type\n");
+            //printf("     :%s\n", to_string(p1));
+            //return 0;
     }
 }
 Object *builtin_num_lt(Object ** params, uint32_t param_num){
@@ -529,9 +530,10 @@ int32_t le_2(Object * p1, Object * p2){
             }
             break;
         default:
-            printf("ERROR: <= invalid data type\n");
-            printf("     :%s\n", to_string(p1));
-            return 0;
+            return (uint64_t)p1 <= (uint64_t)p2 ? 1 : 0;
+            //printf("ERROR: <= invalid data type\n");
+            //printf("     :%s\n", to_string(p1));
+            //return 0;
     }
 
 }
