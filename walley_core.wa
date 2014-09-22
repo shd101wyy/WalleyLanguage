@@ -418,6 +418,7 @@
 ;; (print (filter (lambda [n] (if (> n 0) 'true '())) '(-1 2 -3 4 -5 6))) => (2 4 6)
 ;; pass
 
+;; (vector:filter (fn [x] (> x 0)) #(-1 2 3)) => (2 3) remove x that is <= 0
 (def vector-filter [func v]
      (def v-length (vector-length v))
      (def helper [count result]
