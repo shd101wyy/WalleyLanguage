@@ -1399,11 +1399,22 @@ Object * builtin_os_getenv(Object ** params, uint32_t param_num){
     return Object_initString(val, strlen(val));
 }
 
-// 82 sleep
+// 83 sleep
 // (sleep sleep-seconds)
 Object * builtin_sleep(Object ** params, uint32_t param_num){
     sleep((unsigned int)params[0]->data.Integer.v);
     return GLOBAL_NULL;
+}
+
+// 84 %
+Object * builtin_modulo(Object ** params, uint32_t param_num){
+    if (params[0]->type!=INTEGER || params[1]->type!=INTEGER) {
+        printf("ERROR: %% wrong type params\n");
+        return GLOBAL_NULL;
+    }
+    else{
+        return Object_initInteger(params[0]->data.Integer.v % params[1]->data.Integer.v);
+    }
 }
 
 #endif
