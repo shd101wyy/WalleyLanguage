@@ -8,21 +8,44 @@
 
 (def var [] (fn []))           ;; var will create fn object
 (def relation [] (fn []))      ;; relation will create fn object 
-(def zip [. args] (apply map (cons List args)))
-(def eq [p0 p1]                ;; (eq '(1 x) '(1 2)) 
+(def zip list:zip)
+
+;; eg (zip->dict '((x 1) (2 y))) => {:x 1, :y 2} 
+(def zip->dict [z result]             ;; convert zipped list to dict
+     (if  (null? z)
+	  result
+	  (begin (if (string? (caar z))           ;; (a 5) => {:a 5}
+		     (result (caar z) (cadar z)))     
+		 (if (string? (cadar z))
+		     (result (cadar z) (caar z))) ;; (5 a) => {:a 5}
+		 (zip->dict (cdr z) result))))
+
+;; ((eq$ '(1 x) '(1 2)) 'x) => 2
+;; (eq$ 1 'x)
+(def eq$ [p0 p1]                ;; (eq '(1 x) '(1 2))
      (fn [v]
-	 (cond (eq? v p0)                          p1
+	 (cond (eq? v 'show-zip)                   (list:zip p0 p1)
+	       (eq? v p0)                          p1
 	       (eq? v p1)                          p0
 	       (and (null? p0) (null? p1))         'both-null 
 	       (and (null? p0) (not (null? p1)))   ()
 	       (and (null? p1) (not (null? p0)))   ()
-	       (eq? (car p0) (car p1))             ((eq (cdr p0) (cdr p1)) v)
+	       (eq? (car p0) (car p1))             ((eq$ (cdr p0) (cdr p1)) v)
 	       (and (eq? v (car p0))
-		    (eq? ((eq (cdr p0) (cdr p1)) v)  'both-null))    (car p1)
+		    (eq? ((eq$ (cdr p0) (cdr p1)) v)  'both-null))    (car p1)
 	       (and (eq? v (car p1))
-		    (eq? ((eq (cdr p0) (cdr p1)) v)) 'both-null)     (car p0)
+		    (eq? ((eq$ (cdr p0) (cdr p1)) v)) 'both-null)     (car p0)
 	       :else                               ()  
 	       )))
+
+;;;;;; fn not finished implementation
+;; f0 and f1 is fn
+;; ((and$ (eq$ 'x 'y) (eq$ 'y 'z) (eq$ 'z 1)) 'x) => 1
+;; {:x 'y, :y 'x} {:y 'z, :z 'y}  {:z 1}
+(def and$ [f0 f1]
+     (fn [v] ;; where v is var
+	 ))
+
 
 ;; (run 1 'x (eq '(1 2) '(x 2))) => '(1)
 (def run [num v re]
@@ -31,7 +54,7 @@
 	 result
          ()))
 
-(print (run 1 'x (eq '(3 x x 2) '(3 1 2 2))) )
-(print (zip '(1 2 3) '(4 5 6) '(7 8 9)))
-
+;(print (run 1 'x (eq$ '(3 x x 2) '(3 1 2 2))) )
+;(print (zip '(1 2 3) '(4 5 6) '(7 8 9)))
+(print ((eq$ '(1 x) '(3 4)) 'show-zip)  )
 logic ;; return logic

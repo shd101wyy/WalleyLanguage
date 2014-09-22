@@ -418,6 +418,17 @@
 ;; (print (filter (lambda [n] (if (> n 0) 'true '())) '(-1 2 -3 4 -5 6))) => (2 4 6)
 ;; pass
 
+(def vector-filter [func v]
+     (def v-length (vector-length v))
+     (def helper [count result]
+	  (if (= count v-length)
+	      result 
+	    (begin (if (func v[count])
+		       (vector-push! result v[count]))
+		   (helper (+ count 1)
+			   result))))
+     (helper 0 #[]))
+
 ;; ##################### reduce ##################
 ;; reduce function
 ;; eg (reduce + '(3 4 5)) => (+ (+ 3 4) 5)
@@ -479,6 +490,7 @@
    :find vector-find
    :foreach vector-foreach
    :map vector-map
+   :filter vector-filter
    :zip vector-zip
    })
 (def list 
@@ -491,6 +503,7 @@
    :foreach list-foreach
    :assoc list-assoc
    :map map
+   :filter filter
    :zip list-zip
    })
 (def table
