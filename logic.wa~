@@ -1,0 +1,14 @@
+/*
+ *  logic library
+ */  
+
+(def logic {})
+
+(def var [] (fn [])) ;; variable will create fn object
+(def eq [p0 p1] 
+     )
+(def x (var))
+(run 1 x (logic:eq x 1))
+
+
+logic ;; return logic

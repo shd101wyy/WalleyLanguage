@@ -1,0 +1,37 @@
+;;
+;
+;  logic library written in walley 0.3.8489
+;
+;;  
+
+(def logic {})
+
+(def var [] (fn []))           ;; var will create fn object
+(def relation [] (fn []))      ;; relation will create fn object 
+(def zip [. args] (apply map (cons List args)))
+(def eq [p0 p1]                ;; (eq '(1 x) '(1 2)) 
+     (fn [v]
+	 (cond (eq? v p0)                          p1
+	       (eq? v p1)                          p0
+	       (and (null? p0) (null? p1))         'both-null 
+	       (and (null? p0) (not (null? p1)))   ()
+	       (and (null? p1) (not (null? p0)))   ()
+	       (eq? (car p0) (car p1))             ((eq (cdr p0) (cdr p1)) v)
+	       (and (eq? v (car p0))
+		    (eq? ((eq (cdr p0) (cdr p1)) v)  'both-null))    (car p1)
+	       (and (eq? v (car p1))
+		    (eq? ((eq (cdr p0) (cdr p1)) v)) 'both-null)     (car p0)
+	       :else                               ()  
+	       )))
+
+;; (run 1 'x (eq '(1 2) '(x 2))) => '(1)
+(def run [num v re]
+     (def result (re v))
+     (if (and result (not (eq? result 'both-null)))
+	 result
+         ()))
+
+(print (run 1 'x (eq '(3 x x 2) '(3 1 2 2))) )
+(print (zip '(1 2 3) '(4 5 6) '(7 8 9)))
+
+logic ;; return logic
