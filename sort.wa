@@ -1,0 +1,63 @@
+;;; sort library
+;;; merge sort
+
+;; vector-combine
+;; combine two vectors
+;; (vector-combine! #(1 2) #(3 4)) => #(1 2 3 4) mutable
+;; in this case #(1 2) is changed
+(def vector-combine!-helper [x y count]
+     (if (= count (len y))
+	 x
+       (begin (vector:push! x y[count])
+	      (vector-combine!-helper x y (+ count 1)))))
+(def vector-combine! [x y]
+     (vector-combine!-helper x y 0))
+;;
+;; merge sort helper
+;; #(1 4) #(3 5) => #[1 3 4 5]
+(def mergesort-helper [v0 v1 c0 c1 result func]
+     (cond (null? v0) v1
+           (null? v1) v0
+           (= c0 (len v0))
+	   ;; reach end of v0 =>
+	   (cond (= c1 (vector:length v1))
+		 ;; reach end of v1 =>
+		 result
+		 :else
+		 (vector-combine!-helper result v1 c1))
+	   (= c1 (vector:length v1))
+	   ;; reach end of v1 =>
+	   (vector-combine!-helper result v0 c0)
+	   :else (if (func v0[c0] v1[c1])
+		     (begin (vector:push! result v0[c0])
+			    (mergesort-helper v0 v1 (+ c0 1) c1 result func))
+           	     (begin (vector:push! result v1[c1])
+			    (mergesort-helper v0 v1 c0 (+ c1 1) result func)))))
+;;
+;; #(4 1 3 9 6)
+;; #(4 1) #(3 9 6)
+;; #(4) #(1) | #(3) #(9 6)
+;; #(1) #(4) | #(3) | #(6) #(9)
+;; #(1 4)    | #(3)   #(6 9)
+;; #(1 4)      #(3 6 9)
+;; #(1 3 4 6 9)
+;;
+(def mergesort [v func]
+     (if (null? func) (set! func <))
+     (def mergesort-h [v func]  ;; divide v into two parts
+	  (if (= (len v) 1) ;; if length of v == 1, return it self
+	      v
+	    (begin 
+	     (def half (Int (math:floor (/ (len v) 2))))
+	     (def v0 (vector:slice v 0 half)) ;; split into half
+	     (def v1 (vector:slice v half ))
+	     (def v00 (mergesort-h v0 func))
+	     (def v11 (mergesort-h v1 func))
+	     (mergesort-helper v00 v11 0 0 #[] func))))
+     (mergesort-h v func))
+
+;; export module
+;; "sort" library
+{:mergesort mergesort
+
+}

@@ -291,6 +291,8 @@ Variable_Table * VT_init(){
     VT_push(vt, 0, "os-getenv"); // 82 os
     VT_push(vt, 0, "sleep"); // 83 global
     VT_push(vt, 0, "%");  // 84 global
+    VT_push(vt, 0, "Int"); // 85 global
+    VT_push(vt, 0, "Float"); // 86 global
     return vt;
 }
 

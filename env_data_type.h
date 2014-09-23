@@ -392,6 +392,8 @@ Environment_Frame *createFrame0(){
     EF_set_builtin_lambda(frame, &builtin_os_getenv); // os
     EF_set_builtin_lambda(frame, &builtin_sleep); // global
     EF_set_builtin_lambda(frame, &builtin_modulo); // global
+    EF_set_builtin_lambda(frame, &builtin_int); // global
+    EF_set_builtin_lambda(frame, &builtin_float); // global
     
     frame->length = count; // set length
     return frame;

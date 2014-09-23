@@ -1417,4 +1417,40 @@ Object * builtin_modulo(Object ** params, uint32_t param_num){
     }
 }
 
+// 85 Int
+Object * builtin_int(Object ** params, uint32_t param_num){
+    Object * p = params[0];
+    switch (p->type) {
+        case DOUBLE_:
+            return Object_initInteger((int64_t)p->data.Double.v);
+        case INTEGER:
+            return p;
+        case RATIO:
+            return Object_initInteger(p->data.Ratio.numer / p->data.Ratio.denom);
+        case STRING:
+            return Object_initInteger(atoll(p->data.String.v));
+        default:
+            printf("ERRPR: Int function invalid param\n");
+            return GLOBAL_NULL;
+    }
+}
+
+// 86 Float
+Object * builtin_float(Object ** params, uint32_t param_num){
+    Object * p = params[0];
+    switch (p->type) {
+        case INTEGER:
+            return Object_initDouble(p->data.Integer.v);
+        case DOUBLE_:
+            return p;
+        case RATIO:
+            return Object_initDouble(p->data.Ratio.numer / p->data.Ratio.denom);
+        case STRING:
+            return Object_initDouble(atof(p->data.String.v));
+        default:
+            printf("ERRPR: Float function invalid param\n");
+            return GLOBAL_NULL;
+    }
+}
+
 #endif

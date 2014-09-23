@@ -2,6 +2,46 @@
 ;
 ;  logic library written in walley 0.3.8489
 ;
+;
+;  X is Y
+;  X is Z
+;  Y != Z
+;
+;  X parent Y  | x is Y's parent
+;  X parent A  | x is A's parent
+;  Y parent Z  | y is Z's parent
+;  parent : {:x #[y, a], :y #[z]}
+;  
+;  def grandparent(X, Y, Z): X parent Y, Y parent Z => X grandparent Z
+;  
+;  parent(?, y)        go through 'parent' find x
+;  grandparent(?, z)   go through 'parent', find x get #[y, z]. 
+;
+;  (def GLobal-Relation {}) ;; big table
+;  (def parent (Relation))
+;  (parent 'Alice 'Bob)
+;  (parent 'Bob 'Chris)     
+;  (parent 'Bob 'Jim)       ;; => Global_Relation {:parent {:Bob #['Chris, 'Jim], :Alice #['Bob]}}
+;  
+;  (ask (parent (? 'x) 'Jim))
+;  
+;  (def grandparent (Rule (fn [x z] (and$ (parent x (? 'Y)) (parent (? 'Y) z)))))
+;  (ask (grandparent (? 'x) Jim));
+;  
+;  (defm square [x] `(* (+ ~x 1) ~x))  (square 12) => (* 12 12)
+;  (def square-fn [x] (* (x 1) (x 0)))      (square-fn (fn [n] (+ 12 n)))
+;  (defm test [. args] `(begin ~@args))
+;  (test (def x 12) (def y 20) (+ x y))
+;  (def test-fn [x] (x))   
+;  (test-fn {(def x 12) (def y 20) (+ x y)})
+;  
+;  (def x @[:a 12 :b 13])
+;  
+;  (while {(< x 3)} 
+;         {(print x)
+;          (set! x (+ x 1))}) 
+;
+
 ;;  
 
 (def logic {})
@@ -53,7 +93,6 @@
      (if (and result (not (eq? result 'both-null)))
 	 result
          ()))
-
 ;(print (run 1 'x (eq$ '(3 x x 2) '(3 1 2 2))) )
 ;(print (zip '(1 2 3) '(4 5 6) '(7 8 9)))
 (print ((eq$ '(1 x) '(3 4)) 'show-zip)  )
