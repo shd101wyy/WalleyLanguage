@@ -963,16 +963,35 @@ int16_t compiler(Instructions * insts,
                     FILE * file;
                     file = fopen(file_name, "r");
                     if(file == NULL){
-                        printf("ERROR: Failed to require %s\n", file_name);
-                        Insts_push(insts, CONST_NULL);
-                        free(file_name_ptr);
-                        
-                        string = to_string(l);
-                        printf("  EXP: %s\n", string);
-                        free(string);
-                        
-                        return 0; // return 0 means already loaded or error
+                        // check system modules
+                        // at /usr/local/lib
+                        // TODO : global constant SYSTEM_MODULES_PATH
+                        strcpy(file_name, "/usr/local/lib/walley/");
+                        if (file_name_length > 3 &&
+                            file_name_ptr[file_name_length - 1] == 'a' &&
+                            file_name_ptr[file_name_length - 2] == 'w' &&
+                            file_name_ptr[file_name_length - 3] == '.') {
+                            strcat(file_name, file_name_ptr);
+                        }
+                        else{
+                            strcat(file_name, file_name_ptr);
+                            strcat(file_name, ".wa");
+                        }
+                        file = fopen(file_name, "r");
+                        if (file == NULL) {
+                            printf("ERROR: Failed to require %s\n", file_name_ptr);
+                            Insts_push(insts, CONST_NULL);
+                            free(file_name_ptr);
+                            
+                            string = to_string(l);
+                            printf("  EXP: %s\n", string);
+                            free(string);
+                            
+                            return 0; // return 0 means already loaded or error
+                        }
                     }
+                    
+                FOUND_FILE:;
                     char * content;
                     fseek(file, 0, SEEK_END);
                     int64_t size = ftell(file);
