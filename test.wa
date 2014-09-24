@@ -123,14 +123,23 @@
 
 (def while-func	[test body]
      (if (test)
-	 (begin (body) (while-func test body))
+	 (if (eq? (body) 'break)
+	     ()
+	     (while-func test body))
+	     
        ()))
+
+(defm while [test . body]
+  `(while-func (fn [] ~test) (fn [] ~@body)))
+
 (def x 1)
-(while-func (fn [] (< x 10))
-	    (fn [] (print x)
-		   (set! x (+ x 1))))
+(while (< x 100)
+       (print x)
+       (set! x (+ x 1)))
 
-
+;(while-func (fn [] (< x 100))
+;	    (fn [] (print x)
+;	    	   (set! x (+ x 1))))
 
 
 

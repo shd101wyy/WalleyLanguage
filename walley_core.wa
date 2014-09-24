@@ -480,6 +480,20 @@
 (def chr [x] (string-from-char-code x)) ;; chr function
 (def ord [x] (string-char-code-at x 0)) ;; ord function
 
+;; ################# While statement ##############
+;; eg (def x 1)
+;;    (while-func (fn [] (< x 10)) 
+;;      	  (fn [] (print x) (set! x (+ x 1))))
+(def while-func	[test body]
+     (if (test)
+	 (if (eq? (body) 'break)
+	     ()
+	     (while-func test body))  
+       ()))
+;; abbreviate fn
+(defm while [test . body]
+  `(while-func (fn [] ~test) (fn [] ~@body)))
+
 
 ;; modules
 (def vector 
