@@ -1483,6 +1483,10 @@ Object * builtin_file_readlines(Object ** params, uint32_t param_num){
     size_t len = 0;
     ssize_t read;
     while ((read = getline(&line, &len, fp)) != -1) {
+        if (v->data.Vector.length == v->data.Vector.size) {
+            v->data.Vector.size <<= 1;
+            v->data.Vector.v = realloc(v->data.Vector.v, sizeof(Object) * v->data.Vector.size);
+        }
         Object * s = Object_initString(line, read);
         vector_Push(v, s);
     }
