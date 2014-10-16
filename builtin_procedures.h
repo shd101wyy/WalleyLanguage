@@ -702,11 +702,10 @@ Object *builtin_table_delete(Object ** params, uint32_t param_num){
     return GLOBAL_NULL;
 }
 // 29 file-read
-// (file-read "test.toy")
+// (file-read file)
 // return string
 Object * builtin_file_read(Object ** params, uint32_t param_num){
-    char * file_name = params[0]->data.String.v;
-    FILE* file = fopen(file_name,"r");
+    FILE* file = params[0]->data.File.file_ptr;
     if(file == NULL)
     {
         return GLOBAL_NULL; // fail to read
@@ -720,17 +719,18 @@ Object * builtin_file_read(Object ** params, uint32_t param_num){
     
     fread(content,1,size,file);
     
-    fclose(file); // 不知道要不要加上这个
+    // fclose(file); // 不知道要不要加上这个
     return Object_initString(content, size);
 }
 // 30 file-write
 // (file-write "test.toy", "Hello World")
 // return null
 Object * builtin_file_write(Object ** params, uint32_t param_num){
-    char * file_name = params[0]->data.String.v;
-    FILE* file = fopen(file_name,"w");
+    // char * file_name = params[0]->data.String.v;
+    //FILE* file = fopen(file_name,"w");
+    FILE * file = params[0]->data.File.file_ptr;
     fputs(params[1]->data.String.v, file);
-    fclose(file);
+    // fclose(file);
     return GLOBAL_NULL;
 }
 // 31 sys-argv
@@ -1451,6 +1451,42 @@ Object * builtin_float(Object ** params, uint32_t param_num){
             printf("ERRPR: Float function invalid param\n");
             return GLOBAL_NULL;
     }
+}
+
+// 87 File
+Object * builtin_File(Object ** params, uint32_t param_num){
+    FILE * fp = fopen(params[0]->data.String.v,
+                      params[1]->data.String.v);
+    if (!fp) {
+        return GLOBAL_NULL;
+    }
+    else{
+        Object * v = allocateObject();
+        v->type = FILE_;
+        v->data.File.file_ptr = fp;
+        return v;
+    }
+}
+
+// 88 file-close
+Object * builtin_file_close(Object ** params, uint32_t param_num){
+    fclose(params[0]->data.File.file_ptr);
+    params[0]->data.File.file_ptr = NULL;
+    return GLOBAL_NULL;
+}
+
+// 89 file-readlines
+Object * builtin_file_readlines(Object ** params, uint32_t param_num){
+    FILE * fp = params[0]->data.File.file_ptr;
+    Object * v = Object_initVector(1, 16);
+    char * line = NULL;
+    size_t len = 0;
+    ssize_t read;
+    while ((read = getline(&line, &len, fp)) != -1) {
+        Object * s = Object_initString(line, read);
+        vector_Push(v, s);
+    }
+    return v;
 }
 
 #endif

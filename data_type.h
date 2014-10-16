@@ -78,7 +78,8 @@ typedef enum {
 	BUILTIN_LAMBDA,
 	VECTOR,
 	TABLE,
-    OBJECT
+    OBJECT,
+    FILE_
 } DataType;
 struct  Table_Pair{ // used for table
   Object * key;          // key
@@ -132,6 +133,9 @@ struct Object {
         struct {          // builtin lambda
             Object* (*func_ptr)(Object**, uint32_t); // function pointer
         } Builtin_Lambda;
+        struct{
+            FILE * file_ptr;
+        } File;
         /*
         struct {
             Object ** msgs;

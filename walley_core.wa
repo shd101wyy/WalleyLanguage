@@ -3,8 +3,8 @@
 ;; created by Yiyi Wang 
 ;; Copyright (c) Yiyi Wang. All rights reserved.
 (def walley-core-author 'Yiyi-Wang)
-(def walley-core-version "0.00030")
-(def walley-language-version "0.3.8490")
+(def walley-core-version "0.00031")
+(def walley-language-version "0.3.8492")
 ;(def println [. args] (apply print args) (print "\n"))
 (defmacro println [(. args) `(print ~@args "\n")])
 
@@ -574,6 +574,9 @@
   {:read file-read
    :write file-write
    :abs-path file-abs-path
+   :close file-close
+   :open File
+   :readlines file-readlines
    })
 
 (def sys

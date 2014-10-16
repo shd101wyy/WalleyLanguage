@@ -109,7 +109,11 @@ void Object_free(Object * o){
                 
                 free(o->data.Table.vec); // free table vector
                 free(o);
-                return;                return;
+                return;
+            case FILE_: // file has to be freed manually. NO I AM WRONG
+                fclose(o->data.File.file_ptr);
+                free(o);
+                return;
             default:
                 printf("ERROR: Object_free invalid data type\n");
                 return;

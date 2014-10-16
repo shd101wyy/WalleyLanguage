@@ -385,6 +385,11 @@ char * to_string(Object * v){
             strcat(buffer, s);
             free(s);
             break;
+        case FILE_:
+            strcat(buffer, "<File ");
+            // strcat(buffer,);
+            strcat(buffer, ">");
+            break;
         default:
             printf("ERROR: stdout");
             break;
