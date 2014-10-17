@@ -991,7 +991,7 @@ int16_t compiler(Instructions * insts,
                         }
                     }
                     
-                FOUND_FILE:;
+		    //FOUND_FILE:;
                     char * content;
                     fseek(file, 0, SEEK_END);
                     int64_t size = ftell(file);

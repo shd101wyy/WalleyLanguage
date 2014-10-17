@@ -54,6 +54,7 @@ char * clean_string(Object * s){
     char c;
     int32_t has_space = 0;
     char temp_buffer[2]; // single char buffer
+    temp_buffer[1] = '\0';
     for (i = 0; i < length; i++) {
         c = s->data.String.v[i];
         if (c == ' ' || c == '\n' || c == '\t' || c == '\a') {
