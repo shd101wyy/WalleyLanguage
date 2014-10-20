@@ -1493,4 +1493,26 @@ Object * builtin_file_readlines(Object ** params, uint32_t param_num){
     return v;
 }
 
+// 90 file-seek
+// (file:seek my-file 0 'SEEK_SET)
+Object * builtin_file_seek(Object ** params, uint32_t param_num){
+    FILE * fp = params[0]->data.File.file_ptr;
+    int option = 1;
+    switch (params[2]->data.Integer.v) {
+        case 1:
+            option = SEEK_SET;
+            break;
+        case 2:
+            option = SEEK_END;
+            break;
+        case 3:
+            option = SEEK_CUR;
+            break;
+        default:
+            break;
+    }
+    fseek(fp, params[1]->data.Integer.v, option);
+    return GLOBAL_NULL;
+}
+
 #endif

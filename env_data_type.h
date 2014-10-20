@@ -397,6 +397,7 @@ Environment_Frame *createFrame0(){
     EF_set_builtin_lambda(frame, &builtin_File); // global
     EF_set_builtin_lambda(frame, &builtin_file_close); // file
     EF_set_builtin_lambda(frame, &builtin_file_readlines); // file
+    EF_set_builtin_lambda(frame, &builtin_file_seek); // file
     
     frame->length = count; // set length
     return frame;
