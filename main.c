@@ -37,7 +37,7 @@ int main(int argc, char *argv[]){
     if (argc == 1) {
         printf("\nWalley Language 0.3.8493\n");
 #ifdef EMSCRIPTEN
-        printf("Porting to JavaScript using Emscripten\n");
+        printf("Porting to JavaScript using Emscripten 1.25.0\n");
 #endif
         printf("Copyright (c) 2012-2014 Yiyi Wang\n");
         printf("All Rights Reserved\n");
