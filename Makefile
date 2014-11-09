@@ -10,6 +10,11 @@ install_walley_core:  # create walley_core.h from walley_core.wa
 	gcc helper.c -o helper -lm
 	./helper      # this program will generate walley_core.h
 	rm -rf helper
+emscripten:
+	emcc main.c -o walley.js -s EXPORTED_FUNCTIONS="['_Walley_init', '_Walley_RunStringAndReturnString']"
+	echo "var Walley_init = Module.cwrap('Walley_init', '', []);" >> walley.js
+	echo "var Walley_RunStringAndReturnString = Module.cwrap('Walley_RunStringAndReturnString', 'string', ['string']);" >> walley.js
+	echo "var walley = {init: Walley_init, runStr: Walley_RunStringAndReturnString}" >> walley.js
 install:
 	rm -rf /usr/local/bin/walley
 	rm -rf /usr/local/include/walley

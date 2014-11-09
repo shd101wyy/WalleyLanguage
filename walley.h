@@ -433,6 +433,12 @@ Object * Walley_RunString(char * input_string){
     return return_value;
 
 }
+/*
+ * run string and return string format of output
+ */
+char * Walley_RunStringAndReturnString(char * input_string){
+    return to_string(Walley_RunString(input_string));
+}
 
 // compile to .wac file
 void Walley_Compile(char * file_name){
