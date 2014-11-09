@@ -6,7 +6,7 @@
 #include "walley.h"
 
 int main(int argc, char *argv[]){
-    
+
     signal(SIGINT, quit_program_signal_handler); // register sigint signal handler
     
     srand((unsigned int)time(NULL)); // set seed
@@ -36,6 +36,9 @@ int main(int argc, char *argv[]){
     //return 0;
     if (argc == 1) {
         printf("\nWalley Language 0.3.8493\n");
+#ifdef EMSCRIPTEN
+        printf("Emscripten Version\n");
+#endif
         printf("Copyright (c) 2012-2014 Yiyi Wang\n");
         printf("All Rights Reserved\n");
         printf("Press ctrl-c to quit the program\n\n");

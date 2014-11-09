@@ -122,12 +122,23 @@ void Walley_Repl(){
     
     Object * v;
     
-
-    char buffer[512];
+#ifdef EMSCRIPTEN
+    char buffer[1024];
+#else
+    char * buffer = NULL;
+    size_t n;
+#endif
     char * s;
     while (1) {
         fputs("walley> ", stdout);
-        fgets(buffer, 512, stdin);
+#ifdef EMSCRIPTEN
+        fgets(buffer, 1023, stdin);
+#else
+        ssize_t read_n = getline(&buffer, &n, stdin);
+        if(read_n > 0 && buffer[read_n - 1] == '\n'){
+            buffer[read_n - 1] = '\0';
+        }
+#endif
         p = lexer(buffer);
         if (p == NULL) { // parenthesis doesn't match
             char another_buffer[512];
@@ -154,12 +165,6 @@ void Walley_Repl(){
                        env,
                        mt,
                        GLOBAL_MODULE);
-        /*
-         // print parser
-        s = to_string(o);
-        printf("%s\n", s);
-        free(s);
-        */
         
         s = to_string(v);
         printf("\n        %s\n", (s));
@@ -176,7 +181,6 @@ void Walley_Repl(){
 #if WALLEY_DEBUG
         Walley_Debug(v);
 #endif
-        
         
     }
 }

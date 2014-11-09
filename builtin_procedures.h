@@ -787,7 +787,7 @@ Object * builtin_input(Object ** params, uint32_t param_num){
     if(param_num == 1){
         printf("%s", params[0]->data.String.v);
     }
-    char * buffer;
+    char * buffer = NULL;
     size_t n;
     ssize_t read_n = getline(&buffer, &n, stdin);
     if (read_n > 0 && buffer[read_n - 1] == '\n' ) {
