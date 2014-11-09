@@ -434,6 +434,16 @@ Object * Walley_RunString(char * input_string){
 
 }
 /*
+ * init walley language for javascript port
+ */
+void Walley_init_for_js(){
+    // init walley language
+    Walley_init();
+    // run walley_core.wa (walley_core.h)
+    Walley_RunString(WALLEY_CORE_CONTENT);
+
+}
+/*
  * run string and return string format of output
  */
 char * Walley_RunStringAndReturnString(char * input_string){
