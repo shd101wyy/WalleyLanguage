@@ -15,36 +15,22 @@
 		<script type="text/javascript">
 		// init walley language
 		walley.init();
-
-		var virtual_file_system = {
-			'a':'a file',
-			'b':'b file'
-
-		}
-		var current_location = []
-
 		jQuery(function($, undefined) {
 		    $('body').terminal(function(command, term) {
-		    		console.log = term.echo
-		    		// ls
-		    		if (command === 'ls'){
-		    			try{
-			    			var fs = virtual_file_system
-			    			for(var i = 0; i < current_location; i++ ){
-			    				fs = fs[current_location[i]]
-			    			}
-			    			for(var i in fs){
-			    				console.log(i)
-			    			}
-			    		}
-			    		catch(e){
-			    			term.error(new String(e))
-			    		}
-		    		}
-			        else if (command !== '') {
+		    		console.log = term.echo;
+		    		console.error = term.echo;
+			        if (command !== '') {
 			            try {
-			            	var result = walley.runStr(command);
 			            	
+			            	// run command
+			            	var result = walley.runStr(command);
+
+			            	/**
+							* I have to add the code below to flush the buffer.
+			            	**/
+			            	walley.runStr('(print "\n")'); // flush buffer. 
+			            	
+			            	// add to console
 			            	term.echo(result);
 			          
 			            } catch(e) {
@@ -59,8 +45,7 @@
 			        greetings: "\nWalley Language 0.3.8493\n"+
                               "Porting to JavaScript using Emscripten 1.25.0\n"+
                               "Copyright (c) 2012-2014 Yiyi Wang\n"+
-                              "All Rights Reserved\n"+
-                              "Press ctrl-c to quit the program\n\n",
+                              "All Rights Reserved\n",
 			        name: 'walley',
 			        height: 200,
 			        prompt: 'walley> '});
