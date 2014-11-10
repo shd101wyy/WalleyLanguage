@@ -24,6 +24,8 @@ cd [walley-language project folder that u download, where Makefile is there]
 sudo make
 sudo make install
 ```
+#### Windows is not currently supported (T_T)
+
 ### Uninstallation:  
  under .nix (eg Linux, Mac OS X)  
  open terminal  
@@ -32,7 +34,35 @@ sudo make install
 cd [walley-language project folder that u download, where Makefile is there]  
 sudo make uninstall  
 ```
-#### Windows is not currently supported (T_T)
+
+### Compile to JavaScript using Emscripten 
+<strong> You need to install Emscripten first </strong>
+```sh
+cd [walley-language project folder that u download, where Makefile is there]
+make emscripten 
+```
+after running the command above  
+you will get a file called walley.js  (I already compiled one for you using emscripten 1.25.0)  
+this file will contain a JavaScript object called  
+<strong> walley </strong>  
+below is an example of how to use walley.js  
+```js
+/* 
+  the Object "walley" will contain two functions:
+    init: initialize walley language
+    runStr: run a give string: compile it and run it on vm, return the result. 
+*/
+walley.init();
+walley.runStr("(def x 12)")  // x => 12
+walley.runStr("(+ x 4)")     // 16
+```
+
+To try Walley Language online, go to  
+- [walley_online] : online walley language emulator
+
+[walley_online]:http://planetwalley.com/walley_language/
+
+
 ----------------------------------
 ### Mysterious S Expression (~#_#~)
  <strong>
@@ -700,7 +730,7 @@ Also we can define fn in this way:
 (def x 12)                  ;; define x
 (def y 20)                  ;; define y
 (def add [a b] (+ a b))     ;; define add
-{:x 12 :add add}            ;; return value to outside
+{:x 12 :add add}            ;; export that value
 ```
 - file2.wa
 ```lisp
