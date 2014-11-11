@@ -641,7 +641,11 @@ Object *builtin_strcmp(Object ** params, uint32_t param_num){
 Object *builtin_string_slice(Object ** params, uint32_t param_num){
     char * s = params[0]->data.String.v;
     int64_t start = params[1]->data.Integer.v;
-    int64_t end = params[2]->data.Integer.v;
+    int64_t end;
+    if (param_num == 2)
+        end = params[0]->data.String.length;
+    else
+        end = params[2]->data.Integer.v;
     int64_t length = end - start;
     char * out = (char*)malloc(sizeof(char) * (length + 1));
     uint32_t i = 0;
