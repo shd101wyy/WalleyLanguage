@@ -301,15 +301,24 @@ Object * Object_initTable(uint64_t size){
     o->use_count = 0;
     return o;
 }
-uint64_t hash(char * str, uint64_t size){
-    uint64_t hash = 0;
-    while (*(str)){
-        hash = ((hash << 5) + hash) + *(str); // hash * 33 + c
-        str++;
+uint64_t hash(Object * o, uint64_t size){
+    if(o->type == STRING){
+        char * str = o->data.String.v;
+        uint64_t hash = 0;
+        while (*(str)){
+            hash = ((hash << 5) + hash) + *(str); // hash * 33 + c
+            str++;
+        }
+        if(hash >= size) //size必须是>0的
+            return hash % size;
+        return hash;
     }
-    if(hash >= size) //size必须是>0的
-        return hash % size;
-    return hash;
+    else{
+        uint64_t hash = (uint64_t)o;
+        if(hash >= size) //size必须是>0的
+            return hash % size;
+        return hash;
+    }
 }
 
 /*
@@ -356,7 +365,7 @@ void rehash(Object * t){
         new_Table_Pair->key = key;
         new_Table_Pair->value = value;
         
-        hash_value = hash(key->data.String.v, t->data.Table.size); // rehash
+        hash_value = hash(key, t->data.Table.size); // rehash
         if(t->data.Table.vec[hash_value] != NULL){ // already exist
             new_Table_Pair->next = t->data.Table.vec[hash_value];
             t->data.Table.vec[hash_value] = new_Table_Pair;
@@ -375,7 +384,7 @@ void rehash(Object * t){
  getval
  */
 Object * Table_getval(Object * t, Object * key){
-    uint64_t hash_value = hash(key->data.String.v, t->data.Table.size); // get hash value
+    uint64_t hash_value = hash(key, t->data.Table.size); // get hash value
     Table_Pair * table_pairs = t->data.Table.vec[hash_value]; // get pairs
     while(table_pairs!=NULL){
         if( table_pairs->key == key || strcmp(key->data.String.v, table_pairs->key->data.String.v) == 0){
@@ -392,7 +401,7 @@ Object * Table_getval(Object * t, Object * key){
 void Table_setval(Object *t, Object * key, Object * value){
     if(t->data.Table.length / (double)t->data.Table.size >= 0.7) // rehash
         rehash(t);
-    uint64_t hash_value = hash(key->data.String.v, t->data.Table.size);
+    uint64_t hash_value = hash(key, t->data.Table.size);
     Table_Pair * table_pairs = t->data.Table.vec[hash_value];
     Table_Pair * new_table_pair;
     Table_Pair * temp_table_pair;

@@ -467,16 +467,16 @@ Object *VM(/*uint16_t * instructions,*/
                                 /*
                                 accumulator = Table_getval(v, temp);
                                 */
-                                hash_val = hash(temp->data.String.v, v->data.Table.size); // get hash value
+                                hash_val = hash(temp, v->data.Table.size); // get hash value
                                 table_pairs = v->data.Table.vec[hash_val];
                                 while (table_pairs!=NULL) {
-                                    if (table_pairs->key == temp || strcmp(temp->data.String.v, table_pairs->key->data.String.v) == 0) {
+                                    if (table_pairs->key == temp || ((table_pairs->key->type == STRING) && strcmp(temp->data.String.v, table_pairs->key->data.String.v)) == 0) {
                                         accumulator = table_pairs->value;
                                         
                                         /*
                                          * change instructions.
                                          */
-                                        if (instructions[pc - 5] == NEWFRAME << 12 && instructions[pc - 4] == 0x5000) {
+                                        if (instructions[pc - 5] == NEWFRAME << 12 && /*instructions[pc - 4] == 0x5000 &&*/ instructions[pc - 4] == 0x2500) {
                                             instructions[pc - 5] = TABLE_GET << 12;
                                             instructions[pc - 4] = instructions[pc - 3]; // symbol offset
                                             instructions[pc - 3] = (hash_val & 0xFFFF0000) >> 16;
@@ -737,7 +737,7 @@ Object *VM(/*uint16_t * instructions,*/
                                 
                             // get value from object
                             OBJECT_FIND_PROPERTY:
-                                hash_val = hash(temp->data.String.v, v->data.Table.size); // get hash value
+                                hash_val = hash(temp, v->data.Table.size); // get hash value
                                 table_pairs = v->data.Table.vec[hash_val];
                                 while (table_pairs!=NULL) {
                                     if (table_pairs->key == temp || strcmp(temp->data.String.v, table_pairs->key->data.String.v) == 0) {
@@ -942,7 +942,7 @@ Object *VM(/*uint16_t * instructions,*/
                 }
                 if (i == 0) { // 第一次没找到
                     // didn't find
-                    hash_val = hash(temp->data.String.v, v->data.Table.size); // rehash
+                    hash_val = hash(temp, v->data.Table.size); // rehash
                     i++;
                     goto TABLE_GET_BEGIN_TO_FIND_VALUE;
                 }

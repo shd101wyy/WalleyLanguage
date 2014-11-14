@@ -121,24 +121,15 @@ void Walley_Repl(){
     //int run_eval = false;
     
     Object * v;
-    
-#ifdef EMSCRIPTEN
-    char buffer[1024];
-#else
     char * buffer = NULL;
     size_t n;
-#endif
     char * s;
     while (1) {
         fputs("walley> ", stdout);
-#ifdef EMSCRIPTEN
-        fgets(buffer, 1023, stdin);
-#else
         ssize_t read_n = getline(&buffer, &n, stdin);
         if(read_n > 0 && buffer[read_n - 1] == '\n'){
             buffer[read_n - 1] = '\0';
         }
-#endif
         p = lexer(buffer);
         if (p == NULL) { // parenthesis doesn't match
             char another_buffer[512];

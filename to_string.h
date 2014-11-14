@@ -18,7 +18,7 @@ char * list_to_string(Object * l);
 char * vector_to_string(Object * l);
 char * table_to_string(Object * t);
 char * clean_string(Object * s);
-
+char * to_string(Object * v);
 char * number_to_string(Object * x){
     char buffer[TO_STRING_BUFFER_SIZE];
     strcpy(buffer, "");
@@ -271,8 +271,9 @@ char * table_to_string(Object * l){
 	uint16_t end_;
     while (keys!=GLOBAL_NULL) {
         v = Table_getval(l, car(keys));
-        strcat(buffer, ":");
-        strcat(buffer, clean_string(car(keys)));
+        if(car(keys)->type == STRING)
+            strcat(buffer, ":");
+        strcat(buffer, to_string(car(keys)));
         strcat(buffer, " ");
         switch (v->type) {
             case NULL_:

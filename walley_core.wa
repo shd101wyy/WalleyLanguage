@@ -4,7 +4,7 @@
 ;; Copyright (c) Yiyi Wang. All rights reserved.
 (def walley-core-author 'Yiyi-Wang)
 (def walley-core-version "0.00032")
-(def walley-language-version "0.3.8493")
+(def walley-language-version "0.3.8495")
 ;(def println [. args] (apply print args) (print "\n"))
 (defmacro println [(. args) `(print ~@args "\n")])
 

@@ -691,7 +691,7 @@ Object *builtin_table_keys(Object ** params, uint32_t param_num){
 Object *builtin_table_delete(Object ** params, uint32_t param_num){
     Object * table = params[0];
     Object * key = params[1];
-    uint64_t hash_value = hash(key->data.String.v, table->data.Table.size);
+    uint64_t hash_value = hash(key, table->data.Table.size);
     Table_Pair * table_pairs = table->data.Table.vec[hash_value]; // get pairs
     while(table_pairs!=NULL){
         if( table_pairs->key == key || strcmp(key->data.String.v, table_pairs->key->data.String.v) == 0){
