@@ -5,6 +5,12 @@
 (def walley-core-author 'Yiyi-Wang)
 (def walley-core-version "0.00032")
 (def walley-language-version "0.3.8495")
+(def walley {
+     :author 'Yiyi-Wang
+     :core-author 'Yiyi-Wang
+     :core-version walley-core-version
+     :language-version walley-language-version
+     })
 ;(def println [. args] (apply print args) (print "\n"))
 (defmacro println [(. args) `(print ~@args "\n")])
 
