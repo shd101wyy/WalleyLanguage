@@ -470,7 +470,10 @@ Object *VM(/*uint16_t * instructions,*/
                                 hash_val = hash(temp, v->data.Table.size); // get hash value
                                 table_pairs = v->data.Table.vec[hash_val];
                                 while (table_pairs!=NULL) {
-                                    if (table_pairs->key == temp || ((table_pairs->key->type == STRING) && strcmp(temp->data.String.v, table_pairs->key->data.String.v)) == 0) {
+                                    if (table_pairs->key == temp ||
+                                        (table_pairs->key->type == STRING
+                                         && temp->type == STRING
+                                         && strcmp(temp->data.String.v, table_pairs->key->data.String.v)) == 0) {
                                         accumulator = table_pairs->value;
                                         
                                         /*
@@ -740,7 +743,10 @@ Object *VM(/*uint16_t * instructions,*/
                                 hash_val = hash(temp, v->data.Table.size); // get hash value
                                 table_pairs = v->data.Table.vec[hash_val];
                                 while (table_pairs!=NULL) {
-                                    if (table_pairs->key == temp || strcmp(temp->data.String.v, table_pairs->key->data.String.v) == 0) {
+                                    if (table_pairs->key == temp ||
+                                        (table_pairs->key->type == STRING
+                                         && temp->type == STRING
+                                         && strcmp(temp->data.String.v, table_pairs->key->data.String.v))) {
                                         accumulator = table_pairs->value;
                                         
                                         /*

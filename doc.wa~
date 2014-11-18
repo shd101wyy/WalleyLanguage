@@ -1,0 +1,17 @@
+;; add doc support
+
+;; global variable
+(def doc {})
+
+;; enable doc
+(def doc-enabled 1)
+
+;; add doc
+(def add-doc [x s]
+     (if doc-enabled
+     	 (doc x s)
+	 '()))
+
+{:get doc
+ :add-doc add-doc
+ :enabled doc-enabled}
