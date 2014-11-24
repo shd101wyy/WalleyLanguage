@@ -1,0 +1,22 @@
+;; disjoint set data structure
+;(def Item {:data '() :parent '()})
+
+(def ds-make (v)
+     (let [s {}]	
+	  (set! s:parent -1)
+	  (set! s:value v)
+	  s))
+
+(def ds-find (x)
+     (if (eq? x:parent -1)
+	 x
+       (ds-find x:parent)))
+
+(def ds-union (x y)
+     (let [xRoot (ds-find x)
+	  yRoot (ds-find y)]
+	  (set! xRoot:parent yRoot)))
+
+{:make ds-make
+:find ds-find
+:union ds-union}
