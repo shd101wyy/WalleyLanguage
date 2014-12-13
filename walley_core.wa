@@ -3,7 +3,7 @@
 ;; created by Yiyi Wang 
 ;; Copyright (c) Yiyi Wang. All rights reserved.
 (def walley-core-author 'Yiyi-Wang)
-(def walley-core-version "0.00032")
+(def walley-core-version "0.00033")
 (def walley-language-version "0.3.8495")
 (def walley {
      :author 'Yiyi-Wang
@@ -475,10 +475,13 @@
 
 ;; ################## Prototype based OOP #########
 (def Object {:type 'Object  ;;;; define base Object
-             :clone (fn [self]
-                      (def new-object {})
-                      (add-proto new-object self)
-                      new-object)}) 
+             :clone (fn [self new-object]
+		      (if new-object 
+                          (begin (add-proto new-object self)
+				 new-object)
+			  (begin (def o {})
+				 (add-proto o self)
+				 o)))}) 
 (add-proto Object ()) ;; whose proto is ()
 
 ;; ################## Builtin Functions ###########
