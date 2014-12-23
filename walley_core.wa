@@ -517,6 +517,7 @@
    :filter vector-filter
    :zip vector-zip
    })
+(def vec vector)
 (def list 
   {:length list-length
    :slice list-slice
