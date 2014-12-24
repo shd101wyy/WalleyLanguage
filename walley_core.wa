@@ -3,8 +3,8 @@
 ;; created by Yiyi Wang 
 ;; Copyright (c) Yiyi Wang. All rights reserved.
 (def walley-core-author 'Yiyi-Wang)
-(def walley-core-version "0.00033")
-(def walley-language-version "0.3.8495")
+(def walley-core-version "0.00034")
+(def walley-language-version "0.3.8496")
 (def walley {
      :author 'Yiyi-Wang
      :core-author 'Yiyi-Wang
@@ -44,7 +44,7 @@
          (append (cdr a)
            b)))))
 ;; reverse the list
-(def reverse 
+(def list-reverse 
   (fn [a]
     (def reverse_iter 
       (fn (a result)
@@ -190,7 +190,6 @@
 (def cdddr [x] (cdr (cdr (cdr x))))
 (def cadddr [x] (car (cdr (cdr (cdr x)))))
 
-(def list-reverse reverse)
 (def list-ref [l i]
   (if (= i 0)
     (car l)
