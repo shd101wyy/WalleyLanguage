@@ -473,7 +473,7 @@ Object *VM(/*uint16_t * instructions,*/
                                     if (table_pairs->key == temp ||
                                         (table_pairs->key->type == STRING
                                          && temp->type == STRING
-                                         && strcmp(temp->data.String.v, table_pairs->key->data.String.v)) == 0) {
+                                         && strcmp(temp->data.String.v, table_pairs->key->data.String.v) == 0)) {
                                         accumulator = table_pairs->value;
                                         
                                         /*
@@ -586,7 +586,7 @@ Object *VM(/*uint16_t * instructions,*/
                         continuation_env[continuation_env_length] = env;
                         continuation_env_length++;
                         
-                        // resert pointers
+                        // reset pointers
                         env = new_env;
                         pc = start_pc;
                         
@@ -746,7 +746,7 @@ Object *VM(/*uint16_t * instructions,*/
                                     if (table_pairs->key == temp ||
                                         (table_pairs->key->type == STRING
                                          && temp->type == STRING
-                                         && strcmp(temp->data.String.v, table_pairs->key->data.String.v))) {
+                                         && strcmp(temp->data.String.v, table_pairs->key->data.String.v) == 0)) {
                                         accumulator = table_pairs->value;
                                         
                                         /*

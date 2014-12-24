@@ -356,28 +356,28 @@
 
 ;;##################### list map #####################
 ;; map one parameters
-;; (map1 square '(3 4)) => (9 16)
-(def map1 [f p]
+;; (list-map1 square '(3 4)) => (9 16)
+(def list-map1 [f p]
   (if (null? p)
     '()
     (cons (f (car p))
-          (map1 f (cdr p)))))
+          (list-map1 f (cdr p)))))
 ;; map variadic parameters
-;; (map + '(3 4) '(5 6)) => '(8 10)
-(def map [f p0 . p]
+;; (list-map + '(3 4) '(5 6)) => '(8 10)
+(def list-map [f p0 . p]
   ;(print p)
-  ;(print (apply f (map1 car (cons p0 p))))
+  ;(print (apply f (list-map1 car (cons p0 p))))
   (if (null? p0)
     '()
-    (cons (apply f (map1 car (cons p0 p)))
-          (apply map (cons f (map1 cdr (cons p0 p)))))))
+    (cons (apply f (list-map1 car (cons p0 p)))
+          (apply list-map (cons f (list-map1 cdr (cons p0 p)))))))
 
 ;; list-zip
 ;; (list:zip '(1 2 3) '(4 5 6)) => '((1 4) (2 5) (3 6))
-(def list-zip [. args] (apply map (cons List args)))
+(def list-zip [. args] (apply list-map (cons List args)))
 
 ;(def apply-test [f p0 . p]
-;  (apply f (map1 car (cons p0 p))))
+;  (apply f (list-map1 car (cons p0 p))))
 
 ;; ##################### vector-map ##############
 ;; (vector-map1 square #[1 2]) => (1 4)
@@ -407,21 +407,21 @@
 
 ;; ##################### filter ##################
 ;; filter function
-;; eg (filter is-even '(3 4 5 6)) => '(4 6)
+;; eg (list-filter is-even '(3 4 5 6)) => '(4 6)
 ;; where is-even return true or false
-;; (filter f l)
+;; (list-filter f l)
 ;; where f must return true or false
 
-(def filter
+(def list-filter
   (fn [func l]
     (if (null? l)	       
       '()
       (if (func (car l))
         (cons (car l)
-              (filter func (cdr l)))
-        (filter func (cdr l))))))
+              (list-filter func (cdr l)))
+        (list-filter func (cdr l))))))
 ;; test filter function
-;; (print (filter (lambda [n] (if (> n 0) 'true '())) '(-1 2 -3 4 -5 6))) => (2 4 6)
+;; (print (list-filter (lambda [n] (if (> n 0) 'true '())) '(-1 2 -3 4 -5 6))) => (2 4 6)
 ;; pass
 
 ;; (vector:filter (fn [x] (> x 0)) #(-1 2 3)) => (2 3) remove x that is <= 0
@@ -503,6 +503,39 @@
 (defm while [test . body]
   `(while-func (fn [] ~test) (fn [] ~@body)))
 
+;; multi methods
+;; eg:
+;; (def map (multi (fn [f x . y] (typeof x))))
+;; (defmethod map :vector vector-map)
+;; (defmethod map :pair vector-map)
+;; (map (fn (i) (+ i 1)) '(1 2 3))
+;;
+;;
+(def multi-table {})
+(def multi (judge-fn dispatch-object)
+     ;; init dispatch-object if necessary
+     (if (null? dispatch-object) (set! dispatch-object {}))
+     (def r (fn [. args]
+	      (apply (dispatch-object (apply judge-fn args))
+	      	     args)))
+     ;; add r to multi-table
+     (multi-table r dispatch-object)
+     r)
+(def defmethod (var judge func)
+     ((multi-table var) judge func))
+     
+;; defmethod for map
+(def map (multi (fn [f x . y] (typeof x))
+     	 	{:vector vector-map
+		:pair list-map}))
+(def filter (multi (fn [f x] (typeof x))
+     	    	   ;{:vector vector-filter
+		   ; :pair list-filter}
+		    ))
+		    
+(defmethod filter 'vector vector-filter)
+(defmethod filter 'pair list-filter)
+
 
 ;; modules
 (def vector 
@@ -527,8 +560,8 @@
    :->vector list->vector
    :foreach list-foreach
    :assoc list-assoc
-   :map map
-   :filter filter
+   :map list-map
+   :filter list-filter
    :zip list-zip
    })
 (def table

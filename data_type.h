@@ -387,7 +387,7 @@ Object * Table_getval(Object * t, Object * key){
     uint64_t hash_value = hash(key, t->data.Table.size); // get hash value
     Table_Pair * table_pairs = t->data.Table.vec[hash_value]; // get pairs
     while(table_pairs!=NULL){
-        if( table_pairs->key == key || strcmp(key->data.String.v, table_pairs->key->data.String.v) == 0){
+        if( table_pairs->key == key || (key->type == STRING && table_pairs->key->type == STRING && strcmp(key->data.String.v, table_pairs->key->data.String.v) == 0)){
             return table_pairs->value;
         }
         table_pairs = table_pairs->next;
@@ -417,7 +417,7 @@ void Table_setval(Object *t, Object * key, Object * value){
         // go over to check whether already exist
         temp_table_pair = table_pairs;
         while(temp_table_pair){
-            if(temp_table_pair->key == key || strcmp(temp_table_pair->key->data.String.v, key->data.String.v) == 0)
+            if(temp_table_pair->key == key || (key->type == STRING && temp_table_pair->key->type == STRING && strcmp(temp_table_pair->key->data.String.v, key->data.String.v) == 0))
             {
                 // key already exist
                 // free old value
