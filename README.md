@@ -4,6 +4,7 @@ Walley Language
 >  All Rights Reserved
 
 -----------------------------------  
+#### Language Version: 0.3.8496
 #### This language is not finished yet...
 
 <strong>
@@ -35,11 +36,11 @@ cd [walley-language project folder that u download, where Makefile is there]
 sudo make uninstall  
 ```
 
-### Compile to JavaScript using Emscripten 
+### Compile to JavaScript using Emscripten
 <strong> You need to install Emscripten first </strong>
 ```sh
 cd [walley-language project folder that u download, where Makefile is there]
-make emscripten 
+make emscripten
 ```
 after running the command above  
 you will get a file called walley.js  (I already compiled one for you using emscripten 1.25.0)  
@@ -47,10 +48,10 @@ this file will contain a JavaScript object called
 <strong> walley </strong>  
 below is an example of how to use walley.js  
 ```js
-/* 
+/*
   the Object "walley" will contain two functions:
     init: initialize walley language
-    runStr: run a give string: compile it and run it on vm, return the result. 
+    runStr: run a give string: compile it and run it on vm, return the result.
 */
 walley.init();
 walley.runStr("(def x 12)")  // x => 12
@@ -88,7 +89,7 @@ its head is a function, with several parameters behind
 for example, in S exp (+ 3 4), + is the function, and 3, 4 are parameters.  
 so (+ 3 4) runs + function with 3 4 as parameters, which produces 7 as result
 and here are lots of builtin functions in walley language  
-we call those functions => <strong>lambda</strong>  
+we call those functions => <strong>lambda</strong>  (can also be written as <strong>fn</strong>)
 
 ----------------------------------
 ### Hello World  
@@ -573,6 +574,7 @@ So let's try to write a lambda that gets the absolute value of a number.
         (- 0 n))))
 ```
 That's all for <strong>cond ;)</strong>.  
+
 ------------------------------------------
 ### A new data type: Table  
 <strong>Table</strong> is a data type in walley language.  
@@ -635,6 +637,173 @@ To iterate a table:
                           ;; b 2
                           ;; a 1
 ```
+------------------------------------------
+### More about: List
+In walley language, we can use <strong>List</strong> function to build a list.
+```
+(def x (List 1 2 3)) ;; <=> same as (def x (cons 1 (cons 2 (cons '()))))
+```
+
+And here are several builtin functions related to list:  
+- ref
+- foreach
+- zip
+- length
+- slice
+- filter
+- map
+- assoc
+- reverse
+- ->vector
+- append
+
+All those functions are in a table called <strong>list</strong>
+
+- ref
+```lisp
+(def x '(1 2 3))
+(list:ref x 1)   ;; => give us the 2nd element => 2
+```
+
+- foreach
+```lisp
+(def x '(1 2 3))
+(list:foreach x (fn [i] (print i))) ;; will print 1 2 3
+```
+
+- zip
+```lisp
+(list:zip '(1 2 3) '(4 5 6)) ;; => ((1 4) (2 5) (3 6))
+```
+
+- length
+```lisp
+(list:length '(1 2 3)) ;; => return the length of list: 3
+```  
+- slice
+```lisp
+(list:slice '(1 2 3 4 5) 2)   ;; => slice starting from offset 2 :  (3 4 5)  
+(list:slice '(1 2 3 4 5) 2 4) ;; => slice starting from offset 2 to 4:  (3 4)  
+```  
+
+- filter
+```lisp
+(list:filter (fn [x] (> x 0)) '(-1 -2 -3 4 6 -7 8)) ;; get list with all elements greater than 0 : (4 6 8)
+```  
+
+- map  
+```lisp  
+(list:map (fn [x] (* x x)) '(1 2 3)) ;; map the list : (1 4 9)
+```
+
+- assoc
+```lisp
+(list:assoc '((a . 12) (b . 14)) 'a) ;; => 12
+```
+
+- reverse
+```
+(list:reverse '(1 2 3 4 5 6)) ;; reverse the list => (6 5 4 3 2 1)
+```
+
+- ->vector
+```
+(list:->vector '(1 2 3)) ;; convert list to vector #[1 2 3]
+```
+
+- append
+```
+(list:append '(1 2 3) 4) ;; append element at end =>  (1 2 3 4)
+(list:append '(1 2 3) '(4 5)) ;; => (1 2 3 4 5)
+```
+------------------------------------------
+### Data Type: Vector
+
+<strong>Vector</strong> is a data type in walley language.  
+Vector grants us O(1) element access time.
+```lisp
+;; to create a vector
+(def x #[1 2 3 4])
+
+;; to access element at offset
+x[0]           ;; get first element of vector => 1
+(+ x[0] x[1])  ;; add first two elements
+
+;; set element at offset
+(x 0 12)      ;; x is now => #[12 2 3 4]
+
+```
+There are several builtin functions in table <strong>vector</strong>
+
+- ->list
+- filter
+- map  
+- zip
+- length
+- foreach
+- slice
+- find
+- push!
+- pop!
+
+- ->list  
+```lisp
+(vector:->list #[1 2 3]) ;; convert vector to list => (1 2 3)
+```
+
+- filter
+```lisp
+(vector:filter (fn [x] (> x 0)) #[1 -2 3 -4 5]) ;; same like list:filter, but take vector as parameter and return a vector => #[1 3 5]
+```
+
+- map
+```lisp
+(vector:map (fn [x] (* x 2)) #[1 2 3]) ;; => #[1 4 6]
+```
+
+- zip
+```lisp
+(vector:zip #[1 2 3] #[4 5 6]) ;; => #[#[1 4] #[2 5] #[3 6]]
+```
+
+- length
+```lisp
+(vector:length #[1 2 3]) ;; length of vector =>3
+```
+
+- foreach
+```lisp
+(vector:foreach #[3 4 5] (fn [i v] (print i " : " v "\n")))
+;; iterate over vector, i => offset, v => value at that offset
+;; print
+;; ===========
+;; 0 : 3
+;; 1 : 4
+;; 2 : 5
+```
+
+- slice  
+Same as <strong>list:slice</strong>, but return a vector
+
+- find
+```lisp
+(vector:find #[1 2 3 4] 3) ;; find value 3 and return its offset => 2
+(vector:find #[1 2 3] 4) ;; if value not found, return -1 => -1
+(vector:find #[1 2 3 4 5] 1 2) ;; search 1 starting from offset 2 => -1
+```
+- push!
+```lisp
+(def x #[1])
+(vector:push! x 2)  ;; x now is => #[1 2]
+```
+
+- pop!
+```lisp
+(def x #[1])
+(vector:pop! x)  ;; x now is => #[], return value 1
+```
+
+
 ------------------------------------------
 ### Prototype Based Object Oriented Programming
 walley language implements prototype based oop like  
@@ -706,6 +875,26 @@ Suppose we want to define a small dog object:
 
 
 ```
+------------------------------------------
+### Multi-Method
+#### to support polymorphism
+eg:  
+```lisp
+(def poly (multi (fn [x] (typeof x))))
+
+;; if (typeof x) matches 'string, return "This is String"
+(defmethod poly 'string (fn [x] "This is String"))
+
+;; if (typeof x) matches 'vector, return "This is Vector"
+(defmethod poly 'vector (fn [x] "This is Vector"))
+
+;; if (typeof x) matches 'table, return "This is Table"
+(defmethod poly 'table (fn [x] "This is Table"))
+
+(poly "Hello ") ;; => "This is String"
+(poly {:a 12 }) ;; => "This is Table"
+```
+
 ------------------------------------------
 ### I am Lazy  
 Because I am too lazy to type "lambda" each time, now lambda can also be defined using "fn"  
