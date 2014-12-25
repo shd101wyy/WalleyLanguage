@@ -64,6 +64,32 @@
 (def List (. args) args)
 
 
+;; let macro
+;; eg
+;; (let x 1
+;;      y 2
+;;      (+ x y))
+
+;; parse-let fn is used to parse arguments
+;; eg (x 12 y 13 (+ x y)) => ((fn () (def x 12) (def y 13) (+ x y)))
+(def parse-let (args-list)
+    (def var-name-list {}) ;; used to save var names
+    (def parse-let-helper (args)
+        (if (null? args)
+            (print "ERROR: wrong let statement: " (cons 'let args-list))
+            (if (null? (cdr args))
+                args
+                (if (var-name-list (car args)) ;; var-name already defined
+                    (cons (List 'set! (car args) (car (cdr args)))
+                    (parse-let-helper (cdr (cdr args))))
+                    (begin (var-name-list (car args) 'true) ;; save this var-name to var-name-list
+                        (cons (List 'def (car args) (car (cdr args)))
+                        (parse-let-helper (cdr (cdr args)))))))))
+    (def parse-result (parse-let-helper args-list))
+    `((fn () ~@parse-result)))
+(defmacro let
+    (. rest) (parse-let rest))
+
 ;; cond macro
 (defmacro cond
   () ()

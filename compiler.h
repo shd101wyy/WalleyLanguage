@@ -1121,57 +1121,6 @@ int16_t compiler(Instructions * insts,
                                module);
                 return 0;
             }
-            else if (str_eq(tag, "let")){
-                Object * chunk = cadr(l);
-                //Object * body; => cddr(l)
-                char * var_names[64];
-                Object * def_array[64];
-                int32_t is_def;
-                length = 0; // counter for var_names
-                j = 0; // counter for def_array
-                Object * assignments = GLOBAL_NULL;
-                while (chunk != GLOBAL_NULL) {
-                    is_def = true;
-                    string = car(chunk)->data.String.v;
-                    var_existed = false;
-                    for (i = 0; i < length; i++) { // check in var_names
-                        if (str_eq(var_names[i], string)) {
-                            var_existed = true;
-                            is_def = false;
-                        }
-                    }
-                    if(!var_existed){ // 不存在 保存
-                        var_names[length] = string;
-                        length++;
-                    }
-                    def_array[j] = cons(is_def?DEF_STRING:SET_STRING,
-                                        cons(car(chunk),
-                                             cons(cadr(chunk), GLOBAL_NULL)));
-                    chunk = cddr(chunk);
-                    j++; //
-                }
-                // make assignments;
-                for (i = j - 1; i >= 0; i--) {
-                    assignments = cons(def_array[i],
-                                       assignments);
-                }
-                temp =  cons(cons(LAMBDA_STRING,
-                                  cons(GLOBAL_NULL,
-                                       list_append(assignments,
-                                                   cddr(l)))),
-                             GLOBAL_NULL);
-                compiler(insts,
-                         temp,
-                         vt,
-                         tail_call_flag,
-                         parent_func_name,
-                         function_for_compilation,
-                         env,
-                         mt,
-                         module);
-                Object_free(temp);
-                return 0;
-            }
             else if (str_eq(tag, "lambda") || str_eq(tag, "fn")){ // I am too lazy
                 Object * params = cadr(l); // get parameters
                 int32_t variadic_place = -1; // variadic place
