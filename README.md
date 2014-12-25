@@ -4,7 +4,7 @@ Walley Language
 >  All Rights Reserved
 
 -----------------------------------  
-#### Language Version: 0.3.8496
+#### Language Version: 0.3.8497
 #### This language is not finished yet...
 
 <strong>
@@ -139,24 +139,24 @@ also, try to type something like (+ 3 4), (- 3 4 5) (* 1 2 3)  to see what u can
  First, let's do something simple,  
  Guess the answer of the following S expression:  
 ```lisp
-((lambda [a b] (+ a b)) 3 4)
+((lambda (a b) (+ a b)) 3 4)
 ```
 the solution is 7,
 here we defined an <strong>anonymous lambda:</strong>
 ```lisp
-(lambda [a b] (+ a b))
+(lambda (a b) (+ a b))
 ```
 and we then passed 3 4 as parameters to it
 ```lisp
-((lambda [a b] (+ a b)) 3 4)
+((lambda (a b) (+ a b)) 3 4)
 ```
 which produced the answer 7.  
 Now try to guess the answer of the following S expression:  
 ```lisp
-((lambda [a b] (+ a b)) 5 6)
-((lambda [a b] (+ a b)) 1 2)
-((lambda [a b] (- a b)) 3 4)
-((lambda [a b c] (+ a b c)) 1 2 3)
+((lambda (a b) (+ a b)) 5 6)
+((lambda (a b) (+ a b)) 1 2)
+((lambda (a b) (- a b)) 3 4)
+((lambda (a b c) (+ a b c)) 1 2 3)
 ```
 the solutions are:  
 - 11  
@@ -165,7 +165,7 @@ the solutions are:
 - 6  
 
 -------------------------------------
-### However, it is so inconvenient to run lambda like that ((lamda [a b ...
+### However, it is so inconvenient to run lambda like that ((lamda (a b ...
 So how do we give the lambda a name,  
 like
 ```lisp
@@ -174,7 +174,7 @@ like
 here we need to <strong> define a variable as lambda: </strong>  
 and below is how we do that
 ```lisp
-(def my-lambda (lambda [a b] (+ a b))) ;; don't forget to add space between lambda and [a b], otherwise it will cause error.
+(def my-lambda (lambda (a b) (+ a b)))
 ```
 and call it like
 ```lisp
@@ -182,15 +182,15 @@ and call it like
 ```
 since
 ```lisp
-my-lambda <=> (lambda [a b] (+ a b))
+my-lambda <=> (lambda (a b) (+ a b))
 ```
 when evaluating <strong>(my-lambda 3 4)</strong>, we just replace <strong>my-lambda</strong> with  
 ```lisp
-(lambda [a b] (+ a b))
+(lambda (a b) (+ a b))
 ```
 ,  which is
 ```lisp
-((lambda [a b] (+ a b)) 3 4)
+((lambda (a b) (+ a b)) 3 4)
 ```
 Now, we don't need to write that long lambda as head anymore. ;)  
 Try to define ur own lambda in walley repl, and run it!.
@@ -361,9 +361,9 @@ with lambdas <strong> car </strong> and <strong> cdr </strong>, we can get the e
 We can also define some interesting lambdas using those two lambdas.  
 for example.
 ```lisp
-(def cadr (lambda [a] (car (cdr a))))        ;; give us the 2nd element of pair
-(def caddr (lambda [a] (car (cdr (cdr a))))) ;; give us the 3rd element of pair
-(def cddr (lambda [a] (cdr (cdr a))))        ;; give us the rest rest elements of pair
+(def cadr (lambda (a) (car (cdr a))))        ;; give us the 2nd element of pair
+(def caddr (lambda (a) (car (cdr (cdr a))))) ;; give us the 3rd element of pair
+(def cddr (lambda (a) (cdr (cdr a))))        ;; give us the rest rest elements of pair
 ```
 
 now try to define a variable <strong>x</strong> with <strong>pair</strong> value  
@@ -523,7 +523,7 @@ Here are some examples:
 so now we could define a lambda like:
 ```lisp
 (def null?
-    (lambda [n]
+    (lambda (n)
         (if (eq? n ())
             'true
             ())))
@@ -556,19 +556,19 @@ It is called as <strong> cond </strong>.
 ```
 So let's try to write a lambda that gets the absolute value of a number.  
 ```lisp
-(def abs0 (lambda [n]
+(def abs0 (lambda (n)
     (cond (= n 0) 0          ;; n equals 0
           (> n 0) n          ;; n is positive
           (< n 0) (- 0 n)))) ;; n is negative
 
 ;; or a much simpler way
-(def abs1 (lambda [n]
+(def abs1 (lambda (n)
     (cond (> n 0) n            ;; n is positive
           else    (- 0 n))))   ;; else: n is not positive
                                ;; if none of the exprs above else are run
                                ;; else will be evaluated.
 ;; or just use if
-(def abs2 (lambda [n]
+(def abs2 (lambda (n)
     (if (> n 0)
         n
         (- 0 n))))
@@ -587,7 +587,7 @@ To add key/value pair to table:
 ```lisp
 (set! my-table:x 12)      ;; now the table is like {:x 12}
 (set! my-table:y 15)      ;; now the table is like {:x 12, :y 15}
-(set! my-table:add (lambda [a b] (+ a b))) ;;      {:y 15, :add #<user-defined-lambda (_ _)>, :x 12}
+(set! my-table:add (lambda (a b) (+ a b))) ;;      {:y 15, :add #<user-defined-lambda (_ _)>, :x 12}
 ```
 
 To access a value according to keyword:
@@ -626,12 +626,8 @@ To check a value is a table:
 To iterate a table:
 ```lisp
 (def a-table {:a 1 :b 2 :c 3}) ;; define a table
-(table:foreach a-table (lambda [key val]
-                          (print key)
-                          (print " ")
-                          (print val)
-                          (print "\n") ;; newline
-                          ))
+(table:foreach a-table (fn (key val)
+                          (print key " " val "\n")))
                           ;; the code above will print
                           ;; c 3
                           ;; b 2
@@ -668,7 +664,7 @@ All those functions are in a table called <strong>list</strong>
 - foreach
 ```lisp
 (def x '(1 2 3))
-(list:foreach x (fn [i] (print i))) ;; will print 1 2 3
+(list:foreach x (fn (i) (print i))) ;; will print 1 2 3
 ```
 
 - zip
@@ -688,12 +684,12 @@ All those functions are in a table called <strong>list</strong>
 
 - filter
 ```lisp
-(list:filter (fn [x] (> x 0)) '(-1 -2 -3 4 6 -7 8)) ;; get list with all elements greater than 0 : (4 6 8)
+(list:filter (fn (x) (> x 0)) '(-1 -2 -3 4 6 -7 8)) ;; get list with all elements greater than 0 : (4 6 8)
 ```  
 
 - map  
 ```lisp  
-(list:map (fn [x] (* x x)) '(1 2 3)) ;; map the list : (1 4 9)
+(list:map (fn (x) (* x x)) '(1 2 3)) ;; map the list : (1 4 9)
 ```
 
 - assoc
@@ -723,14 +719,14 @@ All those functions are in a table called <strong>list</strong>
 Vector grants us O(1) element access time.
 ```lisp
 ;; to create a vector
-(def x #[1 2 3 4])
+(def x [1 2 3 4])
 
 ;; to access element at offset
 x[0]           ;; get first element of vector => 1
 (+ x[0] x[1])  ;; add first two elements
 
 ;; set element at offset
-(x 0 12)      ;; x is now => #[12 2 3 4]
+(x 0 12)      ;; x is now => [12 2 3 4]
 
 ```
 There are several builtin functions in table <strong>vector</strong>
@@ -748,32 +744,32 @@ There are several builtin functions in table <strong>vector</strong>
 
 - ->list  
 ```lisp
-(vector:->list #[1 2 3]) ;; convert vector to list => (1 2 3)
+(vector:->list [1 2 3]) ;; convert vector to list => (1 2 3)
 ```
 
 - filter
 ```lisp
-(vector:filter (fn [x] (> x 0)) #[1 -2 3 -4 5]) ;; same like list:filter, but take vector as parameter and return a vector => #[1 3 5]
+(vector:filter (fn (x) (> x 0)) [1 -2 3 -4 5]) ;; same like list:filter, but take vector as parameter and return a vector => [1 3 5]
 ```
 
 - map
 ```lisp
-(vector:map (fn [x] (* x 2)) #[1 2 3]) ;; => #[1 4 6]
+(vector:map (fn (x) (* x 2)) [1 2 3]) ;; => [1 4 6]
 ```
 
 - zip
 ```lisp
-(vector:zip #[1 2 3] #[4 5 6]) ;; => #[#[1 4] #[2 5] #[3 6]]
+(vector:zip [1 2 3] [4 5 6]) ;; => [[1 4] [2 5] [3 6]]
 ```
 
 - length
 ```lisp
-(vector:length #[1 2 3]) ;; length of vector =>3
+(vector:length [1 2 3]) ;; length of vector =>3
 ```
 
 - foreach
 ```lisp
-(vector:foreach #[3 4 5] (fn [value offset] (print offset " : " value "\n")))
+(vector:foreach [3 4 5] (fn (value offset) (print offset " : " value "\n")))
 ;; iterate over vector
 ;; print
 ;; ===========
@@ -787,20 +783,20 @@ Same as <strong>list:slice</strong>, but return a vector
 
 - find
 ```lisp
-(vector:find #[1 2 3 4] 3) ;; find value 3 and return its offset => 2
-(vector:find #[1 2 3] 4) ;; if value not found, return -1 => -1
-(vector:find #[1 2 3 4 5] 1 2) ;; search 1 starting from offset 2 => -1
+(vector:find [1 2 3 4] 3) ;; find value 3 and return its offset => 2
+(vector:find [1 2 3] 4) ;; if value not found, return -1 => -1
+(vector:find [1 2 3 4 5] 1 2) ;; search 1 starting from offset 2 => -1
 ```
 - push!
 ```lisp
-(def x #[1])
-(vector:push! x 2)  ;; x now is => #[1 2]
+(def x [1])
+(vector:push! x 2)  ;; x now is => [1 2]
 ```
 
 - pop!
 ```lisp
-(def x #[1])
-(vector:pop! x)  ;; x now is => #[], return value 1
+(def x [1])
+(vector:pop! x)  ;; x now is => [], return value 1
 ```
 
 
@@ -859,7 +855,7 @@ Suppose we want to define a small dog object:
 
 ;; to define an object method, we need to add an extra argument to function, which is called "self".
 ;; for example, we want to declare a fn that can print the age of a-small-dog:
-(set! a-small-dog:print-age (lambda [self] (print self:age)))
+(set! a-small-dog:print-age (lambda (self) (print self:age)))
 
 ;; to call an object method.
 (a-small-dog:print-age)      ;; => 5
@@ -880,16 +876,16 @@ Suppose we want to define a small dog object:
 #### to support polymorphism
 eg:  
 ```lisp
-(def poly (multi (fn [x] (typeof x))))
+(def poly (multi (fn (x) (typeof x))))
 
 ;; if (typeof x) matches 'string, return "This is String"
-(defmethod poly 'string (fn [x] "This is String"))
+(defmethod poly 'string (fn (x) "This is String"))
 
 ;; if (typeof x) matches 'vector, return "This is Vector"
-(defmethod poly 'vector (fn [x] "This is Vector"))
+(defmethod poly 'vector (fn (x) "This is Vector"))
 
 ;; if (typeof x) matches 'table, return "This is Table"
-(defmethod poly 'table (fn [x] "This is Table"))
+(defmethod poly 'table (fn (x) "This is Table"))
 
 (poly "Hello ") ;; => "This is String"
 (poly {:a 12 }) ;; => "This is Table"
@@ -900,15 +896,15 @@ eg:
 Because I am too lazy to type "lambda" each time, now lambda can also be defined using "fn"  
 The following two lines of codes are the same:  
 ```lisp  
-(def add (fn [a b] (+ a b)))
-(def add (lambda [a b] (+ a b)))
+(def add (fn (a b) (+ a b)))
+(def add (lambda (a b) (+ a b)))
 ```
 
 Also we can define fn in this way:  
 ```lisp
-(def add (fn [a b] (+ a b)))
+(def add (fn (a b) (+ a b)))
 ;; same as  
-(def add [a b] (+ a b))
+(def add (a b) (+ a b))
 ```
 ~(*_*)~  
 
@@ -918,7 +914,7 @@ Also we can define fn in this way:
 ```lisp
 (def x 12)                  ;; define x
 (def y 20)                  ;; define y
-(def add [a b] (+ a b))     ;; define add
+(def add (a b) (+ a b))     ;; define add
 {:x 12 :add add}            ;; export that value
 ```
 - file2.wa

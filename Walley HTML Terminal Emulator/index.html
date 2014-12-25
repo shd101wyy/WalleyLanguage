@@ -21,18 +21,18 @@
 		    		console.error = term.echo;
 			        if (command !== '') {
 			            try {
-			            	
+
 			            	// run command
 			            	var result = walley.runStr(command);
 
 			            	/**
 							* I have to add the code below to flush the buffer.
 			            	**/
-			            	walley.runStr('(print "\n")'); // flush buffer. 
-			            	
+			            	walley.runStr('(print "\n")'); // flush buffer.
+
 			            	// add to console
 			            	term.echo(result);
-			          
+
 			            } catch(e) {
 			                term.error(new String(e));
 			            }
@@ -42,10 +42,10 @@
 			        }
 			    },
 			     {
-			        greetings: "\nWalley Language 0.3.8496\n"+
+			        greetings: "\nWalley Language 0.3.8497\n"+
                               "Porting to JavaScript using Emscripten 1.25.0\n"+
                               "Copyright (c) 2012-2014 Yiyi Wang\n"+
-                              "All Rights Reserved\n" + 
+                              "All Rights Reserved\n" +
                               "Github: https://github.com/shd101wyy/WalleyLanguage\n",
 			        name: 'walley',
 			        height: 200,
