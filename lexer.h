@@ -235,6 +235,7 @@ Lexer* lexer(char * input_string){
                 }
                 else if(input_string[i] == '['){
                     Lexer_push(output_list, "(");
+                    Lexer_push(output_list, "Vector!"); // 不定长 vector, 长度可变
                     paren_count++;
                 }
                 else{

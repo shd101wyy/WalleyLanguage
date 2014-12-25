@@ -187,7 +187,7 @@ char * vector_to_string(Object * l){
     char * s;
 	uint16_t end_;
     if (l->data.Vector.resizable) {
-        strcat(buffer, "#[");
+        strcat(buffer, "[");
     }
     else strcat(buffer, "#(");
     

@@ -91,7 +91,10 @@ Object * quasiquote_list(Object * l){
 /*
  macro_match
  return length of var_names
- (defmacro test [(x) x] [(#hi x) y] [(x y) x])
+ (defmacro test 
+     (x) x 
+     (#hi x) y
+     (x y) x)
  
  */
 int32_t macro_match(Object * a, Object * b, char **var_names, Object **var_values, int32_t count){
@@ -224,7 +227,7 @@ Object * macro_expansion_replacement(Object * expanded_value,
  */
 /*
  展开 macro
- (defmacro square ([x] `(* ~x ~x)))
+ (defmacro square (x) `(* ~x ~x))
  (square 12) => (* 12 12)
  */
 Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable * mt, Environment * global_env, Instructions * insts, Module * module){
@@ -238,12 +241,12 @@ Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable *
     int32_t i;
     uint64_t start_pc, insts_length;
     while (clauses != GLOBAL_NULL) {
-        match = macro_match(car(car(clauses)),
+        match = macro_match(car(clauses),
                             exps,
                             var_names,
                             var_values,
                             0);
-        if (match || (exps == GLOBAL_NULL && car(car(clauses)) == GLOBAL_NULL)) {
+        if (match || (exps == GLOBAL_NULL && car(clauses) == GLOBAL_NULL)) {
 #if MACRO_DEBUG
             printf("Macro Match\n");
             printf("Match length %d\n", match);
@@ -340,7 +343,7 @@ Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable *
             
             // compile and run
             compiler_begin(insts,
-                           cons(cadr(car(clauses)), GLOBAL_NULL)
+                           cons(car(cdr(clauses)), GLOBAL_NULL)
                            ,
                            new_vt,
                            NULL,
@@ -396,7 +399,7 @@ Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable *
             return expanded_value_after_replacement;
             
         }
-        clauses = cdr(clauses);
+        clauses = cddr(clauses);
         continue;
     }
     printf("ERROR: Macro: %s expansion failed\n", macro->macro_name);
@@ -1179,7 +1182,7 @@ int16_t compiler(Instructions * insts,
                 MT_add_new_empty_frame(mt_); // we add a new frame
                 
                 //macros_.push([]); // add new frame
-                //env_.push([]); // 必须加上这个， 要不然((lambda [] (defmacro square ([x] `[* ~x ~x])) (square 12))) macro 会有错
+                //env_.push([]); // 必须加上这个， 要不然((lambda () (defmacro square ([x] `[* ~x ~x])) (square 12))) macro 会有错
                 while (true) {
                     if (params == GLOBAL_NULL) {
                         break;
@@ -1285,7 +1288,9 @@ int16_t compiler(Instructions * insts,
                 return 0;
             }
             /*
-             (defmacro macro_name [var0 pattern0] [var1 pattern1] ...)
+             (defmacro macro_name 
+                       var0 pattern0 
+                       var1 pattern1 ...)
              */
             else if (str_eq(tag, "defmacro")){
                 var_name = cadr(l);

@@ -572,11 +572,14 @@ Object *VM(/*uint16_t * instructions,*/
                         
                         // set null
                         if((current_frame_pointer->length) < required_param_num){
-                            for(i = param_num; i < required_param_num; i++){
+                            // param_num here is wrong, cuz if the fn is object fn, then the param_num
+                            // should be param_num + 1.
+                            // therefore I changed it to current_frame_pointer->length.
+                            for(i = /*param_num*/current_frame_pointer->length; i < required_param_num; i++){
                                 current_frame_pointer->array[i] = GLOBAL_NULL;
                                 GLOBAL_NULL->use_count++; // 用吗？
                             }
-                            current_frame_pointer->length += (required_param_num - param_num); // update length
+                            current_frame_pointer->length += (required_param_num - current_frame_pointer->length/*param_num*/); // update length
                         }
                         
                         // save return pc
@@ -592,7 +595,7 @@ Object *VM(/*uint16_t * instructions,*/
                         
                         // free current_frame_pointer
                         free_current_frame_pointer(current_frame_pointer);
-                        
+            
                         /* 前面的 copyEnvironmentAndPushFrame 里面的 current_frame_pointer 的 use_count会++, 所以这里得 -- */
                         frames_list_length--; // pop frame list
                         current_frame_pointer = frames_list[frames_list_length - 1];
@@ -718,7 +721,7 @@ Object *VM(/*uint16_t * instructions,*/
                         }
                     case OBJECT:
                         // printf("UNFINISHED IMPLEMENTATION Object\n");
-                        pc = pc + 1;
+                        pc++;
                         switch(param_num){
                             /*
                              * 这种情况就是第一次查找property
@@ -735,7 +738,7 @@ Object *VM(/*uint16_t * instructions,*/
                              * get_obj        get property     not used       action offset
                              */
                             case 1: // Object get
-                                temp = current_frame_pointer->array[current_frame_pointer->length - 1]; // get symbol
+                                temp = current_frame_pointer->array[/*current_frame_pointer->length - 1*/ 0]; // get symbol
                                 temp2 = v; // save v;
                                 
                             // get value from object
@@ -761,7 +764,6 @@ Object *VM(/*uint16_t * instructions,*/
                                             instructions[pc - 1] = 0; // not used
                                         }
                                          */
-                                        
                                         goto OBJECT_FINISH_FINDING_VALUE;
                                     }
                                     table_pairs = table_pairs->next;
@@ -803,7 +805,7 @@ Object *VM(/*uint16_t * instructions,*/
                                          
                                          // save to frames_list
                                          frames_list[frames_list_length] = current_frame_pointer;
-                                         frames_list_length+=1;
+                                         frames_list_length++;
                                          current_frame_pointer->use_count++; // current frame pointer is used
                                          
                                          // save to function list
@@ -815,7 +817,7 @@ Object *VM(/*uint16_t * instructions,*/
                                          current_frame_pointer->array[current_frame_pointer->length] = temp2; // push to env frame
                                          current_frame_pointer->length++;
                                          temp2->use_count++;
-                                         
+                                    
                                          pc++;
                                          continue;
                                      }

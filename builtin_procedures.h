@@ -883,7 +883,7 @@ Object * builtin_table_add_proto(Object ** params, uint32_t param_num){
     params[0]->data.Table.proto = params[1]; // set proto
     params[1]->use_count++;
     params[0]->type = OBJECT; // change type
-    return GLOBAL_NULL;
+    return params[0]; // return that object
 }
 
 // 43 proto
