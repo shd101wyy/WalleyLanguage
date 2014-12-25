@@ -192,9 +192,26 @@ when evaluating <strong>(my-lambda 3 4)</strong>, we just replace <strong>my-lam
 ```lisp
 ((lambda (a b) (+ a b)) 3 4)
 ```
+
+- <strong>After version 0.3.8, we can also define function like this:</srong>
+- ```lisp
+(def my-lambda (a b) (+ a b))
+```
+- If you still can't understand what's going on,  
+think about the function in math like:  
+  <strong>f(x) = x+1 </strong>  and  
+  <strong>f(3) = 4  </strong>  
+  to define such a math function, we can write it in walley like:
+  ```lisp
+   (def f(x) (+ x 1))   ;; we defined function f
+   (f 3)                ;; => give us 3 + 1 = 4
+   (f 5)                ;; => give us 5 + 1 = 6
+  ```
+
+
+
 Now, we don't need to write that long lambda as head anymore. ;)  
 Try to define ur own lambda in walley repl, and run it!.
-
 --------------------------------------
 ### More about defining a variable
 we just learnt how to  bind a <strong>lambda</strong> to a <strong>variable</strong> called <strong>my-lambda</strong>
@@ -361,9 +378,12 @@ with lambdas <strong> car </strong> and <strong> cdr </strong>, we can get the e
 We can also define some interesting lambdas using those two lambdas.  
 for example.
 ```lisp
-(def cadr (lambda (a) (car (cdr a))))        ;; give us the 2nd element of pair
-(def caddr (lambda (a) (car (cdr (cdr a))))) ;; give us the 3rd element of pair
-(def cddr (lambda (a) (cdr (cdr a))))        ;; give us the rest rest elements of pair
+(def cadr (a)         ;; give us the 2nd element of pair
+    (car (cdr a)))
+(def caddr (a)        ;; give us the 3rd element of pair
+    (car (cdr (cdr a))))
+(def cddr (a)         ;; give us the rest rest elements of pair
+    (cdr (cdr a)))
 ```
 
 now try to define a variable <strong>x</strong> with <strong>pair</strong> value  
@@ -522,11 +542,10 @@ Here are some examples:
 
 so now we could define a lambda like:
 ```lisp
-(def null?
-    (lambda (n)
-        (if (eq? n ())
-            'true
-            ())))
+(def null? (n)
+    (if (eq? n ())
+        'true
+        ()))
 ```
 to check whether a value is <strong>()</strong>.
 ```lisp
@@ -556,22 +575,22 @@ It is called as <strong> cond </strong>.
 ```
 So let's try to write a lambda that gets the absolute value of a number.  
 ```lisp
-(def abs0 (lambda (n)
+(def abs0 (n)
     (cond (= n 0) 0          ;; n equals 0
           (> n 0) n          ;; n is positive
-          (< n 0) (- 0 n)))) ;; n is negative
+          (< n 0) (- 0 n)))  ;; n is negative
 
 ;; or a much simpler way
-(def abs1 (lambda (n)
+(def abs1 (n)
     (cond (> n 0) n            ;; n is positive
-          else    (- 0 n))))   ;; else: n is not positive
+          else    (- 0 n)))    ;; else: n is not positive
                                ;; if none of the exprs above else are run
                                ;; else will be evaluated.
 ;; or just use if
-(def abs2 (lambda (n)
+(def abs2 (n)
     (if (> n 0)
         n
-        (- 0 n))))
+        (- 0 n)))
 ```
 That's all for <strong>cond ;)</strong>.  
 
@@ -587,7 +606,7 @@ To add key/value pair to table:
 ```lisp
 (set! my-table:x 12)      ;; now the table is like {:x 12}
 (set! my-table:y 15)      ;; now the table is like {:x 12, :y 15}
-(set! my-table:add (lambda (a b) (+ a b))) ;;      {:y 15, :add #<user-defined-lambda (_ _)>, :x 12}
+(set! my-table:add (fn (a b) (+ a b))) ;;      {:y 15, :add #<user-defined-lambda (_ _)>, :x 12}
 ```
 
 To access a value according to keyword:
