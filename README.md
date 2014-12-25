@@ -978,7 +978,7 @@ Some terms that I used in this tutorial are actually wrong, I use them just to o
 (def a-life (Life:clone))
 (while (eq? (a-life:get-state) 'alive)
     (print "I have a new Plan!")
-    (let [a-plan (Plan:clone)]
+    (let a-plan (Plan:clone)
         (while (not (a-plan:succeed))
             (a-plan:struggle)
             (if (eq? 'fail (a-plan:get-state))
