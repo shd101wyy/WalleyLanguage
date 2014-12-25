@@ -141,8 +141,8 @@
 
 
 ;; str
-;; eg (str "Hello " "World") -> "Hello World"
-(def str (. b)
+;; eg (String "Hello " "World") -> "Hello World"
+(def String (. b)
   (def str-iter (b)
     (if (null? b)
         ""
@@ -520,14 +520,14 @@
 ;; defmethod for map
 (def map (multi (fn (f x . y) (typeof x))
      	 	{:vector vector-map
-		:pair list-map}))
+		     :pair list-map}))
 (def filter (multi (fn (f x) (typeof x))
-     	    	   ;{:vector vector-filter
-		   ; :pair list-filter}
+     	    	   {:vector vector-filter
+		            :pair list-filter}
 		    ))
 
-(defmethod filter 'vector vector-filter)
-(defmethod filter 'pair list-filter)
+;(defmethod filter 'vector vector-filter)
+;(defmethod filter 'pair list-filter)
 
 
 ;; modules

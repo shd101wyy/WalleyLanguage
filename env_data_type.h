@@ -37,10 +37,9 @@ static int8_t GLOBAL_PUSH_SAVE_TO_VT = 1;
 Environment *createEnvironment(); // init env
 
 /*
- Init Walley Languge
- Set necessary values
+ *
  */
-void Walley_init(){
+void Walley_init_constants(){
     // init several constants
     GLOBAL_NULL = Object_initNull(); // init GLOBAL_NULL
     GLOBAL_NULL->use_count = 1;
@@ -74,7 +73,7 @@ void Walley_init(){
     
     INTEGER_STRING = Object_initString("integer", 7);// 9
     INTEGER_STRING->use_count = 1;
- 
+    
     FLOAT_STRING = Object_initString("float", 5); // 10
     FLOAT_STRING->use_count = 1;
     
@@ -171,6 +170,14 @@ void Walley_init(){
     // init CONSTANT_TABLE_INSTRUCTIONS for compiler
     CONSTANT_TABLE_INSTRUCTIONS = Insts_init();
     CONSTANT_TABLE_INSTRUCTIONS_TRACK_INDEX = 0;
+}
+/*
+ Init Walley Languge
+ Set necessary values
+ */
+void Walley_init(){
+    // init constants
+    Walley_init_constants();
     
     // init global insts, vt, env, mt
     GLOBAL_INSTRUCTIONS = Insts_init();
@@ -179,6 +186,7 @@ void Walley_init(){
     GLOBAL_MACRO_TABLE = MT_init();
     GLOBAL_MODULE = Module_init();
     
+    int32_t i = 0;
     // add variables offset to module
     for (i = 0; i < GLOBAL_VARIABLE_TABLE->frames[0]->length; i++) {
         Module_addOffset(GLOBAL_MODULE, i); // add offset

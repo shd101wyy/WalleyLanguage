@@ -289,15 +289,18 @@ void Walley_Run_Compiled_File(char * file_name){
     }
     
     // init walley
-    Walley_init();
+    // Walley_init();
+    Walley_init_constants();
     
     GLOBAL_PUSH_SAVE_TO_VT = true; // GLOBAL_PUSH的时候用把变量名字加入vt
     
     Instructions * insts = NULL; //  = GLOBAL_INSTRUCTIONS;
+    GLOBAL_INSTRUCTIONS = NULL;
     //Variable_Table * vt = GLOBAL_VARIABLE_TABLE;
-    Environment * env = GLOBAL_ENVIRONMENT;
+    GLOBAL_VARIABLE_TABLE = NULL;
+    Environment * env = createEnvironment();
     //MacroTable * mt = GLOBAL_MACRO_TABLE;
-    
+    GLOBAL_MACRO_TABLE = NULL;
     
     uint16_t num = 0;
     uint32_t i = 0;
