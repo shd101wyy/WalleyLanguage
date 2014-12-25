@@ -133,7 +133,7 @@ also, try to type something like (+ 3 4), (- 3 4 5) (* 1 2 3)  to see what u can
  now we already know how to use S expression to run a <strong>lambda</strong>.  
  Sometimes, we want to define our own <strong>lambda</strong>, like
 ```lisp
-   (@@my-handsome-lambda@@ 3 4),  
+   (@@my-awesome-lambda@@ 3 4),  
 ```
  and how do we do that?  
  First, let's do something simple,  
@@ -193,15 +193,17 @@ when evaluating <strong>(my-lambda 3 4)</strong>, we just replace <strong>my-lam
 ((lambda (a b) (+ a b)) 3 4)
 ```
 
-- <strong>After version 0.3.8, we can also define function like this:</srong>
-- ```lisp
-(def my-lambda (a b) (+ a b))
-```
+- <strong>After version 0.3.8, we can also define function like this:</srong>  
+
+    ```lisp
+    (def my-lambda (a b) (+ a b))
+    ```
 - If you still can't understand what's going on,  
 think about the function in math like:  
   <strong>f(x) = x+1 </strong>  and  
   <strong>f(3) = 4  </strong>  
   to define such a math function, we can write it in walley like:
+
   ```lisp
    (def f(x) (+ x 1))   ;; we defined function f
    (f 3)                ;; => give us 3 + 1 = 4
