@@ -773,8 +773,8 @@ There are several builtin functions in table <strong>vector</strong>
 
 - foreach
 ```lisp
-(vector:foreach #[3 4 5] (fn [i v] (print i " : " v "\n")))
-;; iterate over vector, i => offset, v => value at that offset
+(vector:foreach #[3 4 5] (fn [value offset] (print offset " : " value "\n")))
+;; iterate over vector
 ;; print
 ;; ===========
 ;; 0 : 3

@@ -274,7 +274,7 @@
   (def vector-foreach-iter [count]
     (if (= count v-length)
       ()
-      (if (eq? (f count v[count]) 'break) ;; break
+      (if (eq? (f v[count] count) 'break) ;; break
         ()
         (vector-foreach-iter (+ count 1)))))
   (vector-foreach-iter 0))
