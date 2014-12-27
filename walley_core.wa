@@ -560,8 +560,8 @@
                                       (cons (car (cdr a)) var-vals))))
     (def parse-result (parse-loop-helper args '() '()))
     (def body parse-result[0])
-    (def var-names parse-result[1])
-    (def var-vals parse-result[2])
+    (def var-names (list-reverse parse-result[1]))
+    (def var-vals (list-reverse parse-result[2]))
     (cons `(fn ~var-names ~body) var-vals))
 (defmacro loop
     (. args) (parse-loop args))
