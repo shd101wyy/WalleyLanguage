@@ -671,7 +671,8 @@ int16_t compiler(Instructions * insts,
                         str_eq(var_name->data.String.v, "lambda") ||
                         str_eq(var_name->data.String.v, "fn") ||
                         str_eq(var_name->data.String.v, "def") ||
-                        str_eq(var_name->data.String.v, "set!"))) {
+                        str_eq(var_name->data.String.v, "set!") ||
+                        str_eq(var_name->data.String.v, "recur"))) {
                         printf("DEFINITION ERROR: Invalid variable name %s\n", var_name->data.String.v);
                         return 0;
                     }
