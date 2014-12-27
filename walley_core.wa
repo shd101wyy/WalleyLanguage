@@ -542,6 +542,29 @@
     (f (property . args) . rest) `(-> ((~f ~property) ~@args) ~@rest)
         )
 
+;; loop macro
+;; eg
+;; (loop n 10 acc 1
+;;   (if (= n 0)
+;;      acc
+;;      (recur (- n 1) (* acc 1))))
+;; will calculate 1*2*3*...*10
+;; =>
+;; ((fn (n acc) (if (= n 0) acc (recur (- n 1) (* acc 1)))) n 0)
+(def parse-loop (args)
+    (def parse-loop-helper (a var-names var-vals)
+        (cond (null? a) (print "ERROR: loop invalid statement: " args "\n")
+              (null? (cdr a)) [(car a), var-names, var-vals]
+              else (parse-loop-helper (cdr (cdr a))
+                                      (cons (car a) var-names)
+                                      (cons (car (cdr a)) var-vals))))
+    (def parse-result (parse-loop-helper args '() '()))
+    (def body parse-result[0])
+    (def var-names parse-result[1])
+    (def var-vals parse-result[2])
+    (cons `(fn ~var-names ~body) var-vals))
+(defmacro loop
+    (. args) (parse-loop args))
 
 
 ;; modules
