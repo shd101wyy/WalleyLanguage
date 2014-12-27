@@ -109,7 +109,7 @@ int32_t macro_match(Object * a, Object * b, char **var_names, Object **var_value
         return count; // match
     }
     else if ((a == GLOBAL_NULL && b != GLOBAL_NULL)
-             || (a != GLOBAL_NULL && b == GLOBAL_NULL)){
+             || (a != GLOBAL_NULL && b == GLOBAL_NULL && (!str_eq(car(a)->data.String.v, ".")))){ // here is to fix a => (. args) b => (), so "args" should match ()
         return 0; // doesn't match
     }
     else if(car(a)->type == PAIR && car(b)->type == PAIR){

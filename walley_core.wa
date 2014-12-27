@@ -529,6 +529,20 @@
 ;(defmethod filter 'vector vector-filter)
 ;(defmethod filter 'pair list-filter)
 
+;; series actions
+;; like js, ajax({}).success(function(){}).fail(function(){})
+;; eg
+;;       (-> (ajax {:data {:x 12}})
+;;           (:success (fn (data) (print "Success")))
+;;           (:fail)   (fn (data) (print "Fail")) )
+;;
+
+(defmacro ->
+    (f (property . args))  `((~f ~property) ~@args)
+    (f (property . args) . rest) `(-> ((~f ~property) ~@args) ~@rest)
+        )
+
+
 
 ;; modules
 (def vector

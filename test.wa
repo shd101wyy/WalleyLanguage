@@ -2,7 +2,7 @@
     (if (= count 0)
         ()
         (begin
-            (vec:map (fn (i) (* i count))
+            (vector:map (fn (i) (* i count))
                  args)
             (test args (- count 1)))))
 
