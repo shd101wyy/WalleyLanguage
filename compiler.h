@@ -1558,10 +1558,12 @@ Object * compiler_begin(Instructions * insts,
     Object * acc = GLOBAL_NULL;
     Object * l_ = l; // make a copy of l, so that we can free it later
     while (l != GLOBAL_NULL) {
-        if (cdr(l) == GLOBAL_NULL
+        if (cdr(l) == GLOBAL_NULL    // the last statement
             && car(l)->type == PAIR
-            && parent_func_name != NULL
-            && str_eq(car(car(l))->data.String.v, parent_func_name)) {
+            && ( (parent_func_name != NULL
+                  && str_eq(car(car(l))->data.String.v, parent_func_name))
+                || str_eq(car(car(l))->data.String.v, "recur"))
+            ) {
             // tail call
             compiler(insts,
                      car(l),
