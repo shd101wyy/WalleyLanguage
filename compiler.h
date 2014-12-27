@@ -187,11 +187,16 @@ Object * macro_expansion_replacement(Object * expanded_value,
                             macro_expansion_replacement(cdr(expanded_value), vt, false, module));
             }
             int32_t find[2];
+            VT_find(vt, v->data.String.v, find, module);
+            // here is to solve (fn (args) ...). here args shouldn't be replaced.
+            if ( (str_eq(v->data.String.v, "fn") || str_eq(v->data.String.v, "lambda")) && cadr(expanded_value)->type == PAIR ){
+                return cons(v, cons(cadr(expanded_value),
+                                    macro_expansion_replacement(cddr(expanded_value), vt, false, module)));
+            }
             /*
              todo: change this VT_find later
              */
-            VT_find(vt, v->data.String.v, find, module);
-            if (find[0] != -1) { // find
+            else if (find[0] != -1) { // find
                 return cons(cons(Object_initInteger(0),
                                  cons(Object_initInteger(find[0]),
                                       cons(Object_initInteger(find[1]),
@@ -199,8 +204,10 @@ Object * macro_expansion_replacement(Object * expanded_value,
                             macro_expansion_replacement(cdr(expanded_value),
                                                         vt, false, module));
             }
-            else
+            else{
                 return cons(v, macro_expansion_replacement(cdr(expanded_value), vt, false, module));
+                
+            }
         }
         else if(v->type == STRING ||
                 v->type == INTEGER ||
@@ -389,12 +396,14 @@ Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable *
             new_env_top_frame->use_count-=1;
             EF_free(new_env_top_frame);
             
-            //return expanded_value;
+            // printf("expanded_value %s\n", to_string(expanded_value));
             
             // 假设运行完了得到了 expanded_value
             // 根据 macro->vt 替换首项
             expanded_value_after_replacement = macro_expansion_replacement(expanded_value, macro->vt, true, module);
             Object_free(expanded_value);
+            
+            // printf("after expand: %s\n", to_string(expanded_value_after_replacement));
             
             return expanded_value_after_replacement;
             
