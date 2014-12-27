@@ -3,8 +3,8 @@
 ;; created by Yiyi Wang
 ;; Copyright (c) Yiyi Wang. All rights reserved.
 (def walley-core-author 'Yiyi-Wang)
-(def walley-core-version "0.00035")
-(def walley-language-version "0.3.8497")
+(def walley-core-version "0.00036")
+(def walley-language-version "0.3.8498")
 (def walley {
      :author 'Yiyi-Wang
      :core-author 'Yiyi-Wang

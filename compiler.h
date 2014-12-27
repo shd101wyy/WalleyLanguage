@@ -540,6 +540,9 @@ int16_t compiler(Instructions * insts,
                 if(vt_find[0] == -1){
                     // variable doesn't exist
                     printf("ERROR: undefined variable %s\n", l->data.String.v);
+                    if (str_eq(l->data.String.v, "recur")) {
+                        printf("ERROR: invalid tail call: recur\n");
+                    }
                     return 0;
                 }
                 Insts_push(insts, GET<<12 | vt_find[0]); // frame index
