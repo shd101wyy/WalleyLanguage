@@ -338,7 +338,7 @@ void Walley_Run_Compiled_File(char * file_name){
     //printf("%llu %llu\n", constant_table_insts_length, insts_length);
     
     VM(insts, 0, insts->length, env, NULL, NULL,
-       NULL); /* TODO add module */
+       NULL, GLOBAL_NULL, NULL); /* TODO add module */
     return;
 }
 

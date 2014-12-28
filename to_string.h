@@ -159,6 +159,9 @@ char * list_to_string(Object * l){
                 strcat(buffer, s);
                 free(s);
                 break;
+            case CONTINUATION:
+                strcat(buffer, "#<continuation>");
+                break;
             default:
                 printf("ERROR: stdout");
                 break;
@@ -238,6 +241,9 @@ char * vector_to_string(Object * l){
                 s = table_to_string(v);
                 strcat(buffer, s);
                 free(s);
+                break;
+            case CONTINUATION:
+                strcat(buffer, "#<continuation>");
                 break;
             default:
                 printf("ERROR: stdout");
@@ -321,6 +327,9 @@ char * table_to_string(Object * l){
                 strcat(buffer, s);
                 free(s);
                 break;
+            case CONTINUATION:
+                strcat(buffer, "#<continuation>");
+                break;
             default:
                 printf("ERROR: stdout");
                 break;
@@ -391,6 +400,9 @@ char * to_string(Object * v){
             strcat(buffer, "<File ");
             // strcat(buffer,);
             strcat(buffer, ">");
+            break;
+        case CONTINUATION:
+            strcat(buffer, "#<continuation>");
             break;
         default:
             printf("ERROR: stdout");

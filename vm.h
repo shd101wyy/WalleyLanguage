@@ -38,7 +38,16 @@ Object *VM(/*uint16_t * instructions,*/
            Environment * env,
            Variable_Table * vt,
            MacroTable * mt,
-           Module * module){
+           Module * module,
+           Object * default_acc,
+           Object * continuation_state){
+    /*
+     *  #################################################################################
+     *  #################################################################################
+     *             Some variable names that will be used in the future
+     *  #################################################################################
+     *  #################################################################################
+     */
     uint16_t * instructions = instructions_->array;
     uint64_t pc;
     uint64_t i;
@@ -48,47 +57,65 @@ Object *VM(/*uint16_t * instructions,*/
     char param_num, variadic_place;
     uint64_t jump_steps;
     int32_t required_param_num, required_variadic_place;
-    
     uint64_t string_length;
     char * created_string;
     int32_t s;
     char s1, s2;
     uint16_t offset;
-    
+    uint64_t hash_val;
+    uint64_t integer__;
+    Table_Pair * table_pairs;
     int64_t integer_;
-    // double double_;
-    Environment * original_env = env; // save old env;
-    Object * accumulator = GLOBAL_NULL;
-    Environment_Frame * current_frame_pointer = NULL;
     Environment_Frame * temp_frame;
     Environment * new_env;
     Object * (*func_ptr)(Object**, uint32_t); // function pointer
     Object * v;
     Object * temp; // temp use
     Object * temp2;
+    
+    /*
+     *  #################################################################################
+     *  #################################################################################
+     *             Initialize Virtual Machine Variables
+     *  #################################################################################
+     *  #################################################################################
+     */
+    Environment * original_env = env; // save old env;
+    
+    Object * accumulator = (default_acc == NULL) ? GLOBAL_NULL : default_acc;
+    
+    Environment_Frame * current_frame_pointer = (continuation_state == NULL) ? NULL : continuation_state->data.Continuation.current_frame_pointer; // NULL;
+    
     Environment_Frame * global_frame = env->frames[0];
-    //Variable_Table_Frame * global_vtf = vt->frames[0];
     
     Environment_Frame *BUILTIN_PRIMITIVE_PROCEDURE_STACK = EF_init_with_size(MAX_STACK_SIZE); // for builtin primitive procedure calculation
     BUILTIN_PRIMITIVE_PROCEDURE_STACK->use_count = 1; // cannot free it
     
+    
     Environment * continuation_env[MAX_STACK_SIZE];      // used to save env
     int16_t continuation_env_length = 0;                   // save length of that array
+    
     uint64_t continuation_return_pc[MAX_STACK_SIZE]; // used to save return pc
     int16_t continuation_return_pc_length = 0;             // save length of that array
+    
     Environment_Frame * frames_list[MAX_STACK_SIZE]; // save frame
     frames_list[0] = NULL;
     int16_t frames_list_length = 1;
+    
     Object * functions_list[MAX_STACK_SIZE]; // save function
     int16_t functions_list_length = 0;
-    uint64_t hash_val;
+    
+    
+    
 
-	uint64_t integer__;
-	Table_Pair * table_pairs;
-
-
+    /*
+     * #################################################################################
+     * #################################################################################
+     *   run CONSTANT_TABLE_INSTRUCTIONS first to load constant
+     * #################################################################################
+     * #################################################################################
+     */
     pc = CONSTANT_TABLE_INSTRUCTIONS_TRACK_INDEX;
-    // run CONSTANT_TABLE_INSTRUCTIONS first to load constant
     while (pc != CONSTANT_TABLE_INSTRUCTIONS->length) {
         inst = CONSTANT_TABLE_INSTRUCTIONS->array[pc];
         // opcode = (inst & 0xF000) >> 12;
@@ -119,7 +146,6 @@ Object *VM(/*uint16_t * instructions,*/
                 }
                 created_string[i] = 0;
                 
-                
                 // create string
                 accumulator = Object_initString(created_string, string_length);
                 accumulator->use_count = 1;
@@ -134,7 +160,6 @@ Object *VM(/*uint16_t * instructions,*/
                 
                 free(created_string);
                 continue;
-                break;
             default:
                 printf("ERROR: Invalid opcode for constant table");
                 Object_free(accumulator);
@@ -144,19 +169,10 @@ Object *VM(/*uint16_t * instructions,*/
         }
     }
     CONSTANT_TABLE_INSTRUCTIONS_TRACK_INDEX = CONSTANT_TABLE_INSTRUCTIONS->length; // update track index for constant table instructions.
-
     /*
-     * 曾经的错误代码
-     * bug code: (def test (fn [l n] (if (= n 0) (car l) (test (cdr l) (- n 1)))))
-     * fixed:     tail call error. forget to free object
+     * #################################################################################
+     * #################################################################################
      */
-/*
-    for (i = start_pc; i < end_pc; i++) {
-        printf("%x ", instructions[i]);
-    }
-    printf("\n");
-*/
-    
     pc = start_pc;
     while(pc != end_pc){
     CONTINUE_VM:
@@ -295,7 +311,7 @@ Object *VM(/*uint16_t * instructions,*/
                         accumulator->use_count++;
                         pc++;
                         continue;
-                    case STRING: case BUILTIN_LAMBDA: case VECTOR: case TABLE: case  INTEGER: case OBJECT: // builtin lambda or vector or table
+                    case STRING: case BUILTIN_LAMBDA: case VECTOR: case TABLE: case  INTEGER: case OBJECT: case CONTINUATION: // builtin lambda or vector or table
                         current_frame_pointer = BUILTIN_PRIMITIVE_PROCEDURE_STACK; // get top frame
                         
                         // save to frame list
@@ -312,6 +328,7 @@ Object *VM(/*uint16_t * instructions,*/
                         continue;
                     default:
                         printf("ERROR: NEWFRAME error");
+                        printf("       %s\n", to_string(accumulator));
                         Object_free(accumulator);
                         accumulator = GLOBAL_NULL;
                     goto VM_END;
@@ -544,6 +561,7 @@ Object *VM(/*uint16_t * instructions,*/
                         }
                     case USER_DEFINED_LAMBDA: // user defined function
                     eval_user_defined_lambda:
+                        //printf("USER_DEFINED_LAMBDA\n");
                         required_param_num = v->data.User_Defined_Lambda.param_num;
                         required_variadic_place = v->data.User_Defined_Lambda.variadic_place;
                         start_pc = v->data.User_Defined_Lambda.start_pc;
@@ -594,7 +612,7 @@ Object *VM(/*uint16_t * instructions,*/
                         pc = start_pc;
                         
                         // free current_frame_pointer
-                        free_current_frame_pointer(current_frame_pointer);
+                        // free_current_frame_pointer(current_frame_pointer);
             
                         /* 前面的 copyEnvironmentAndPushFrame 里面的 current_frame_pointer 的 use_count会++, 所以这里得 -- */
                         frames_list_length--; // pop frame list
@@ -711,7 +729,59 @@ Object *VM(/*uint16_t * instructions,*/
                                         printf("ERROR1: Invalid lambda\n");
                                         vm_error_jump
                                 }
+                            case 3:
+                                printf("call/cc\n");
                                 
+                                // v is the fn in call/cc
+                                // eg (call/cc my-func)  v = my-func
+                                if (param_num != 1) {
+                                    printf("ERROR: call/cc wrong number argument\n");
+                                    vm_error_jump
+
+                                }
+                                
+                                v = current_frame_pointer->array[current_frame_pointer->length - param_num];
+                                if(v->type != USER_DEFINED_LAMBDA){
+                                    printf("ERROR: call/cc invalid argument\n");
+                                    vm_error_jump
+                                }
+                                
+                                accumulator = GLOBAL_NULL;
+                                temp_frame = EF_init_with_size(64);
+                                
+                                // create Continuation
+                                Object * continuation =
+                                    Object_initContinuation(pc + 1,
+                                                            copyEnvironment(env), frames_list[frames_list_length - 2],
+                                                            functions_list[functions_list_length - 1]); // TODO : init continuation
+                                // increase use_count.
+                                frames_list[frames_list_length - 2]->use_count++;
+                                functions_list[functions_list_length - 1]->use_count++;
+                                continuation->use_count++;
+                                
+                                printf("continuation frame  args %s\n", to_string( frames_list[frames_list_length - 2]->array[0]));
+                                
+                                // add continuation object to frame
+                                temp_frame->array[0] = continuation;
+                                temp_frame->length = 1;
+                                
+                                // pop parameters
+                                /*
+                                for(i = 0; i < param_num; i++){
+                                    temp = current_frame_pointer->array[current_frame_pointer->length - 1];
+                                    temp->use_count--; // －1 因为在push的时候加1了
+                                    Object_free(temp);
+                                    
+                                    current_frame_pointer->length--; // decrease length
+                                }
+                                 */
+                                
+                                // free current_frame_pointer
+                                free_current_frame_pointer(current_frame_pointer);
+                                printf("ENTER HERE\n");
+                                current_frame_pointer = temp_frame;
+                                goto eval_user_defined_lambda;
+            
                             default:
                                 printf("ERROR2: Invalid Lambda\n");
                                 // TODO: Object_free(v)
@@ -719,6 +789,46 @@ Object *VM(/*uint16_t * instructions,*/
                                 accumulator = GLOBAL_NULL;
                                 goto VM_END;
                         }
+                    case CONTINUATION:
+                        printf("This is continuation\n");
+                        pc = (v->data.Continuation.pc > pc) ? v->data.Continuation.pc : pc + 1;
+                        temp = current_frame_pointer->array[current_frame_pointer->length - param_num]; // get first parameter
+                
+                        // run
+                        accumulator = VM(instructions_,
+                                         v->data.Continuation.pc,
+                                         instructions_->length,
+                                         v->data.Continuation.env,
+                                         vt,
+                                         mt,
+                                         module,
+                                         temp,
+                                         v);
+                        
+                        accumulator->use_count++; //必须在pop
+                        // pop parameters
+                        for(i = 0; i < param_num; i++){
+                            temp = current_frame_pointer->array[current_frame_pointer->length - 1];
+                            
+                            temp->use_count--; // －1 因为在push的时候加1了
+                            
+                            Object_free(temp); // free object
+                            
+                            current_frame_pointer->array[current_frame_pointer->length - 1] = NULL; // clear
+                            current_frame_pointer->length--; // decrease length
+                        }
+                        accumulator->use_count--;
+                        
+                        // free current_frame_pointer
+                        free_current_frame_pointer(current_frame_pointer);
+                        
+                        frames_list_length--; // pop frame list
+                        current_frame_pointer = frames_list[frames_list_length - 1];
+                        
+                        // free lambda
+                        // this cannot be freed because it is a builtin-function
+                        // Object_free(v);
+                        continue;
                     case OBJECT:
                         // printf("UNFINISHED IMPLEMENTATION Object\n");
                         pc++;

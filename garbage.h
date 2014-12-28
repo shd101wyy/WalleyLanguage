@@ -114,6 +114,9 @@ void Object_free(Object * o){
                 fclose(o->data.File.file_ptr);
                 free(o);
                 return;
+            case CONTINUATION:
+                printf("@@ garbage.h TODO: Free Continuation\n");
+                return;
             default:
                 printf("ERROR: Object_free invalid data type\n");
                 return;

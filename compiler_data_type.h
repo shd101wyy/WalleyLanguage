@@ -297,6 +297,7 @@ Variable_Table * VT_init(){
     VT_push(vt, 0, "file-close"); // 88 file
     VT_push(vt, 0, "file-readlines"); // 89 file
     VT_push(vt, 0, "file-seek"); // 90 file
+    VT_push(vt, 0, "call/cc"); // 91 global
     return vt;
 }
 

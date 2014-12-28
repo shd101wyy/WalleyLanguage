@@ -79,7 +79,8 @@ typedef enum {
 	VECTOR,
 	TABLE,
     OBJECT,
-    FILE_
+    FILE_,
+    CONTINUATION
 } DataType;
 struct  Table_Pair{ // used for table
   Object * key;          // key
@@ -136,6 +137,13 @@ struct Object {
         struct{
             FILE * file_ptr;
         } File;
+        struct {         // continuation
+            // TODO : add structures.
+            uint64_t pc;
+            Environment * env;
+            Environment_Frame * current_frame_pointer;
+            Object * last_function; // eg (+ 3 (call/cc (fn ...))), then + is the last_function
+        } Continuation;
         /*
         struct {
             Object ** msgs;
@@ -298,7 +306,7 @@ Object * Object_initTable(uint64_t size){
     o->data.Table.size = size;
     o->data.Table.vec = (Table_Pair**)calloc(size, sizeof(Table_Pair*));
     o->data.Table.proto = NULL;
-    o->use_count = 0;
+    // o->use_count = 0;
     return o;
 }
 uint64_t hash(Object * o, uint64_t size){
@@ -459,6 +467,17 @@ Object * table_getKeys(Object * t){
         }
     }
     return keys;
+}
+
+// init Continuation
+Object * Object_initContinuation(uint64_t pc, Environment * env, Environment_Frame * current_frame_pointer, Object * last_function){
+    Object * o = allocateObject();
+    o->type = CONTINUATION;
+    o->data.Continuation.pc = pc;
+    o->data.Continuation.env = env;
+    o->data.Continuation.current_frame_pointer = current_frame_pointer;
+    o->data.Continuation.last_function = last_function;
+    return o;
 }
 
 
