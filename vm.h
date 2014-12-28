@@ -127,8 +127,10 @@ Object *VM(/*uint16_t * instructions,*/
         
         // copy frames_list
         for (i = 1; i < state->frames_list_length; i++) {
-            temp_frame = state->frames_list[i];
+            temp_frame = EF_copy(state->frames_list[i]);
             frames_list[i] = temp_frame;
+            /* state->frames_list[i];
+            frames_list[i] = temp_frame;*/
             temp_frame->use_count++;
         }
         frames_list_length = state->frames_list_length;
