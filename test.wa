@@ -1,9 +1,7 @@
-(def test (args count)
-    (if (= count 0)
-        ()
-        (begin
-            (vector:map (fn (i) (* i count))
-                 args)
-            (test args (- count 1)))))
+;; (def return 0) (print (+ 3 (call/cc (fn (i) (set! return i) (i 4)) ))) (return 5)
 
-(test [1 2 3 4 5] 100000)
+(loop i 100000
+    (if (= i 0)
+        0
+        (begin (vector-map (fn (x) (* x i)) [1 2 3 4 5])
+               (recur (- i 1)))))

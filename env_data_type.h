@@ -240,6 +240,8 @@ struct Environment_Frame {
     Object ** array;
     int32_t length;
     int32_t use_count;
+    
+    int32_t size;
 };
 
 /*
@@ -266,8 +268,28 @@ Environment_Frame * EF_init_with_size(int32_t size){
     /* array 必须初始化为 0, 所以用calloc */
     frame->array = (Object**)calloc(size, sizeof(Object*));//malloc(sizeof(Object*)*size);
     frame->use_count = 0;
+    frame->size = size;
     return frame;
 }
+
+/*
+    copy environment frame
+ */
+
+Environment_Frame * EF_copy(Environment_Frame * ef){
+    Environment_Frame * new_ef = EF_init_with_size(ef->size);
+    
+    // copy
+    int32_t i;
+    for (i = 0; i < ef->length; i++) {
+        new_ef->array[i] = ef->array[i];
+        ef->array[i]->use_count++;
+    }
+    new_ef->length = ef->length;
+    return new_ef;
+}
+
+
 #define EF_set_builtin_lambda(v_, o_) ((v_)->array[(count)] = Object_initBuiltinLambda(o_)); count++;
 /*
  construct environment

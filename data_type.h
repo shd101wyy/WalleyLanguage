@@ -18,6 +18,7 @@
 uint8_t COMPILATION_MODE = 0; // if under compilation mode, no print necessary
 
 typedef struct Object Object;
+typedef struct Continuation_Saved_State Continuation_Saved_State;
 typedef struct Table_Pair Table_Pair;
 
 typedef struct Environment Environment;
@@ -141,8 +142,7 @@ struct Object {
             // TODO : add structures.
             uint64_t pc;
             Environment * env;
-            Environment_Frame * current_frame_pointer;
-            Object * last_function; // eg (+ 3 (call/cc (fn ...))), then + is the last_function
+            Continuation_Saved_State * state;
         } Continuation;
         /*
         struct {
@@ -161,6 +161,24 @@ struct Object {
          */
     } data;
 };
+
+struct Continuation_Saved_State{
+    Environment_Frame * builtin_primitive_procedure_stack;
+    
+    Environment ** continuation_env;
+    uint16_t continuation_env_length;
+    
+    uint64_t * continuation_return_pc;
+    int16_t continuation_return_pc_length;
+    
+    Environment_Frame ** frames_list;
+    uint16_t frames_list_length;
+    
+    Object ** functions_list;
+    uint16_t functions_list_length;
+};
+
+
 
 #define OBJECT_SIZE sizeof(Object)
 
@@ -470,13 +488,12 @@ Object * table_getKeys(Object * t){
 }
 
 // init Continuation
-Object * Object_initContinuation(uint64_t pc, Environment * env, Environment_Frame * current_frame_pointer, Object * last_function){
+Object * Object_initContinuation(uint64_t pc, Environment * env){
     Object * o = allocateObject();
     o->type = CONTINUATION;
     o->data.Continuation.pc = pc;
     o->data.Continuation.env = env;
-    o->data.Continuation.current_frame_pointer = current_frame_pointer;
-    o->data.Continuation.last_function = last_function;
+    o->data.Continuation.state = malloc(sizeof(Continuation_Saved_State));
     return o;
 }
 

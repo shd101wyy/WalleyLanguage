@@ -84,13 +84,9 @@ Object *VM(/*uint16_t * instructions,*/
     
     Object * accumulator = (default_acc == NULL) ? GLOBAL_NULL : default_acc;
     
-    Environment_Frame * current_frame_pointer = (continuation_state == NULL) ? NULL : continuation_state->data.Continuation.current_frame_pointer; // NULL;
-    
     Environment_Frame * global_frame = env->frames[0];
     
-    Environment_Frame *BUILTIN_PRIMITIVE_PROCEDURE_STACK = EF_init_with_size(MAX_STACK_SIZE); // for builtin primitive procedure calculation
-    BUILTIN_PRIMITIVE_PROCEDURE_STACK->use_count = 1; // cannot free it
-    
+    Environment_Frame *BUILTIN_PRIMITIVE_PROCEDURE_STACK;
     
     Environment * continuation_env[MAX_STACK_SIZE];      // used to save env
     int16_t continuation_env_length = 0;                   // save length of that array
@@ -105,9 +101,55 @@ Object *VM(/*uint16_t * instructions,*/
     Object * functions_list[MAX_STACK_SIZE]; // save function
     int16_t functions_list_length = 0;
     
-    
-    
 
+    /*
+     *  Copy Continuation State if continuation_state is not null.
+     */
+    if (continuation_state != NULL) {
+        
+        Continuation_Saved_State * state = continuation_state->data.Continuation.state;
+        
+        // copy builtin_primitive_procedure_stack
+        BUILTIN_PRIMITIVE_PROCEDURE_STACK = EF_copy(state->builtin_primitive_procedure_stack);
+        BUILTIN_PRIMITIVE_PROCEDURE_STACK->use_count = 1;
+        
+        // copy continuation_env
+        for (i = 0; i < state->continuation_env_length; i++) {
+            continuation_env[i] = state->continuation_env[i];
+        }
+        continuation_env_length = state->continuation_env_length;
+        
+        // copy continuation_return_pc
+        for (i = 0; i < state->continuation_return_pc_length; i++) {
+            continuation_return_pc[i] = state->continuation_return_pc[i];
+        }
+        continuation_return_pc_length = state->continuation_return_pc_length;
+        
+        // copy frames_list
+        for (i = 1; i < state->frames_list_length; i++) {
+            temp_frame = state->frames_list[i];
+            frames_list[i] = temp_frame;
+            temp_frame->use_count++;
+        }
+        frames_list_length = state->frames_list_length;
+        
+        // copy functions_list
+        for (i = 0; i < state->functions_list_length; i++) {
+            temp = state->functions_list[i];
+            functions_list[i] = temp;
+            temp->use_count++;
+        }
+        functions_list_length = state->functions_list_length;
+    }
+    else{
+        BUILTIN_PRIMITIVE_PROCEDURE_STACK = EF_init_with_size(MAX_STACK_SIZE); // for builtin primitive procedure calculation
+        BUILTIN_PRIMITIVE_PROCEDURE_STACK->use_count = 1; // cannot free it
+    }
+    
+    
+    
+    // set current_frame_pointer
+    Environment_Frame * current_frame_pointer = frames_list[frames_list_length - 1];
     /*
      * #################################################################################
      * #################################################################################
@@ -175,6 +217,9 @@ Object *VM(/*uint16_t * instructions,*/
      */
     pc = start_pc;
     while(pc != end_pc){
+        if (continuation_state != NULL && frames_list_length == 1) { // done continuation
+            goto VM_END;
+        }
     CONTINUE_VM:
         //printf("%llu, %x \n", pc, instructions[pc]);
         inst = instructions[pc];
@@ -278,6 +323,8 @@ Object *VM(/*uint16_t * instructions,*/
                 pc = pc + jump_steps;
                 continue;
             case RETURN:
+            return_label:;
+                // printf("RETURN \n");
                 accumulator->use_count++; // because accumulator may exist on frame
                 // free top frame
                 temp_frame = env->frames[env->length - 1]; // get top frame
@@ -295,6 +342,7 @@ Object *VM(/*uint16_t * instructions,*/
                 continuation_env_length-=1;
                 continue;
             case NEWFRAME: // create new frame
+                // printf("NEWFRAME \n");
                 switch (accumulator->type){
                     case USER_DEFINED_LAMBDA: // user defined function
                         // create new frame with length 64
@@ -334,6 +382,7 @@ Object *VM(/*uint16_t * instructions,*/
                     goto VM_END;
                 }
             case PUSH_ARG: // push arguments
+                // printf("PUSH_ARG \n");
                 accumulator->use_count++; // increase use count
                 current_frame_pointer->array[current_frame_pointer->length] = accumulator; // push to env frame
                 current_frame_pointer->length++;
@@ -341,7 +390,7 @@ Object *VM(/*uint16_t * instructions,*/
                 continue;
                 
             case CALL:
-                // printf("CALL");
+                // printf("CALL \n");
                 param_num = (0x0FFF & inst);
                 v = functions_list[functions_list_length - 1]; // get function
                 functions_list[functions_list_length - 1] = NULL; // clear
@@ -730,17 +779,14 @@ Object *VM(/*uint16_t * instructions,*/
                                         vm_error_jump
                                 }
                             case 3:
-                                printf("call/cc\n");
-                                
                                 // v is the fn in call/cc
                                 // eg (call/cc my-func)  v = my-func
                                 if (param_num != 1) {
                                     printf("ERROR: call/cc wrong number argument\n");
                                     vm_error_jump
-
                                 }
                                 
-                                v = current_frame_pointer->array[current_frame_pointer->length - param_num];
+                                v = current_frame_pointer->array[current_frame_pointer->length - param_num]; // get call/cc fn argument
                                 if(v->type != USER_DEFINED_LAMBDA){
                                     printf("ERROR: call/cc invalid argument\n");
                                     vm_error_jump
@@ -749,37 +795,76 @@ Object *VM(/*uint16_t * instructions,*/
                                 accumulator = GLOBAL_NULL;
                                 temp_frame = EF_init_with_size(64);
                                 
+                                // v is on Builtin_Stack,
+                                // and current_frame_pointer => Builtin_Stack
+                                // so we cannot free v
+                                /*
+                                v->use_count++;
+                                // pop parameters
+                                for(i = 0; i < param_num; i++){
+                                    temp = current_frame_pointer->array[current_frame_pointer->length - 1];
+                                    temp->use_count--; // －1 因为在push的时候加1了
+                                    Object_free(temp);
+                                    current_frame_pointer->length--; // decrease length
+                                }
+                                v->use_count--;
+                                 */
+                                current_frame_pointer->length -= param_num;
+                                
+                                // ############################################
                                 // create Continuation
                                 Object * continuation =
                                     Object_initContinuation(pc + 1,
-                                                            copyEnvironment(env), frames_list[frames_list_length - 2],
-                                                            functions_list[functions_list_length - 1]); // TODO : init continuation
-                                // increase use_count.
-                                frames_list[frames_list_length - 2]->use_count++;
-                                functions_list[functions_list_length - 1]->use_count++;
-                                continuation->use_count++;
+                                                            copyEnvironment(env)); // TODO : init continuation
                                 
-                                printf("continuation frame  args %s\n", to_string( frames_list[frames_list_length - 2]->array[0]));
+                                // copy builtin_primitive_procedure_stack
+                                Continuation_Saved_State * state = continuation->data.Continuation.state;
+                                state->builtin_primitive_procedure_stack = EF_copy(BUILTIN_PRIMITIVE_PROCEDURE_STACK);
+                                state->builtin_primitive_procedure_stack->use_count++;
+                                
+                                // copy continuation_env
+                                state->continuation_env = malloc(sizeof(Environment_Frame*) * continuation_env_length);
+                                for (i = 0; i < continuation_env_length; i++) {
+                                    state->continuation_env[i] = continuation_env[i];
+                                }
+                                state->continuation_env_length++;
+                                
+                                // copy continuation_return_pc
+                                state->continuation_return_pc = malloc(sizeof(uint64_t)*continuation_return_pc_length);
+                                for (i = 0; i < continuation_return_pc_length; i++) {
+                                    state->continuation_return_pc[i] = continuation_return_pc[i];
+                                }
+                                state->continuation_return_pc_length = continuation_return_pc_length;
+                                
+                                // copy frames_list
+                                state->frames_list = malloc(sizeof(Environment_Frame*) * frames_list_length);
+                                for (i = 1; i < frames_list_length - 1; i++) { // the 1st one is NULL, has no use_count
+                                    state->frames_list[i] = EF_copy( frames_list[i] );
+                                    frames_list[i]->use_count++;
+                                }
+                                state->frames_list_length = frames_list_length - 1;
+                                
+                                // copy functions_list
+                                state->functions_list = malloc(sizeof(Object*) * functions_list_length);
+                                for (i = 0; i < functions_list_length; i++) {
+                                    state->functions_list[i] = functions_list[i];
+                                    functions_list[i]->use_count++;
+                                }
+                                state->functions_list_length = functions_list_length;
+                                
+                                // increase use_count for continuation
+                                continuation->use_count++;
+                                // ######################################
                                 
                                 // add continuation object to frame
                                 temp_frame->array[0] = continuation;
                                 temp_frame->length = 1;
                                 
-                                // pop parameters
-                                /*
-                                for(i = 0; i < param_num; i++){
-                                    temp = current_frame_pointer->array[current_frame_pointer->length - 1];
-                                    temp->use_count--; // －1 因为在push的时候加1了
-                                    Object_free(temp);
-                                    
-                                    current_frame_pointer->length--; // decrease length
-                                }
-                                 */
-                                
-                                // free current_frame_pointer
-                                free_current_frame_pointer(current_frame_pointer);
-                                printf("ENTER HERE\n");
+                                // Because for call/cc
+                                // current_frame_pointer is Builtin_Stack
+                                // no need to free.
                                 current_frame_pointer = temp_frame;
+                                
                                 goto eval_user_defined_lambda;
             
                             default:
@@ -790,44 +875,62 @@ Object *VM(/*uint16_t * instructions,*/
                                 goto VM_END;
                         }
                     case CONTINUATION:
-                        printf("This is continuation\n");
-                        pc = (v->data.Continuation.pc > pc) ? v->data.Continuation.pc : pc + 1;
-                        temp = current_frame_pointer->array[current_frame_pointer->length - param_num]; // get first parameter
-                
-                        // run
-                        accumulator = VM(instructions_,
-                                         v->data.Continuation.pc,
-                                         instructions_->length,
-                                         v->data.Continuation.env,
-                                         vt,
-                                         mt,
-                                         module,
-                                         temp,
-                                         v);
-                        
-                        accumulator->use_count++; //必须在pop
-                        // pop parameters
-                        for(i = 0; i < param_num; i++){
-                            temp = current_frame_pointer->array[current_frame_pointer->length - 1];
+                        if (pc < v->data.Continuation.pc) { // inside continuation function. // break current function
                             
-                            temp->use_count--; // －1 因为在push的时候加1了
+                            accumulator = current_frame_pointer->array[current_frame_pointer->length - param_num];
+                            pc = v->data.Continuation.pc;
                             
-                            Object_free(temp); // free object
-                            
-                            current_frame_pointer->array[current_frame_pointer->length - 1] = NULL; // clear
-                            current_frame_pointer->length--; // decrease length
+                            // pop current_frame_pointer
+                            // pop parameters
+                            for(i = 0; i < param_num; i++){
+                                temp = current_frame_pointer->array[current_frame_pointer->length - 1];
+                                temp->use_count--; // －1 因为在push的时候加1了
+                                Object_free(temp);
+                                current_frame_pointer->length--; // decrease length
+                            }
+                            EF_free(current_frame_pointer);
+                            frames_list[frames_list_length - 1] = NULL;
+                            frames_list_length--;
+                            current_frame_pointer = frames_list[frames_list_length - 1];
+                            goto return_label;
                         }
-                        accumulator->use_count--;
-                        
-                        // free current_frame_pointer
-                        free_current_frame_pointer(current_frame_pointer);
-                        
-                        frames_list_length--; // pop frame list
-                        current_frame_pointer = frames_list[frames_list_length - 1];
-                        
-                        // free lambda
-                        // this cannot be freed because it is a builtin-function
-                        // Object_free(v);
+                        else{ // outside continuation function
+                            pc += 1;
+                            // run
+                            accumulator = VM(instructions_,
+                                             v->data.Continuation.pc,
+                                             instructions_->length,
+                                             v->data.Continuation.env,
+                                             vt,
+                                             mt,
+                                             module,
+                                             current_frame_pointer->array[current_frame_pointer->length - param_num], // the first argument
+                                              v);
+                            
+                            accumulator->use_count++; //必须在pop
+                            // pop parameters
+                            for(i = 0; i < param_num; i++){
+                                temp = current_frame_pointer->array[current_frame_pointer->length - 1];
+                                
+                                temp->use_count--; // －1 因为在push的时候加1了
+                                
+                                Object_free(temp); // free object
+                                
+                                current_frame_pointer->array[current_frame_pointer->length - 1] = NULL; // clear
+                                current_frame_pointer->length--; // decrease length
+                            }
+                            accumulator->use_count--;
+                            
+                            // free current_frame_pointer
+                            free_current_frame_pointer(current_frame_pointer);
+                            
+                            frames_list_length--; // pop frame list
+                            current_frame_pointer = frames_list[frames_list_length - 1];
+                            
+                            // free lambda
+                            // this cannot be freed because it is a builtin-function
+                            // Object_free(v);
+                        }
                         continue;
                     case OBJECT:
                         // printf("UNFINISHED IMPLEMENTATION Object\n");
