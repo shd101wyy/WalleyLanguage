@@ -217,12 +217,11 @@ Object *VM(/*uint16_t * instructions,*/
      */
     pc = start_pc;
     while(pc != end_pc){
-        if (continuation_state != NULL && frames_list_length == 1) { // done continuation
+        if (continuation_state != NULL && frames_list_length == 0) { // done continuation
             goto VM_END;
         }
         
     CONTINUE_VM:
-        //printf("%llu, %x \n", pc, instructions[pc]);
         inst = instructions[pc];
         opcode = (inst & 0xF000) >> 12;
         //printf("%x\n", inst);
@@ -850,7 +849,6 @@ Object *VM(/*uint16_t * instructions,*/
                                     if(frames_list[i] != NULL) frames_list[i]->use_count++;
                                 }
                                 state->frames_list_length = frames_list_length - 1;
-                                // printf("state frames_list_length %d %p %p\n", state->frames_list_length, state->frames_list[0], frames_list[0]);
                                 
                                 // copy functions_list
                                 state->functions_list = malloc(sizeof(Object*) * functions_list_length);
