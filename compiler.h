@@ -881,7 +881,10 @@ int16_t compiler(Instructions * insts,
 #ifdef WIN32
 				GetFullPathName((TCHAR*)file_name, 256, (TCHAR*)abs_path, NULL); // I don't know is this correct
 #else
-				realpath(file_name, abs_path);
+                if(!realpath(file_name, abs_path)){
+                    printf("ERROR: Failed to load %s\n", file_name);
+                    return 0;
+                }
 #endif
 				FILE * file;
                 file = fopen(abs_path, "r");
@@ -901,7 +904,12 @@ int16_t compiler(Instructions * insts,
                 int64_t size = ftell(file);
                 rewind(file);
                 content = (char*)calloc(size + 1, 1);
-                fread(content,1,size,file);
+                size_t result = fread(content,1,size,file);
+                if (result != size) {
+                    printf("ERROR: Failed to load %s\n", file_name);
+                    free(content);
+                    return 0;
+                }
                 fclose(file); // 不知道要不要加上这个
                 
                 Lexer * p;
@@ -963,7 +971,10 @@ int16_t compiler(Instructions * insts,
 #ifdef WIN32
 					GetFullPathName((TCHAR*)file_name, 256, (TCHAR*)abs_path, NULL); // I don't know is this correct
 #else
-					realpath(file_name, abs_path);
+                    if(!realpath(file_name, abs_path)){
+                        printf("ERROR: Failed to require file: %s\n", file_name);
+                        return 0;
+                    }
 #endif                    
                     // check modules loaded or not
                     uint16_t offset = checkModuleLoaded(&LOADED_MODULES, abs_path, vt->frames[0]);
@@ -1015,7 +1026,11 @@ int16_t compiler(Instructions * insts,
                     int64_t size = ftell(file);
                     rewind(file);
                     content = (char*)calloc(size + 1, 1);
-                    fread(content,1,size,file);
+                    size_t result = fread(content,1,size,file);
+                    if (result != size) {
+                        printf("ERROR: Failed to require file: %s\n", file_name);
+                        return 0;
+                    }
                     fclose(file); // 不知道要不要加上这个
                     
                     

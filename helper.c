@@ -8,7 +8,7 @@
 #include "vm.h"
 #ifndef HELPER_H
 #define HELPER_H 1
-
+#include <inttypes.h>
  void parser_debug_helper (FILE * file, Object * p){
     fprintf(file, "(");
     Object * v;
@@ -29,7 +29,7 @@
                     }
                     break;
                 case INTEGER: 
-                    fprintf(file, "%lld", v->data.Integer.v);
+                    fprintf(file, "%" PRId64, v->data.Integer.v);
                     break;
                 case DOUBLE_:
                     fprintf(file, "%lf", v->data.Double.v);

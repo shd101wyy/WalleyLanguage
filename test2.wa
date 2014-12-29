@@ -1,6 +1,2 @@
-(def test3 (require 'test3))
-(print test3)
-(print (test3:add test3:x 4))
-(set! test3:x 14)
-(def t (require 'test3))
-(print t)
+(def add (fn (x y) (+ x y)))
+{:add add}

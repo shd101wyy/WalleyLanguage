@@ -40,7 +40,10 @@ void SwitchWorkingDirectory(char * working_path){
     }
     //printf("working_path %s\n", working_path);
     // now abs_path is the folder
-    chdir(working_path); // change working directory.
+    if(chdir(working_path) != 0){ // change working directory.
+        printf("walley.h ERROR: Failed to change working_path\n");
+        
+    }
     //printf("Current Working Directory %s\n", getcwd(NULL, 0));
 #endif
     
@@ -219,7 +222,12 @@ void Walley_Run_File(char * file_name){
     
     char* content = (char*)calloc(size + 1, 1);
     
-    fread(content,1,size,file);
+    size_t result = fread(content,1,size,file);
+    if (result != size) {
+        printf("walley.h ERROR: Failed to read file %s\n", abs_path);
+        free(content);
+        return;
+    }
     
     fclose(file); // 不知道要不要加上这个
     
@@ -365,7 +373,12 @@ Object * Walley_Run_File_for_VM(char * file_name,
     
     char* content = (char*)calloc(size + 1, 1);
     
-    fread(content,1,size,file);
+    size_t result = fread(content,1,size,file);
+    if (result != size) {
+        printf("walley.h ERROR: Failed to read file %s\n", file_name);
+        free(content);
+        return GLOBAL_NULL;
+    }
     
     fclose(file); // 不知道要不要加上这个
     
@@ -454,7 +467,10 @@ void Walley_Compile(char * file_name){
 #ifdef WIN32
 	GetFullPathName((TCHAR*)file_name, 256, (TCHAR*)abs_path, NULL); // I don't know is this correct
 #else
-	realpath(file_name, abs_path);
+    if(!realpath(file_name, abs_path)){
+        printf("ERROR: Failed to resolve absolute path of file %s\n", file_name);
+        return;
+    }
 #endif
 	strcpy(working_path, abs_path);
     // change working directory
@@ -476,8 +492,12 @@ void Walley_Compile(char * file_name){
     
     char* content = (char*)calloc(size + 1, 1);
     
-    fread(content,1,size,file);
-    
+    size_t result = fread(content,1,size,file);
+    if (result != size) {
+        printf("walley.h ERROR: Failed to read file %s\n", file_name);
+        free(content);
+        return;
+    }
     fclose(file); // 不知道要不要加上这个
     
     // init walley

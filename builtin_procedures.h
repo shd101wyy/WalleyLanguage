@@ -721,8 +721,11 @@ Object * builtin_file_read(Object ** params, uint32_t param_num){
     
     char* content = (char*)calloc(size + 1, 1);
     
-    fread(content,1,size,file);
-    
+    size_t result = fread(content,1,size,file);
+    if (result != size) {
+        free(content);
+        return GLOBAL_NULL;
+    }
     // fclose(file); // 不知道要不要加上这个
     return Object_initString(content, size);
 }
@@ -1301,8 +1304,7 @@ Object * builtin_set_cdr(Object ** params, uint32_t param_num){
 
 // 67 system
 Object * builtin_system(Object ** params, uint32_t param_num){
-    system(params[0]->data.String.v);
-    return GLOBAL_NULL;
+    return Object_initInteger(system(params[0]->data.String.v));
 }
 
 // 68 <<
@@ -1332,7 +1334,7 @@ Object * builtin_abs_path(Object ** params, uint32_t param_num){
 #ifdef WIN32
     GetFullPathName((TCHAR*)params[0]->data.String.v, 256, (TCHAR*)abs_path, NULL); // I don't know is this correct
 #else
-    realpath(params[0]->data.String.v, abs_path);
+    if(!realpath(params[0]->data.String.v, abs_path)) return GLOBAL_NULL;
 #endif
     return Object_initString(abs_path, strlen(abs_path));
 }

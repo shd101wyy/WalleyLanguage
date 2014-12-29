@@ -1,7 +1,5 @@
 ;; (def return 0) (print (+ 3 (call/cc (fn (i) (set! return i) (i 4)) ))) (return 5)
 
-(loop i 100000
-    (if (= i 0)
-        0
-        (begin (vector-map (fn (x) (* x i)) [1 2 3 4 5])
-               (recur (- i 1)))))
+(def m (require 'test2))
+(print m)
+(print (m:add 3 4))
