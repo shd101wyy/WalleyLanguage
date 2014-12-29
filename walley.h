@@ -139,7 +139,9 @@ void Walley_Repl(){
             strcpy(another_buffer, buffer);
             while (1) {
                 fputs("        ", stdout);
-                fgets(buffer, 512, stdin);
+                if(fgets(buffer, 512, stdin) == NULL){
+                    printf("stdin ERROR: Failed to read from stdin\n");
+                }
                 strcat(another_buffer, buffer);
                 p = lexer(another_buffer);
                 if (p != NULL) {
@@ -191,7 +193,10 @@ void Walley_Run_File(char * file_name){
 #ifdef WIN32
 	GetFullPathName((TCHAR*)file_name, 256, (TCHAR*)abs_path, NULL); // I don't know is this correct
 #else
-	realpath(file_name, abs_path);
+    if(!realpath(file_name, abs_path)){
+        printf("walley.h ERROR: Failed to read file %s\n", file_name);
+        return;
+    }
 #endif 
 	strcpy(working_path, abs_path);
     // change working directory
