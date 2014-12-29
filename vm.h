@@ -95,8 +95,8 @@ Object *VM(/*uint16_t * instructions,*/
     int16_t continuation_return_pc_length = 0;             // save length of that array
     
     Environment_Frame * frames_list[MAX_STACK_SIZE]; // save frame
-    frames_list[0] = NULL;
-    int16_t frames_list_length = 1;
+    // frames_list[0] = NULL;
+    int16_t frames_list_length = 0; //1;
     
     Object * functions_list[MAX_STACK_SIZE]; // save function
     int16_t functions_list_length = 0;
@@ -111,7 +111,7 @@ Object *VM(/*uint16_t * instructions,*/
         
         // copy builtin_primitive_procedure_stack
         BUILTIN_PRIMITIVE_PROCEDURE_STACK = EF_copy(state->builtin_primitive_procedure_stack);
-        BUILTIN_PRIMITIVE_PROCEDURE_STACK->use_count = 1;
+        BUILTIN_PRIMITIVE_PROCEDURE_STACK->use_count = 0;
         
         // copy continuation_env
         for (i = 0; i < state->continuation_env_length; i++) {
@@ -126,12 +126,10 @@ Object *VM(/*uint16_t * instructions,*/
         continuation_return_pc_length = state->continuation_return_pc_length;
         
         // copy frames_list
-        for (i = 1; i < state->frames_list_length; i++) {
+        for (i = 0; i < state->frames_list_length; i++) {
             temp_frame = EF_copy(state->frames_list[i]);
             frames_list[i] = temp_frame;
-            /* state->frames_list[i];
-            frames_list[i] = temp_frame;*/
-            temp_frame->use_count++;
+            if(temp_frame != NULL) temp_frame->use_count++;
         }
         frames_list_length = state->frames_list_length;
         
@@ -145,7 +143,7 @@ Object *VM(/*uint16_t * instructions,*/
     }
     else{
         BUILTIN_PRIMITIVE_PROCEDURE_STACK = EF_init_with_size(MAX_STACK_SIZE); // for builtin primitive procedure calculation
-        BUILTIN_PRIMITIVE_PROCEDURE_STACK->use_count = 1; // cannot free it
+        BUILTIN_PRIMITIVE_PROCEDURE_STACK->use_count = 0; // cannot free it
     }
     
     
@@ -222,6 +220,7 @@ Object *VM(/*uint16_t * instructions,*/
         if (continuation_state != NULL && frames_list_length == 1) { // done continuation
             goto VM_END;
         }
+        
     CONTINUE_VM:
         //printf("%llu, %x \n", pc, instructions[pc]);
         inst = instructions[pc];
@@ -346,6 +345,11 @@ Object *VM(/*uint16_t * instructions,*/
             case NEWFRAME: // create new frame
                 // printf("NEWFRAME \n");
                 switch (accumulator->type){
+                        /*
+                         *
+                         * Only USER_DEFINED_LAMBDA will need to create new frame
+                         *
+                         */
                     case USER_DEFINED_LAMBDA: // user defined function
                         // create new frame with length 64
                         current_frame_pointer = EF_init_with_size(accumulator->data.User_Defined_Lambda.frame_size);
@@ -361,13 +365,18 @@ Object *VM(/*uint16_t * instructions,*/
                         accumulator->use_count++;
                         pc++;
                         continue;
+                        /*
+                         *
+                         * Those data types will only need to use BUILTIN_PRIMITIVE_PROCEDURE_STACK.
+                         *
+                         */
                     case STRING: case BUILTIN_LAMBDA: case VECTOR: case TABLE: case  INTEGER: case OBJECT: case CONTINUATION: // builtin lambda or vector or table
                         current_frame_pointer = BUILTIN_PRIMITIVE_PROCEDURE_STACK; // get top frame
+                        // current_frame_pointer->use_count++; // NO NEED TO CHANGE use_count for BUILTIN_PRIMITIVE_PROCEDURE_STACK
                         
                         // save to frame list
-                        frames_list[frames_list_length] = current_frame_pointer;
+                        frames_list[frames_list_length] = NULL; // set to NULL, NULL means BUILTIN_PRIMITIVE_PROCEDURE_STACK.  // current_frame_pointer;
                         frames_list_length++;
-                        current_frame_pointer->use_count++; // current frame pointer is used
                         
                         // save to function list
                         functions_list[functions_list_length] = accumulator;
@@ -386,8 +395,14 @@ Object *VM(/*uint16_t * instructions,*/
             case PUSH_ARG: // push arguments
                 // printf("PUSH_ARG \n");
                 accumulator->use_count++; // increase use count
-                current_frame_pointer->array[current_frame_pointer->length] = accumulator; // push to env frame
-                current_frame_pointer->length++;
+                if (current_frame_pointer == NULL) {
+                    BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length] = accumulator;
+                    BUILTIN_PRIMITIVE_PROCEDURE_STACK->length++;
+                }
+                else{
+                    current_frame_pointer->array[current_frame_pointer->length] = accumulator; // push to env frame
+                    current_frame_pointer->length++;
+                }
                 pc++;
                 continue;
                 
@@ -398,12 +413,16 @@ Object *VM(/*uint16_t * instructions,*/
                 functions_list[functions_list_length - 1] = NULL; // clear
                 functions_list_length--;  // pop that function from list
                 v->use_count--; // decrement use count
+                
+                /*
+                 * In usual, accumulator is the calling function, or its last argument.
+                 */
                 accumulator = GLOBAL_NULL; // 必须设为 GLOBAL_NULL
                 
                 switch (v->type){
                     case STRING: // only support access
                         pc = pc + 1;
-                        temp = current_frame_pointer->array[current_frame_pointer->length - 1];
+                        temp = BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - 1];
                         integer_ = temp->data.Integer.v; // get index
                         
                         char b_[2];
@@ -411,44 +430,38 @@ Object *VM(/*uint16_t * instructions,*/
                         accumulator = Object_initString(b_, 1);
                         // accumulator = v->data.String.v[integer_]; // get value
                         
-                        temp->use_count--; // pop parameters
+                        // Assume here we only have one parameter. so only need to pop once
+                        temp->use_count--; // pop parameters.
                         Object_free(temp);
-                        current_frame_pointer->length--; // decrease length
-                        
-                        // free current_frame_pointer
-                        free_current_frame_pointer(current_frame_pointer);
+                        BUILTIN_PRIMITIVE_PROCEDURE_STACK->length--; // decrease length.
                         
                         frames_list_length--; // pop frame list
                         current_frame_pointer = frames_list[frames_list_length - 1];
-                        
+
                         // free lambda
                         Object_free(v);
-                        
                         continue;
 
                     case BUILTIN_LAMBDA: // builtin lambda
                         func_ptr = v->data.Builtin_Lambda.func_ptr;
-                        accumulator = (*func_ptr)(&(current_frame_pointer->array[current_frame_pointer->length - param_num]), param_num); // call function
+                        accumulator = (*func_ptr)(&(BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - param_num]), param_num); // call function
                     eval_builtin_lambda:
                         accumulator->use_count++; //必须在pop parameters之前运行这个 eg (car '((x))) 得到了 (x)， 但是如果 accumulator->use_count不加加的话 (x)会被free掉，
                         // 在 pop 完 parameters之后在 decrease accumulator->use_count
                         // pop parameters
                         for(i = 0; i < param_num; i++){
-                            temp = current_frame_pointer->array[current_frame_pointer->length - 1];
+                            temp = BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - 1];
 
                             temp->use_count--; // －1 因为在push的时候加1了
                             
                             Object_free(temp); // free object
                             
-                            current_frame_pointer->array[current_frame_pointer->length - 1] = NULL; // clear
-                            current_frame_pointer->length--; // decrease length
+                            // BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - 1] = NULL; // clear
+                            BUILTIN_PRIMITIVE_PROCEDURE_STACK->length--; // decrease length
                         }
                         accumulator->use_count--;
                         
                         pc = pc + 1;
-                        
-                        // free current_frame_pointer
-                        free_current_frame_pointer(current_frame_pointer);
                         
                         frames_list_length--; // pop frame list
                         current_frame_pointer = frames_list[frames_list_length - 1];
@@ -460,16 +473,13 @@ Object *VM(/*uint16_t * instructions,*/
                         pc = pc + 1;
                         switch(param_num){
                             case 1: // vector get
-                                temp = current_frame_pointer->array[current_frame_pointer->length - 1];
+                                temp = BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - 1];
                                 integer_ = temp->data.Integer.v; // get index
                                 accumulator = v->data.Vector.v[integer_]; // get value
                                 
                                 temp->use_count--; // pop parameters
                                 Object_free(temp);
-                                current_frame_pointer->length--; // decrease length
-                                
-                                // free current_frame_pointer
-                                free_current_frame_pointer(current_frame_pointer);
+                                BUILTIN_PRIMITIVE_PROCEDURE_STACK->length--; // decrease length
                                 
                                 frames_list_length--; // pop frame list
                                 current_frame_pointer = frames_list[frames_list_length - 1];
@@ -479,8 +489,8 @@ Object *VM(/*uint16_t * instructions,*/
                                 
                                 continue;
                             case 2: // vector set
-                                temp = current_frame_pointer->array[current_frame_pointer->length - 2]; // index
-                                temp2 = current_frame_pointer->array[current_frame_pointer->length - 1]; // value
+                                temp = BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - 2]; // index
+                                temp2 = BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - 1]; // value
                                 integer_ = temp->data.Integer.v;
                                 
                                 // decrease use_count of old_value
@@ -493,15 +503,12 @@ Object *VM(/*uint16_t * instructions,*/
                                 
                                 // pop parameters
                                 for(i = 0; i < param_num; i++){
-                                    temp = current_frame_pointer->array[current_frame_pointer->length - 1];
+                                    temp = BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - 1];
                                     temp->use_count--; // －1 因为在push的时候加1了
                                     Object_free(temp);
-                                    
-                                    current_frame_pointer->length--; // decrease length
+                            
+                                    BUILTIN_PRIMITIVE_PROCEDURE_STACK->length--; // decrease length
                                 }
-                                
-                                // free current_frame_pointer
-                                free_current_frame_pointer(current_frame_pointer);
                                 
                                 frames_list_length--; // pop frame list
                                 current_frame_pointer = frames_list[frames_list_length - 1];
@@ -529,7 +536,7 @@ Object *VM(/*uint16_t * instructions,*/
                                  *           get_table  symbol_index   table_offset    not used
                                  */
                             case 1: // table get
-                                temp = current_frame_pointer->array[current_frame_pointer->length - 1];
+                                temp = BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - 1];
                                
                                 // get value from table
                                 /*
@@ -564,10 +571,7 @@ Object *VM(/*uint16_t * instructions,*/
                             TABLE_FINISH_FINDING_VALUE:
                                 temp->use_count--; // pop parameters
                                 Object_free(temp);
-                                current_frame_pointer->length--; // decrease length
-                                
-                                // free current_frame_pointer
-                                free_current_frame_pointer(current_frame_pointer);
+                                BUILTIN_PRIMITIVE_PROCEDURE_STACK->length--; // decrease length
                                 
                                 frames_list_length--; // pop frame list
                                 current_frame_pointer = frames_list[frames_list_length - 1];
@@ -577,8 +581,8 @@ Object *VM(/*uint16_t * instructions,*/
                                 continue;
 
                             case 2: // table set
-                                temp = current_frame_pointer->array[current_frame_pointer->length - 2]; // key
-                                temp2 = current_frame_pointer->array[current_frame_pointer->length - 1]; // value
+                                temp = BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - 2]; // key
+                                temp2 = BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - 1]; // value
                                 
                                 Table_setval(v, temp, temp2);
                                 
@@ -588,14 +592,12 @@ Object *VM(/*uint16_t * instructions,*/
                                 
                                 // pop parameters
                                 for(i = 0; i < param_num; i++){
-                                    temp = current_frame_pointer->array[current_frame_pointer->length - 1];
+                                    temp = BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - 1];
                                     temp->use_count--; // －1 因为在push的时候加1了
                                     Object_free(temp);
                                     
-                                    current_frame_pointer->length--; // decrease length
+                                    BUILTIN_PRIMITIVE_PROCEDURE_STACK->length--; // decrease length
                                 }
-                                // free current_frame_pointer
-                                free_current_frame_pointer(current_frame_pointer);
                                 
                                 frames_list_length--; // pop frame list
                                 current_frame_pointer = frames_list[frames_list_length - 1];
@@ -610,6 +612,11 @@ Object *VM(/*uint16_t * instructions,*/
                                 accumulator = GLOBAL_NULL;
                             goto VM_END;
                         }
+                        /*
+                         *
+                         * The current_frame_pointer for USER_DEFINED_LAMBDA is not BUILTIN_PRIMITIVE_PROCEDURE_STACK
+                         *
+                         */
                     case USER_DEFINED_LAMBDA: // user defined function
                     eval_user_defined_lambda:
                         //printf("USER_DEFINED_LAMBDA\n");
@@ -662,10 +669,13 @@ Object *VM(/*uint16_t * instructions,*/
                         env = new_env;
                         pc = start_pc;
                         
+                        /* no need to free current_frame_pointer, as it will be freed after calling RETURN */
                         // free current_frame_pointer
                         // free_current_frame_pointer(current_frame_pointer);
             
                         /* 前面的 copyEnvironmentAndPushFrame 里面的 current_frame_pointer 的 use_count会++, 所以这里得 -- */
+                        current_frame_pointer->use_count--;
+                        
                         frames_list_length--; // pop frame list
                         current_frame_pointer = frames_list[frames_list_length - 1];
                         
@@ -678,7 +688,7 @@ Object *VM(/*uint16_t * instructions,*/
                         switch (v->data.Integer.v) {
                             case 1: // eval
                                 pc = pc + 1;
-                                temp = current_frame_pointer->array[current_frame_pointer->length - param_num]; // get first parameter
+                                temp = BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - param_num]; // get first parameter
                                 
                                 if (vt == NULL) {
                                     printf("ERROR: eval function is only run time supported");
@@ -709,19 +719,16 @@ Object *VM(/*uint16_t * instructions,*/
                                 accumulator->use_count++; //必须在pop
                                 // pop parameters
                                 for(i = 0; i < param_num; i++){
-                                    temp = current_frame_pointer->array[current_frame_pointer->length - 1];
+                                    temp = BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - 1];
                                     
                                     temp->use_count--; // －1 因为在push的时候加1了
                                     
                                     Object_free(temp); // free object
                                     
-                                    current_frame_pointer->array[current_frame_pointer->length - 1] = NULL; // clear
-                                    current_frame_pointer->length--; // decrease length
+                                    BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - 1] = NULL; // clear
+                                    BUILTIN_PRIMITIVE_PROCEDURE_STACK->length--; // decrease length
                                 }
                                 accumulator->use_count--;
-                                
-                                // free current_frame_pointer
-                                free_current_frame_pointer(current_frame_pointer);
                                 
                                 frames_list_length--; // pop frame list
                                 current_frame_pointer = frames_list[frames_list_length - 1];
@@ -732,21 +739,21 @@ Object *VM(/*uint16_t * instructions,*/
                                 continue;
                             case 2: // apply
                                 // pc = pc + 1; //不同 +1 因为后面goto后会改变pc
-                                v = current_frame_pointer->array[current_frame_pointer->length - param_num]; // get func
-                                temp = current_frame_pointer->array[current_frame_pointer->length - param_num + 1];
+                                v = BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - param_num]; // get func
+                                temp = BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - param_num + 1];
                                     // get params
                                 switch (v->type) {
                                     case BUILTIN_LAMBDA: // builtin lambda
                                                          // push parameters to stack
                                         param_num = 0; // include apply and temp
                                         while (temp != GLOBAL_NULL) {
-                                            current_frame_pointer->array[current_frame_pointer->length] = car(temp);
+                                            BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length] = car(temp);
                                             car(temp)->use_count++;
-                                            current_frame_pointer->length++;
+                                            BUILTIN_PRIMITIVE_PROCEDURE_STACK->length++;
                                             temp = cdr(temp);
                                             param_num++;
                                         }
-                                        accumulator = v->data.Builtin_Lambda.func_ptr(&(current_frame_pointer->array[current_frame_pointer->length - param_num]),
+                                        accumulator = v->data.Builtin_Lambda.func_ptr(&(BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - param_num]),
                                                     param_num);
                                         param_num+=2; // include apply and temp
                                         goto eval_builtin_lambda;
@@ -765,14 +772,12 @@ Object *VM(/*uint16_t * instructions,*/
                                         
                                         // pop parameters
                                         for(i = 0; i < param_num; i++){
-                                            temp = current_frame_pointer->array[current_frame_pointer->length - 1];
+                                            temp = BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - 1];
                                             temp->use_count--; // －1 因为在push的时候加1了
                                             Object_free(temp);
                                             
-                                            current_frame_pointer->length--; // decrease length
+                                            BUILTIN_PRIMITIVE_PROCEDURE_STACK->length--; // decrease length
                                         }
-                                        // free current_frame_pointer
-                                        free_current_frame_pointer(current_frame_pointer);
                                         
                                         current_frame_pointer = temp_frame;
                                         goto eval_user_defined_lambda;
@@ -788,7 +793,7 @@ Object *VM(/*uint16_t * instructions,*/
                                     vm_error_jump
                                 }
                                 
-                                v = current_frame_pointer->array[current_frame_pointer->length - param_num]; // get call/cc fn argument
+                                v = BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - param_num]; // get call/cc fn argument
                                 if(v->type != USER_DEFINED_LAMBDA){
                                     printf("ERROR: call/cc invalid argument\n");
                                     vm_error_jump
@@ -822,7 +827,7 @@ Object *VM(/*uint16_t * instructions,*/
                                 // copy builtin_primitive_procedure_stack
                                 Continuation_Saved_State * state = continuation->data.Continuation.state;
                                 state->builtin_primitive_procedure_stack = EF_copy(BUILTIN_PRIMITIVE_PROCEDURE_STACK);
-                                state->builtin_primitive_procedure_stack->use_count++;
+                                state->builtin_primitive_procedure_stack->use_count = 0;
                                 
                                 // copy continuation_env
                                 state->continuation_env = malloc(sizeof(Environment_Frame*) * continuation_env_length);
@@ -840,11 +845,12 @@ Object *VM(/*uint16_t * instructions,*/
                                 
                                 // copy frames_list
                                 state->frames_list = malloc(sizeof(Environment_Frame*) * frames_list_length);
-                                for (i = 1; i < frames_list_length - 1; i++) { // the 1st one is NULL, has no use_count
+                                for (i = 0; i < frames_list_length - 1; i++) { // the 1st one is NULL, has no use_count
                                     state->frames_list[i] = EF_copy( frames_list[i] );
-                                    frames_list[i]->use_count++;
+                                    if(frames_list[i] != NULL) frames_list[i]->use_count++;
                                 }
                                 state->frames_list_length = frames_list_length - 1;
+                                // printf("state frames_list_length %d %p %p\n", state->frames_list_length, state->frames_list[0], frames_list[0]);
                                 
                                 // copy functions_list
                                 state->functions_list = malloc(sizeof(Object*) * functions_list_length);
@@ -854,7 +860,7 @@ Object *VM(/*uint16_t * instructions,*/
                                 }
                                 state->functions_list_length = functions_list_length;
                                 
-                                // increase use_count for continuation
+                                // increase use_count for continuation cuz it will be append to current frame.
                                 continuation->use_count++;
                                 // ######################################
                                 
@@ -867,6 +873,8 @@ Object *VM(/*uint16_t * instructions,*/
                                 // no need to free.
                                 current_frame_pointer = temp_frame;
                                 
+                                current_frame_pointer->use_count++; // assume current_frame_pointer now is in frame_list.
+                                
                                 goto eval_user_defined_lambda;
             
                             default:
@@ -878,22 +886,24 @@ Object *VM(/*uint16_t * instructions,*/
                         }
                     case CONTINUATION:
                         if (pc < v->data.Continuation.pc) { // inside continuation function. // break current function
-                            
-                            accumulator = current_frame_pointer->array[current_frame_pointer->length - param_num];
+                            accumulator = BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - param_num];
                             pc = v->data.Continuation.pc;
                             
                             // pop current_frame_pointer
                             // pop parameters
                             for(i = 0; i < param_num; i++){
-                                temp = current_frame_pointer->array[current_frame_pointer->length - 1];
+                                temp = BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - 1];
                                 temp->use_count--; // －1 因为在push的时候加1了
                                 Object_free(temp);
-                                current_frame_pointer->length--; // decrease length
+                                BUILTIN_PRIMITIVE_PROCEDURE_STACK->length--; // decrease length
                             }
-                            EF_free(current_frame_pointer);
-                            frames_list[frames_list_length - 1] = NULL;
+                         
                             frames_list_length--;
                             current_frame_pointer = frames_list[frames_list_length - 1];
+                            
+                            // free continuation if necessary
+                            Object_free(v);
+                            
                             goto return_label;
                         }
                         else{ // outside continuation function
@@ -906,32 +916,25 @@ Object *VM(/*uint16_t * instructions,*/
                                              vt,
                                              mt,
                                              module,
-                                             current_frame_pointer->array[current_frame_pointer->length - param_num], // the first argument
+                                             BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - param_num], // the first argument
                                               v);
                             
                             accumulator->use_count++; //必须在pop
                             // pop parameters
                             for(i = 0; i < param_num; i++){
-                                temp = current_frame_pointer->array[current_frame_pointer->length - 1];
-                                
+                                temp = BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - 1];
                                 temp->use_count--; // －1 因为在push的时候加1了
-                                
                                 Object_free(temp); // free object
                                 
-                                current_frame_pointer->array[current_frame_pointer->length - 1] = NULL; // clear
-                                current_frame_pointer->length--; // decrease length
+                                BUILTIN_PRIMITIVE_PROCEDURE_STACK->length--; // decrease length
                             }
                             accumulator->use_count--;
-                            
-                            // free current_frame_pointer
-                            free_current_frame_pointer(current_frame_pointer);
                             
                             frames_list_length--; // pop frame list
                             current_frame_pointer = frames_list[frames_list_length - 1];
                             
-                            // free lambda
-                            // this cannot be freed because it is a builtin-function
-                            // Object_free(v);
+                            // free continuation if necessary
+                            Object_free(v);
                         }
                         continue;
                     case OBJECT:
@@ -953,7 +956,7 @@ Object *VM(/*uint16_t * instructions,*/
                              * get_obj        get property     not used       action offset
                              */
                             case 1: // Object get
-                                temp = current_frame_pointer->array[/*current_frame_pointer->length - 1*/ 0]; // get symbol
+                                temp = BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - 1]; // get symbol
                                 temp2 = v; // save v;
                                 
                             // get value from object
@@ -995,10 +998,7 @@ Object *VM(/*uint16_t * instructions,*/
                             OBJECT_FINISH_FINDING_VALUE:
                                 temp->use_count--; // pop parameters
                                 Object_free(temp);
-                                current_frame_pointer->length--; // decrease length
-                                
-                                // free current_frame_pointer
-                                free_current_frame_pointer(current_frame_pointer);
+                                BUILTIN_PRIMITIVE_PROCEDURE_STACK->length--; // decrease length
                                 
                                 frames_list_length--; // pop frame list
                                 current_frame_pointer = frames_list[frames_list_length - 1];
@@ -1044,8 +1044,8 @@ Object *VM(/*uint16_t * instructions,*/
                                 continue;
                             case 2: // Object set
                                     // same as table set
-                                temp = current_frame_pointer->array[current_frame_pointer->length - 2]; // key
-                                temp2 = current_frame_pointer->array[current_frame_pointer->length - 1]; // value
+                                temp = BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - 2]; // key
+                                temp2 = BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - 1]; // value
                                 
                                 Table_setval(v, temp, temp2);
                                 
@@ -1055,14 +1055,12 @@ Object *VM(/*uint16_t * instructions,*/
                                 
                                 // pop parameters
                                 for(i = 0; i < param_num; i++){
-                                    temp = current_frame_pointer->array[current_frame_pointer->length - 1];
+                                    temp = BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - 1];
                                     temp->use_count--; // －1 因为在push的时候加1了
                                     Object_free(temp);
                                     
-                                    current_frame_pointer->length--; // decrease length
+                                    BUILTIN_PRIMITIVE_PROCEDURE_STACK->length--; // decrease length
                                 }
-                                // free current_frame_pointer
-                                free_current_frame_pointer(current_frame_pointer);
                                 
                                 frames_list_length--; // pop frame list
                                 current_frame_pointer = frames_list[frames_list_length - 1];
@@ -1206,8 +1204,6 @@ VM_END:
     // free BUILTIN_PRIMITIVE_PROCEDURE_STACK
     accumulator->use_count+=1;
     
-    
-    BUILTIN_PRIMITIVE_PROCEDURE_STACK->use_count--;
     EF_free(BUILTIN_PRIMITIVE_PROCEDURE_STACK);
     
     accumulator->use_count-=1;

@@ -277,6 +277,9 @@ Environment_Frame * EF_init_with_size(int32_t size){
  */
 
 Environment_Frame * EF_copy(Environment_Frame * ef){
+    if (ef == NULL) {
+        return NULL;
+    }
     Environment_Frame * new_ef = EF_init_with_size(ef->size);
     
     // copy

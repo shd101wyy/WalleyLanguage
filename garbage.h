@@ -114,8 +114,40 @@ void Object_free(Object * o){
                 fclose(o->data.File.file_ptr);
                 free(o);
                 return;
-            case CONTINUATION:
-                printf("@@ garbage.h TODO: Free Continuation\n");
+            case CONTINUATION:                
+                Env_free(o->data.Continuation.env);
+                
+                Continuation_Saved_State * state = o->data.Continuation.state;
+                
+                // free builtin_primitive_procedure_stack
+                EF_free(state->builtin_primitive_procedure_stack);
+               
+                // free continuation_env
+                free(state->continuation_env);
+                
+                // free continuation_return_pc
+                free(state->continuation_return_pc);
+                
+                // free frames_list
+                for(i = 0; i < state->frames_list_length; i++){
+                    if (state->frames_list[i] != NULL) {
+                        state->frames_list[i]->use_count--;
+                        EF_free(state->frames_list[i]);
+                    }
+                }
+                free(state->frames_list);
+                
+                
+                // free function list
+                for (i = 0; i < state->functions_list_length; i++) {
+                    state->functions_list[i]->use_count--;
+                    Object_free(state->functions_list[i]);
+                }
+                free(state->functions_list);
+                
+                free(o->data.Continuation.state);
+                free(o);
+                
                 return;
             default:
                 printf("ERROR: Object_free invalid data type\n");
