@@ -833,7 +833,7 @@ Object *VM(/*uint16_t * instructions,*/
                                 for (i = 0; i < continuation_env_length; i++) {
                                     state->continuation_env[i] = continuation_env[i];
                                 }
-                                state->continuation_env_length++;
+                                state->continuation_env_length = continuation_env_length;
                                 
                                 // copy continuation_return_pc
                                 state->continuation_return_pc = malloc(sizeof(uint64_t)*continuation_return_pc_length);
@@ -883,10 +883,14 @@ Object *VM(/*uint16_t * instructions,*/
                                 goto VM_END;
                         }
                     case CONTINUATION:
+                        // THIS BLOCK OF CODE HAS MEMORY LEAK
+                        // eg
+                        // (def return 0) (+ 1 (call/cc (fn (i) (set! return i) (+ 2 (i 3)))))
                         if (pc < v->data.Continuation.pc) { // inside continuation function. // break current function
                             accumulator = BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - param_num];
                             pc = v->data.Continuation.pc;
                             
+                            /*
                             // pop current_frame_pointer
                             // pop parameters
                             for(i = 0; i < param_num; i++){
@@ -895,14 +899,78 @@ Object *VM(/*uint16_t * instructions,*/
                                 Object_free(temp);
                                 BUILTIN_PRIMITIVE_PROCEDURE_STACK->length--; // decrease length
                             }
-                         
-                            frames_list_length--;
-                            current_frame_pointer = frames_list[frames_list_length - 1];
+                             */
+                            /*
+                            printf("frames_list_length %d %d\n", frames_list_length, v->data.Continuation.state->frames_list_length);
+                            printf("functions_list_length %d %d\n", functions_list_length, v->data.Continuation.state->functions_list_length);
+                            printf("continuation_env %d %d\n", continuation_env_length, v->data.Continuation.state->continuation_env_length);
+                            printf("continuation_pc %d %d\n", continuation_return_pc_length, v->data.Continuation.state->continuation_return_pc_length);
+                             */
                             
+                            // get continuation saved state
+                            Continuation_Saved_State * state = v->data.Continuation.state;
+                            
+                            // restore BUILTIN_PRIMITIVE_PROCEDURE_STACK
+                            while (BUILTIN_PRIMITIVE_PROCEDURE_STACK->length != state->builtin_primitive_procedure_stack->length) {
+                                temp = BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - 1];
+                                temp->use_count--;
+                                Object_free(temp);
+                                BUILTIN_PRIMITIVE_PROCEDURE_STACK->length--;
+                            }
+                            // restore to correct continuation_env
+                            while (continuation_env_length != state->continuation_env_length) {
+                                env = continuation_env[continuation_env_length - 1];
+                                if (continuation_env_length != 1) { // the 0th one is original env, shouldn't be freed
+                                    temp_frame = env->frames[env->length - 1]; // free top frame
+                                    temp_frame->use_count--;
+                                    EF_free(temp_frame);
+                                    free(env->frames);
+                                    free(env);
+                                }
+                                continuation_env_length--;
+                            }
+                            env = state->continuation_env_length == 0 ? original_env : continuation_env[state->continuation_env_length - 1];
+                            // restore to correct continuation_return_pc
+                            /*while (continuation_return_pc_length != state->continuation_return_pc_length) {
+                                pc = continuation_return_pc[continuation_return_pc_length - 1];
+                                continuation_return_pc_length--;
+                            }*/
+                            continuation_return_pc_length = state->continuation_return_pc_length;
+                            
+                            // restore to correct frames_list
+                            while (frames_list_length != state->frames_list_length) {
+                                current_frame_pointer = frames_list[frames_list_length - 1];
+                                if (current_frame_pointer != NULL) {
+                                    current_frame_pointer->use_count--;
+                                    EF_free(current_frame_pointer);
+                                }
+                                frames_list_length--;
+                            }
+                            
+                            current_frame_pointer = state->frames_list_length == 0 ? NULL : frames_list[state->frames_list_length - 1];
+                            // restore to correct functions list
+                            while (functions_list_length != state->functions_list_length) {
+                                temp = functions_list[functions_list_length - 1];
+                                temp->use_count--;
+                                Object_free(temp);
+                                functions_list_length--;
+                            }
+                            
+                            // accumulator->use_count--; // no need to decrease here, cuz the current_frame_pointer is BUILTIN_PRIMITIVE_PROCEDURE_STACK, it will be decremented when restore BUILTIN_PRIMITIVE_PROCEDURE_STACK ABOVE.
+                            
+                            //printf("%p\n", current_frame_pointer);
+                            //printf("%d\n", BUILTIN_PRIMITIVE_PROCEDURE_STACK->length);
                             // free continuation if necessary
                             Object_free(v);
+                            continue;
                             
-                            goto return_label;
+                            //frames_list_length--;
+                            //current_frame_pointer = frames_list[frames_list_length - 1];
+                            
+                            // free continuation if necessary
+                            //Object_free(v);
+                            
+                            //goto return_label;
                         }
                         else{ // outside continuation function
                             pc += 1;

@@ -979,7 +979,25 @@ Thanks
 - [dillinger]    - A very good markdown file editor.  
 - [root-of-lisp] - Good article.
 - ...
+------------------------------------------
+Change Log
+----
+ - <strong>2014/12/29</strong>  
+    Try to support <strong>call/cc</strong> function  
+    and <strong> continuation </strong> data type  
+    But there is memory leak.  
+    Continuation implementation not finished yet.  
+    eg:  
+    ```lisp
+        (def return 0)
+        (+ 1 (call/cc
+                (fn (k)
+                    (set! return k) ; save continuation
+                    (+ 2 (k 3)))))
+        ;; => 4
 
+        (return 4) ;; => 5 .  resume continuation.
+    ```
 ------------------------------------------
 Attention
 ----
