@@ -998,8 +998,8 @@ Change Log
         (return 4) ;; => 5 .  resume continuation.
     ```
  - <strong>2014/12/29 Idea</strong>  
-    For asynchronization, I was thinking about something like
-    ```lisp
+    For asynchronization, I was thinking about something like  
+    ```lisp   
         (def result
             (let async-0 (future (my-func param0 param1)
                  async-1 (future (my-func param2 param3)))
@@ -1013,8 +1013,8 @@ Change Log
     ```
     will run at the same time.  
     and under my-func, all non-local variables (here non-local means all variables defined not inside my-func) are not allowed to change.  
-    <strong> Lower Level frame cannot modify Higher Level frame </strong>  
-    and  
+    <strong> Lower Level frame cannot modify Higher Level frame </strong>
+    and
     ```lisp
             [async-0 async-1]
     ```
