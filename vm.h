@@ -323,7 +323,7 @@ Object *VM(/*uint16_t * instructions,*/
                 pc = pc + jump_steps;
                 continue;
             case RETURN:
-            return_label:;
+            // return_label:;
                 // printf("RETURN \n");
                 accumulator->use_count++; // because accumulator may exist on frame
                 // free top frame
