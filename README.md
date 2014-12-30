@@ -999,7 +999,8 @@ Change Log
     ```
  - <strong>2014/12/29 Idea</strong>  
     For asynchronization, I was thinking about something like  
-    ```lisp   
+
+    ```lisp
         (def result
             (let async-0 (future (my-func param0 param1)
                  async-1 (future (my-func param2 param3)))
@@ -1018,7 +1019,8 @@ Change Log
     ```lisp
             [async-0 async-1]
     ```
-    will join the running result.
+    will join the running result.  
+    
 ------------------------------------------
 Attention
 ----
