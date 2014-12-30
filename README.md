@@ -927,7 +927,7 @@ Also we can define fn in this way:
 ;; same as  
 (def add (a b) (+ a b))
 ```
-~(*_*)~  
+~(#_#)~  
 
 ------------------------------------------
 ### Module Management
@@ -964,7 +964,6 @@ and so forth.
 Now I will teach u how to build a very simple lisp interpreter in walley language.  
 
 <strong> To be continued </strong>
-
 ------------------------------------------
 License
 ----
@@ -985,7 +984,7 @@ Change Log
  - <strong>2014/12/29</strong>  
     Try to support <strong>call/cc</strong> function  
     and <strong> continuation </strong> data type  
-    But there is memory leak.  
+    But there is potential memory leak.  
     Continuation implementation not finished yet.  
     eg:  
     ```lisp
@@ -998,6 +997,28 @@ Change Log
 
         (return 4) ;; => 5 .  resume continuation.
     ```
+ - <strong>2014/12/29 Idea</strong>  
+    For asynchronization, I was thinking about something like
+    ```lisp
+        (def result
+            (let async-0 (future (my-func param0 param1)
+                 async-1 (future (my-func param2 param3)))
+                 [async-0 async-1]))
+    ```
+    where param of <strong>future</strong> function will run asynchronously.  
+    in this case:
+    ```lisp
+            (my-func param0 param1)  
+            (my-func param1 param2)
+    ```
+    will run at the same time.  
+    and under my-func, all non-local variables (here non-local means all variables defined not inside my-func) are not allowed to change.  
+    <strong> Lower Level frame cannot modify Higher Level frame </strong>  
+    and  
+    ```lisp
+            [async-0 async-1]
+    ```
+    will join the running result.
 ------------------------------------------
 Attention
 ----
