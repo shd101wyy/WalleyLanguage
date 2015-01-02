@@ -1,5 +1,13 @@
 ;; (def return 0) (print (+ 3 (call/cc (fn (i) (set! return i) (i 4)) ))) (return 5)
 
-(def m (require 'test2))
-(print m)
-(print (m:add 3 4))
+;(def m (require 'test2))
+;(print m)
+;(print (m:add 3 4))
+
+(def return 0)
+(def acc -1)
+(+ 1 (call/cc (fn (i)
+   (set! return i)
+   (+ 2 (i 3)))))
+(set! acc (+ 2 (return 1)))
+(print "acc: " acc "\n")

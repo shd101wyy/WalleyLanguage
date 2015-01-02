@@ -883,33 +883,20 @@ Object *VM(/*uint16_t * instructions,*/
                                 goto VM_END;
                         }
                     case CONTINUATION:
+                        //return BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - param_num];
                         // THIS BLOCK OF CODE HAS MEMORY LEAK
                         // eg
                         // (def return 0) (+ 1 (call/cc (fn (i) (set! return i) (+ 2 (i 3)))))
                         if (pc < v->data.Continuation.pc) { // inside continuation function. // break current function
+                            //printf("call/cc in\n");
+                            //printf("@@ frames_list_length %d\n", frames_list_length - 1);
                             accumulator = BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - param_num];
-                            pc = v->data.Continuation.pc;
                             
-                            /*
-                            // pop current_frame_pointer
-                            // pop parameters
-                            for(i = 0; i < param_num; i++){
-                                temp = BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - 1];
-                                temp->use_count--; // －1 因为在push的时候加1了
-                                Object_free(temp);
-                                BUILTIN_PRIMITIVE_PROCEDURE_STACK->length--; // decrease length
-                            }
-                             */
-                            /*
-                            printf("frames_list_length %d %d\n", frames_list_length, v->data.Continuation.state->frames_list_length);
-                            printf("functions_list_length %d %d\n", functions_list_length, v->data.Continuation.state->functions_list_length);
-                            printf("continuation_env %d %d\n", continuation_env_length, v->data.Continuation.state->continuation_env_length);
-                            printf("continuation_pc %d %d\n", continuation_return_pc_length, v->data.Continuation.state->continuation_return_pc_length);
-                             */
                             
                             // get continuation saved state
                             Continuation_Saved_State * state = v->data.Continuation.state;
                             
+                            accumulator->use_count++;
                             // restore BUILTIN_PRIMITIVE_PROCEDURE_STACK
                             while (BUILTIN_PRIMITIVE_PROCEDURE_STACK->length != state->builtin_primitive_procedure_stack->length) {
                                 temp = BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - 1];
@@ -930,11 +917,8 @@ Object *VM(/*uint16_t * instructions,*/
                                 continuation_env_length--;
                             }
                             env = state->continuation_env_length == 0 ? original_env : continuation_env[state->continuation_env_length - 1];
+                            
                             // restore to correct continuation_return_pc
-                            /*while (continuation_return_pc_length != state->continuation_return_pc_length) {
-                                pc = continuation_return_pc[continuation_return_pc_length - 1];
-                                continuation_return_pc_length--;
-                            }*/
                             continuation_return_pc_length = state->continuation_return_pc_length;
                             
                             // restore to correct frames_list
@@ -946,8 +930,8 @@ Object *VM(/*uint16_t * instructions,*/
                                 }
                                 frames_list_length--;
                             }
-                            
                             current_frame_pointer = state->frames_list_length == 0 ? NULL : frames_list[state->frames_list_length - 1];
+                            
                             // restore to correct functions list
                             while (functions_list_length != state->functions_list_length) {
                                 temp = functions_list[functions_list_length - 1];
@@ -956,23 +940,10 @@ Object *VM(/*uint16_t * instructions,*/
                                 functions_list_length--;
                             }
                             
-                            // accumulator->use_count--; // no need to decrease here, cuz the current_frame_pointer is BUILTIN_PRIMITIVE_PROCEDURE_STACK, it will be decremented when restore BUILTIN_PRIMITIVE_PROCEDURE_STACK ABOVE.
-                            
-                            //printf("%p\n", current_frame_pointer);
-                            //printf("%d\n", BUILTIN_PRIMITIVE_PROCEDURE_STACK->length);
-                            // free continuation if necessary
-                            Object_free(v);
-                            continue;
-                            
-                            //frames_list_length--;
-                            //current_frame_pointer = frames_list[frames_list_length - 1];
-                            
-                            // free continuation if necessary
-                            //Object_free(v);
-                            
-                            //goto return_label;
+                            pc = v->data.Continuation.pc;
                         }
                         else{ // outside continuation function
+                            //printf("call/cc out\n");
                             pc += 1;
                             // run
                             accumulator = VM(instructions_,
@@ -984,24 +955,20 @@ Object *VM(/*uint16_t * instructions,*/
                                              module,
                                              BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - param_num], // the first argument
                                               v);
-                            
-                            accumulator->use_count++; //必须在pop
-                            // pop parameters
-                            for(i = 0; i < param_num; i++){
-                                temp = BUILTIN_PRIMITIVE_PROCEDURE_STACK->array[BUILTIN_PRIMITIVE_PROCEDURE_STACK->length - 1];
-                                temp->use_count--; // －1 因为在push的时候加1了
-                                Object_free(temp); // free object
-                                
-                                BUILTIN_PRIMITIVE_PROCEDURE_STACK->length--; // decrease length
-                            }
-                            accumulator->use_count--;
-                            
-                            frames_list_length--; // pop frame list
-                            current_frame_pointer = frames_list[frames_list_length - 1];
-                            
-                            // free continuation if necessary
-                            Object_free(v);
+                            /*
+                            printf("frames_list_length %d %d\n", frames_list_length, v->data.Continuation.state->frames_list_length);
+                            printf("functions_list_length %d %d\n", functions_list_length, v->data.Continuation.state->functions_list_length);
+                            printf("continuation_env %d %d\n", continuation_env_length, v->data.Continuation.state->continuation_env_length);
+                            printf("continuation_pc %d %d\n", continuation_return_pc_length, v->data.Continuation.state->continuation_return_pc_length);
+                            printf("cuurent env frames length %d\n", env->length);
+                             */
+                            return accumulator;
                         }
+                        
+                        //printf("@@ acc %s\n", to_string(accumulator));
+                        //accumulator->use_count--;
+                        // free continuation if necessary
+                        //Object_free(v);
                         continue;
                     case OBJECT:
                         // printf("UNFINISHED IMPLEMENTATION Object\n");
