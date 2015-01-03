@@ -232,7 +232,6 @@ Object * macro_expansion_replacement(Object * expanded_value,
             }
             else{
                 return cons(v, macro_expansion_replacement(cdr(expanded_value), vt, false, module));
-                
             }
         }
         else if(v->type == STRING ||
@@ -316,7 +315,7 @@ Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable *
             new_env->frames[0] = global_env->frames[0]; // 指向第一个frame
             new_env->frames[1] = new_env_top_frame;
             new_env->length = 2; // set length
-            new_env_top_frame->use_count += 1 ;
+            new_env_top_frame->use_count = 1 ;
             
             // add var name to top frame of new_vt;
             for (i = 0; i < match; i++) {
@@ -427,9 +426,9 @@ Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable *
             // 根据 macro->vt 替换首项
             expanded_value_after_replacement = macro_expansion_replacement(expanded_value, macro->vt, true, module);
             Object_free(expanded_value);
+            
             // printf("after expand: %s %d\n", to_string(expanded_value_after_replacement), expanded_value_after_replacement->use_count);
             return expanded_value_after_replacement;
-            
         }
         // free var_names; 
         
@@ -699,6 +698,7 @@ int16_t compiler(Instructions * insts,
                 return compiler(insts, v, vt, tail_call_flag, parent_func_name, function_for_compilation,env, mt, module);
             }
             else if(str_eq(tag, "def")){
+                uint16_t need_to_free_var_value = 0;
                 var_name = cadr(l);
                 if (var_name->type == STRING
                     && (
@@ -720,6 +720,7 @@ int16_t compiler(Instructions * insts,
                 else if (cdddr(l) != GLOBAL_NULL){
                     // Here might exist problems
                     // need to free var_value later.
+                    need_to_free_var_value = 1; 
                     var_value = cons(LAMBDA_STRING,
                                      cons(caddr(l), cdddr(l)));
                 }
@@ -737,6 +738,7 @@ int16_t compiler(Instructions * insts,
                             string = to_string(l);
                             printf("           EXP: %s\n", string);
                             free(string);
+                            if(need_to_free_var_value) Object_free(var_value);
                             return 0;
                         }
                     }
@@ -755,6 +757,7 @@ int16_t compiler(Instructions * insts,
                             string = to_string(l);
                             printf("           EXP: %s\n", string);
                             free(string);
+                            if(need_to_free_var_value) Object_free(var_value);
                             return 0;
                         }
                     }
@@ -781,6 +784,9 @@ int16_t compiler(Instructions * insts,
                          env,
                          mt,
                          module);
+                
+                if(need_to_free_var_value) Object_free(var_value);
+                
                 if (i == 1) { // new required
                     LOADED_MODULES->offset = set_index;// save offset
                 }
@@ -1660,7 +1666,6 @@ Object * compiler_begin(Instructions * insts,
             printf("\n### COMPILER_BEGIN VM ####");
             printf("\nGLOBAL FRAME => length %d", env->frames[0]->length);
 #endif
-            
         }
     }
     
