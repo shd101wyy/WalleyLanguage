@@ -1,4 +1,4 @@
-﻿//
+//
 //  compiler.h
 //  walley
 //
@@ -91,6 +91,16 @@ Object * quasiquote_list(Object * l){
 }
 
 /*
+* This function si used in macro_match function
+* when macro doesn't match, free stored varnames. 
+*/
+void free_varnames(char **var_names, int32_t count){
+    int16_t i;
+    for(i = 0; i < count; i++){
+        free(var_names[i]);
+    }
+}
+/*
  macro_match
  return length of var_names
  (defmacro test 
@@ -112,23 +122,32 @@ int32_t macro_match(Object * a, Object * b, char **var_names, Object **var_value
     }
     else if ((a == GLOBAL_NULL && b != GLOBAL_NULL)
              || (a != GLOBAL_NULL && b == GLOBAL_NULL && (!str_eq(car(a)->data.String.v, ".")))){ // here is to fix a => (. args) b => (), so "args" should match ()
+        free_varnames(var_names, count);
         return 0; // doesn't match
     }
     else if(car(a)->type == PAIR && car(b)->type == PAIR){
         int32_t match = macro_match(car(a), car(b), var_names, var_values, count);
-        if (!match) return 0; // doesn't match
+        if (!match){
+            free_varnames(var_names, count);
+            return 0; // doesn't match
+        } 
         return macro_match(cdr(a),
                            cdr(b),
                            var_names,
                            var_values,
                            match);
     }
-    else if(car(a)->type == PAIR && car(b)->type != PAIR)
+    else if(car(a)->type == PAIR && car(b)->type != PAIR){
+        free_varnames(var_names, count);
         return 0;
+    }
     else{
         if (car(a)->type == STRING && car(a)->data.String.v[0] == '#') {
             // constant
-            if(car(b)->type != STRING) return 0; // doesn't match
+            if(car(b)->type != STRING){
+                free_varnames(var_names, count);
+                return 0; // doesn't match
+            } 
             if (strcmp( &(*((char*)car(a)->data.String.v + 1)), car(b)->data.String.v) == 0) {
                 return macro_match(cdr(a),
                                    cdr(b),
@@ -137,6 +156,7 @@ int32_t macro_match(Object * a, Object * b, char **var_names, Object **var_value
                                    count);
             }
             else{
+                free_varnames(var_names, count);
                 return 0;
             }
         }
@@ -151,14 +171,18 @@ int32_t macro_match(Object * a, Object * b, char **var_names, Object **var_value
             count++;
             return count;
         }
-        var_names[count] = car(a)->data.String.v; // save var_name
-        var_values[count] = car(b); // save var_value
-        count++;
-        return macro_match(cdr(a),
-                           cdr(b),
-                           var_names,
-                           var_values,
-                           count);
+        else{
+            char * temp = (char*)malloc(sizeof(char) * (strlen(car(a)->data.String.v) + 1));
+            strcpy(temp, car(a)->data.String.v); 
+            var_names[count] = temp; // save var_name
+            var_values[count] = car(b); // save var_value
+            count++;
+            return macro_match(cdr(a),
+                               cdr(b),
+                               var_names,
+                               var_values,
+                               count);
+        }
     }
 }
 
@@ -276,6 +300,7 @@ Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable *
             // new_vt_top_frame->use_count = 1; // 后面要被使用
             new_vt_top_frame->var_names = (char**)malloc(sizeof(char*)*match);
             new_vt_top_frame->length = match; // set length directly
+            new_vt_top_frame->use_count = 1; 
             
             // init vt
 			new_vt = (Variable_Table*)malloc(sizeof(Variable_Table));
@@ -295,8 +320,6 @@ Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable *
             
             // add var name to top frame of new_vt;
             for (i = 0; i < match; i++) {
-                
-                
                 if (var_names[i][0] == ' ') {
                     char * a = (char*)malloc(sizeof(char) * (strlen(var_names[i]) + 1));
                     strcpy(a, &var_names[i][1]);
@@ -367,7 +390,6 @@ Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable *
             // should use insts_length as start_pc;
             expanded_value = VM(insts, insts_length, insts->length, new_env, NULL, NULL, module, GLOBAL_NULL, NULL);
             
-            
 #if MACRO_DEBUG
             printf("\n");
             printInstructions(insts);
@@ -381,35 +403,36 @@ Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable *
             insts->start_pc = start_pc;
             insts->length = insts_length;
             
-            // 一改还得free其他的, var_names和var_values不用free
-            // 因为 var_names 是保存在 macro 里面的
+            // 一改还得free其他的, var_values不用free
+            // 因为 
             //     var_values 会随着 parser 而free掉
             // free new_vt
-            free(new_vt);
-            /*
-             for (i = 0; i < new_vt_top_frame->length; i++) {
+            // printf("\n match %d\n", match);
+            for (i = 0; i < new_vt_top_frame->length; i++) {
              free(new_vt_top_frame->var_names[i]);
-             }*/
+            }
             free(new_vt_top_frame->var_names);
             free(new_vt_top_frame);
-            
+            free(new_vt);
+
+
             // free new_env
-            free(new_env);
-            new_env_top_frame->use_count-=1;
+            new_env_top_frame->use_count--;
             EF_free(new_env_top_frame);
+            free(new_env->frames);
+            free(new_env);
             
             // printf("expanded_value %s\n", to_string(expanded_value));
-            
             // 假设运行完了得到了 expanded_value
             // 根据 macro->vt 替换首项
             expanded_value_after_replacement = macro_expansion_replacement(expanded_value, macro->vt, true, module);
             Object_free(expanded_value);
-            
-            // printf("after expand: %s\n", to_string(expanded_value_after_replacement));
-            
+            // printf("after expand: %s %d\n", to_string(expanded_value_after_replacement), expanded_value_after_replacement->use_count);
             return expanded_value_after_replacement;
             
         }
+        // free var_names; 
+        
         clauses = cddr(clauses);
         continue;
     }

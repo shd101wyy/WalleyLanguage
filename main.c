@@ -51,9 +51,10 @@ int main(int argc, char *argv[]){
         //printf("Absolute path %s\n", realpath(argv[1], abs_path));
         Walley_Run_File(argv[1]);
     }
-    else if (argc == 3 && str_eq(argv[1], "compile")){ // run file
-        Walley_Compile(argv[2]);
-    }
+    /* // disable compile
+    // else if (argc == 3 && str_eq(argv[1], "compile")){ // run file
+    //    Walley_Compile(argv[2]);
+    }*/
     return 0;
 }
 

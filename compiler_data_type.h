@@ -180,7 +180,6 @@ void VTF_free(Variable_Table_Frame * vtf){
 typedef struct Variable_Table{
     Variable_Table_Frame * frames[VARIABLE_TABLE_MAX_SIZE];
     uint32_t length;
-    // unsigned int use_count;
 } Variable_Table;
 
 // push value to VT's #frame_index frame
