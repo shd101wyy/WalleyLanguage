@@ -8,7 +8,7 @@
 int main(int argc, char *argv[]){
 
     signal(SIGINT, quit_program_signal_handler); // register sigint signal handler
-    
+
     srand((unsigned int)time(NULL)); // set seed
     //printf("Current Working Directory %s\n", getcwd(NULL, 0));
 
@@ -34,7 +34,7 @@ int main(int argc, char *argv[]){
     // Walley_Run_File("/Users/wangyiyi/∞Ÿ∂»‘∆Õ¨≤Ω≈Ã/Github/Walley0.3/walley/walley/tutorial.wa");
     //return 0;
     if (argc == 1) {
-        printf("\nWalley Language 0.3.8498\n");
+        printf("\nWalley Language 0.3.8499\n");
 #ifdef EMSCRIPTEN
         printf("Porting to JavaScript using Emscripten 1.25.0\n");
 #endif
@@ -56,17 +56,3 @@ int main(int argc, char *argv[]){
     }*/
     return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -4,7 +4,7 @@ Walley Language
 >  All Rights Reserved
 
 -----------------------------------  
-#### Language Version: 0.3.8497
+#### Language Version: 0.3.8499
 #### This language is not finished yet...
 
 <strong>
@@ -981,6 +981,12 @@ Thanks
 ------------------------------------------
 Change Log
 ----
+ - <strong>2015/1/2</strong>  
+   <strong>Version 0.3.8499 </strong>  
+   I feel it is too hard to implement call/cc.  
+   And I just learnt that parallelism and concurrency are different.  
+Fixed some memory leak of the program.  
+
  - <strong>2014/12/29</strong>  
     Try to support <strong>call/cc</strong> function  
     and <strong> continuation </strong> data type  
@@ -1020,7 +1026,7 @@ Change Log
             [async-0 async-1]
     ```
     will join the running result.  
-    
+
 ------------------------------------------
 Attention
 ----
@@ -1058,8 +1064,3 @@ Some terms that I used in this tutorial are actually wrong, I use them just to o
 
 
 ```
-
-----
-#### 福利
-![](福利/1.jpg?raw=true)
-![](福利/2.jpg?raw=true)
