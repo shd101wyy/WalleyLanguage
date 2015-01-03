@@ -1116,7 +1116,7 @@ Object *VM(/*uint16_t * instructions,*/
                 }
             case JMP:
                 //printf("JUMP STEPS %d\n", (signed int)((instructions[pc + 1] << 16) | instructions[pc + 2]));
-                pc = pc + (signed int)((instructions[pc + 1] << 16) | instructions[pc + 2]);
+                pc = pc + (int32_t)((instructions[pc + 1] << 16) | instructions[pc + 2]);
                 continue;
                 
             case TEST:

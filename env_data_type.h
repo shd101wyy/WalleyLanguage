@@ -43,69 +43,69 @@ void Walley_init_constants(){
     // init several constants
     GLOBAL_NULL = Object_initNull(); // init GLOBAL_NULL
     GLOBAL_NULL->use_count = 1;
-    
+
     QUOTE_STRING = Object_initString("quote", 5); // 0
     QUOTE_STRING->use_count = 1;
-    
+
     UNQUOTE_STRING = Object_initString("unquote", 7); // 1
     UNQUOTE_STRING->use_count = 1;
-    
+
     UNQUOTE_SPLICE_STRING = Object_initString("unquote-splice", 14); // 2
     UNQUOTE_SPLICE_STRING->use_count = 1;
-    
+
     QUASIQUOTE_STRING = Object_initString("quasiquote", 10); // 3
     QUASIQUOTE_STRING->use_count = 1;
-    
+
     CONS_STRING = Object_initString("cons", 4); // 4
     CONS_STRING->use_count = 1;
-    
+
     DEF_STRING = Object_initString("def", 3); // 5
     DEF_STRING->use_count = 1;
-    
+
     SET_STRING = Object_initString("set!", 4); // 6
     SET_STRING->use_count = 1;
-    
+
     LAMBDA_STRING = Object_initString("lambda", 6); // 7
     LAMBDA_STRING->use_count = 1;
-    
+
     GLOBAL_TRUE = Object_initString("true", 4); // 8
     GLOBAL_TRUE->use_count = 1;
-    
+
     INTEGER_STRING = Object_initString("integer", 7);// 9
     INTEGER_STRING->use_count = 1;
-    
+
     FLOAT_STRING = Object_initString("float", 5); // 10
     FLOAT_STRING->use_count = 1;
-    
+
     RATIO_STRING = Object_initString("ratio", 5); // 11
     RATIO_STRING->use_count = 1;
-    
+
     STRING_STRING = Object_initString("string", 6); // 12
     STRING_STRING->use_count = 1;
-    
+
     PAIR_STRING = Object_initString("pair", 4); // 13
     PAIR_STRING->use_count = 1;
-    
+
     VECTOR_STRING = Object_initString("vector", 6); // 14
     VECTOR_STRING->use_count = 1;
-    
+
     TABLE_STRING = Object_initString("table", 5); // 15
     TABLE_STRING->use_count = 1;
-    
+
     CLONE_STRING = Object_initString("clone", 5); // 16
     CLONE_STRING->use_count = 1;
-    
+
     STRING_proto = Object_initString("proto", 5); // 17
     STRING_proto->use_count = 1;
-    
+
     STRING_type = Object_initString("type", 4); // 18
     STRING_type->use_count = 1;
-    
+
     STRING_object = Object_initString("object", 6); // 19
     STRING_object->use_count = 1;
-    
-    
-    
+
+
+
     CONSTANT_TABLE_FOR_COMPILATION = Object_initTable(1024); // init constant table
     // add those constants to table
     Table_setval(CONSTANT_TABLE_FOR_COMPILATION, QUOTE_STRING, Object_initInteger(250));         // 0
@@ -129,7 +129,7 @@ void Walley_init_constants(){
     Table_setval(CONSTANT_TABLE_FOR_COMPILATION, STRING_type, Object_initInteger(268));
     Table_setval(CONSTANT_TABLE_FOR_COMPILATION, STRING_object, Object_initInteger(269));
     CONSTANT_TABLE_FOR_COMPILATION_LENGTH = 270; // set length
-    
+
     // init Constant_Pool
     Constant_Pool = (Object**)malloc(sizeof(Object*)*1024);
     Constant_Pool_Size = 1024;
@@ -141,8 +141,8 @@ void Walley_init_constants(){
         t->use_count = 1;
         Constant_Pool[i] = t;
     }
-    
-    
+
+
     // init Constant Pool according to CONSTANT_TABLE_FOR_COMPILATION
     Constant_Pool[250] = QUOTE_STRING;
     Constant_Pool[251] = UNQUOTE_STRING;
@@ -164,9 +164,9 @@ void Walley_init_constants(){
     Constant_Pool[267] = STRING_proto;
     Constant_Pool[268] = STRING_type;
     Constant_Pool[269] = STRING_object;
-    
+
     Constant_Pool_Length = 270; // set length
-    
+
     // init CONSTANT_TABLE_INSTRUCTIONS for compiler
     CONSTANT_TABLE_INSTRUCTIONS = Insts_init();
     CONSTANT_TABLE_INSTRUCTIONS_TRACK_INDEX = 0;
@@ -178,20 +178,20 @@ void Walley_init_constants(){
 void Walley_init(){
     // init constants
     Walley_init_constants();
-    
+
     // init global insts, vt, env, mt
     GLOBAL_INSTRUCTIONS = Insts_init();
     GLOBAL_VARIABLE_TABLE = VT_init();
     GLOBAL_ENVIRONMENT = createEnvironment();
     GLOBAL_MACRO_TABLE = MT_init();
     GLOBAL_MODULE = Module_init();
-    
+
     int32_t i = 0;
     // add variables offset to module
     for (i = 0; i < GLOBAL_VARIABLE_TABLE->frames[0]->length; i++) {
         Module_addOffset(GLOBAL_MODULE, i); // add offset
     }
-    
+
     // init loaded_modules
 	LOADED_MODULES = (Loaded_Modules*)malloc(sizeof(Loaded_Modules));
     LOADED_MODULES->next = NULL;
@@ -208,17 +208,17 @@ void Walley_Finalize(){
         Constant_Pool[i]->use_count--;
         Object_free(Constant_Pool[i]);
     }
-    
+
     free(CONSTANT_TABLE_INSTRUCTIONS->array);
     free(CONSTANT_TABLE_INSTRUCTIONS);
-    
+
     free(GLOBAL_INSTRUCTIONS->array);
     free(GLOBAL_INSTRUCTIONS);
-    
+
     VT_free(GLOBAL_VARIABLE_TABLE);
-    
+
     Env_free(GLOBAL_ENVIRONMENT);
-    
+
     for (i = 0; i < GLOBAL_MACRO_TABLE->length; i++) {
         int32_t j;
         MacroTableFrame * mtf = GLOBAL_MACRO_TABLE->frames[i];
@@ -230,7 +230,7 @@ void Walley_Finalize(){
     }
     // free(GLOBAL_MACRO_TABLE->frames);
     free(GLOBAL_MACRO_TABLE);
-    
+
 }
 
 /*
@@ -240,7 +240,7 @@ struct Environment_Frame {
     Object ** array;
     int32_t length;
     int32_t use_count;
-    
+
     int32_t size;
 };
 
@@ -251,6 +251,10 @@ void EF_free(Environment_Frame * ef){
     if (ef->use_count == 0) {
         int32_t i;
         for (i = 0; i < ef->length; i++) {
+            if (ef->array[i] == NULL) { // 这里不检查的话会有bug, 可能是vm或者compiler哪里有问题。
+                // printf("ef->array[i] is NULL, but it shouldnt\n");
+                return;
+            }
             ef->array[i]->use_count--;
             Object_free(ef->array[i]);
         }
@@ -281,7 +285,7 @@ Environment_Frame * EF_copy(Environment_Frame * ef){
         return NULL;
     }
     Environment_Frame * new_ef = EF_init_with_size(ef->size);
-    
+
     // copy
     int32_t i;
     for (i = 0; i < ef->length; i++) {
@@ -328,9 +332,9 @@ Environment_Frame *createFrame0(){
     frame->length = 0;
     frame->array = GLOBAL_FRAME;
     frame->use_count = 0;
-    
+
     uint32_t count = 0;
-    
+
     // add builtin lambda                                // module:
     EF_set_builtin_lambda(frame, &builtin_cons);         // global
     EF_set_builtin_lambda(frame, &builtin_car);          // global
@@ -375,7 +379,7 @@ Environment_Frame *createFrame0(){
     EF_set_builtin_lambda(frame, &builtin_display_string);   // global
     EF_set_builtin_lambda(frame, &builtin_string_to_int);    // string
     EF_set_builtin_lambda(frame, &builtin_string_to_float);  // string
-    
+
     EF_set_builtin_lambda(frame, &builtin_null_type);       // global
     EF_set_builtin_lambda(frame, &builtin_numer);            // ratio
     EF_set_builtin_lambda(frame, &builtin_denom);            // ratio
@@ -434,8 +438,8 @@ Environment_Frame *createFrame0(){
     frame->array[count] = Object_initInteger(3); // call/cc // global
     frame->array[count]->use_count++;
     count++;
-    
-    
+
+
     frame->length = count; // set length
     return frame;
 }

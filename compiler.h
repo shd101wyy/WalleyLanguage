@@ -92,7 +92,7 @@ Object * quasiquote_list(Object * l){
 
 /*
 * This function si used in macro_match function
-* when macro doesn't match, free stored varnames. 
+* when macro doesn't match, free stored varnames.
 */
 void free_varnames(char **var_names, int32_t count){
     int16_t i;
@@ -103,11 +103,11 @@ void free_varnames(char **var_names, int32_t count){
 /*
  macro_match
  return length of var_names
- (defmacro test 
-     (x) x 
+ (defmacro test
+     (x) x
      (#hi x) y
      (x y) x)
- 
+
  */
 int32_t macro_match(Object * a, Object * b, char **var_names, Object **var_values, int32_t count){
 #if MACRO_DEBUG
@@ -130,7 +130,7 @@ int32_t macro_match(Object * a, Object * b, char **var_names, Object **var_value
         if (!match){
             free_varnames(var_names, count);
             return 0; // doesn't match
-        } 
+        }
         return macro_match(cdr(a),
                            cdr(b),
                            var_names,
@@ -147,7 +147,7 @@ int32_t macro_match(Object * a, Object * b, char **var_names, Object **var_value
             if(car(b)->type != STRING){
                 free_varnames(var_names, count);
                 return 0; // doesn't match
-            } 
+            }
             if (strcmp( &(*((char*)car(a)->data.String.v + 1)), car(b)->data.String.v) == 0) {
                 return macro_match(cdr(a),
                                    cdr(b),
@@ -173,7 +173,7 @@ int32_t macro_match(Object * a, Object * b, char **var_names, Object **var_value
         }
         else{
             char * temp = (char*)malloc(sizeof(char) * (strlen(car(a)->data.String.v) + 1));
-            strcpy(temp, car(a)->data.String.v); 
+            strcpy(temp, car(a)->data.String.v);
             var_names[count] = temp; // save var_name
             var_values[count] = car(b); // save var_value
             count++;
@@ -249,7 +249,7 @@ Object * macro_expansion_replacement(Object * expanded_value,
 
 /*
  I need to think about it
- 
+
  (defn test []
  (defn hi [] (display "Hi"))
  (defmacro t [] '(hi))
@@ -283,40 +283,40 @@ Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable *
             printf("Macro Match\n");
             printf("Match length %d\n", match);
 #endif
-            
+
             // return value
             Object * expanded_value;
-            
+
             // 只用 env 和 vt 的第一个frame
             // 这里我手动写吧。。
             Variable_Table * new_vt;
             Environment * new_env;
             Variable_Table_Frame * new_vt_top_frame;
             Environment_Frame * new_env_top_frame;
-            
+
             // init vt frame
 			new_vt_top_frame = (Variable_Table_Frame*)malloc(sizeof(Variable_Table_Frame));
             // new_vt_top_frame->use_count = 1; // 后面要被使用
             new_vt_top_frame->var_names = (char**)malloc(sizeof(char*)*match);
             new_vt_top_frame->length = match; // set length directly
-            new_vt_top_frame->use_count = 1; 
-            
+            new_vt_top_frame->use_count = 1;
+
             // init vt
 			new_vt = (Variable_Table*)malloc(sizeof(Variable_Table));
             new_vt->frames[0] = macro->vt->frames[0];
             new_vt->frames[1] = new_vt_top_frame;
             new_vt->length = 2; // set length
-            
+
             // init env frame
             new_env_top_frame = EF_init_with_size(match+1);
-            
+
             // init env
             new_env = Env_init_with_size(64);
             new_env->frames[0] = global_env->frames[0]; // 指向第一个frame
             new_env->frames[1] = new_env_top_frame;
             new_env->length = 2; // set length
             new_env_top_frame->use_count = 1 ;
-            
+
             // add var name to top frame of new_vt;
             for (i = 0; i < match; i++) {
                 if (var_names[i][0] == ' ') {
@@ -336,7 +336,7 @@ Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable *
                     if (var_values[i]->type == PAIR && car(var_values[i])->type == STRING) {
                         temp = car(var_values[i]);
                         char * t = temp->data.String.v;
-                        
+
                         // 不改变以下的这几个
                         if (str_eq(t, "quasiquote") || str_eq(t, "quote")
                             || str_eq(t, "unquote-splice")) {
@@ -352,26 +352,26 @@ Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable *
                         }
                     }
                 }
-                
+
                 // 这里不用 VT_push了因为不用copy string了
                 new_vt_top_frame->var_names[i] = var_names[i];
-                
+
                 new_env_top_frame->array[i] = var_values[i];
                 var_values[i]->use_count++; // in use
-                
+
 #if MACRO_DEBUG
                 printf("\nVar-Name  :%s\n", var_names[i]);
                 printf("Var-Value :\n");
                 printf("%s\n", to_string(var_values[i]));
 #endif
-                
+
             }
-            
+
             // save start-pc and length
             start_pc = insts->start_pc;
             insts_length = insts->length;
-            
-            
+
+
             // compile and run
             compiler_begin(insts,
                            cons(car(cdr(clauses)), GLOBAL_NULL)
@@ -383,12 +383,12 @@ Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable *
                            new_env,
                            mt,
                            module);
-            
+
             // cannot run in compiler_begin,
             // because the default insts->start_pc is wrong
             // should use insts_length as start_pc;
             expanded_value = VM(insts, insts_length, insts->length, new_env, NULL, NULL, module, GLOBAL_NULL, NULL);
-            
+
 #if MACRO_DEBUG
             printf("\n");
             printInstructions(insts);
@@ -401,9 +401,9 @@ Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable *
             // restore start-pc and length
             insts->start_pc = start_pc;
             insts->length = insts_length;
-            
+
             // 一改还得free其他的, var_values不用free
-            // 因为 
+            // 因为
             //     var_values 会随着 parser 而free掉
             // free new_vt
             // printf("\n match %d\n", match);
@@ -420,18 +420,18 @@ Object * macro_expand_for_compilation(Macro * macro, Object * exps, MacroTable *
             EF_free(new_env_top_frame);
             free(new_env->frames);
             free(new_env);
-            
+
             // printf("expanded_value %s\n", to_string(expanded_value));
             // 假设运行完了得到了 expanded_value
             // 根据 macro->vt 替换首项
             expanded_value_after_replacement = macro_expansion_replacement(expanded_value, macro->vt, true, module);
             Object_free(expanded_value);
-            
+
             // printf("after expand: %s %d\n", to_string(expanded_value_after_replacement), expanded_value_after_replacement->use_count);
             return expanded_value_after_replacement;
         }
-        // free var_names; 
-        
+        // free var_names;
+
         clauses = cddr(clauses);
         continue;
     }
@@ -479,7 +479,7 @@ int16_t compiler(Instructions * insts,
             return 0;
         case INTEGER: // integer
             int_ = l->data.Integer.v;
-            
+
             // if int_ is within [0 250), then load from constant pool
             if (int_ >= 0 && int_ < 250) {
                 // load from constant pool
@@ -495,7 +495,7 @@ int16_t compiler(Instructions * insts,
             return 0;
         case DOUBLE_:
             double_ = l->data.Double.v;
-            
+
 			unsigned_int_ = (uint64_t *)&double_; // get hex
             Insts_push(insts, CONST_FLOAT);
             Insts_push(insts, (0xFFFF000000000000ULL & (uint64_t)(*unsigned_int_)) >> 48);
@@ -527,7 +527,7 @@ int16_t compiler(Instructions * insts,
                 else{ // doesn't exist, save to table
                     Insts_push(insts, CONST_LOAD); // load from table
                     Insts_push(insts, CONSTANT_TABLE_FOR_COMPILATION_LENGTH);
-                    
+
                     Table_setval(CONSTANT_TABLE_FOR_COMPILATION,
                                  v,
                                  Object_initInteger(CONSTANT_TABLE_FOR_COMPILATION_LENGTH));
@@ -538,7 +538,7 @@ int16_t compiler(Instructions * insts,
                 if(strcmp("你", s) == 0){
                     printf("找到了你\n");
                 }*/
-                
+
                 Insts_push(CONSTANT_TABLE_INSTRUCTIONS, CONST_STRING);
                 Insts_push(CONSTANT_TABLE_INSTRUCTIONS, length);
                 find_end = false;
@@ -580,12 +580,12 @@ int16_t compiler(Instructions * insts,
                 }
                 Insts_push(insts, GET<<12 | vt_find[0]); // frame index
                 Insts_push(insts, vt_find[1]); // value index
-                
+
                 // check continue and break
                 if (str_eq(l->data.String.v, "break") || str_eq(l->data.String.v, "continue")) {
                     Insts_push(insts, RETURN << 12);
                 }
-                
+
                 return 0;
             }
         case PAIR:
@@ -675,7 +675,7 @@ int16_t compiler(Instructions * insts,
                     return 0;
                 }
                 else if(v->data.String.v[0] != '\''){
-                    
+
                     string = (char*)malloc(sizeof(char) * (2 + v->data.String.length + 1));
                     strcpy(string, "\"");
                     strcat(string, v->data.String.v);
@@ -720,7 +720,7 @@ int16_t compiler(Instructions * insts,
                 else if (cdddr(l) != GLOBAL_NULL){
                     // Here might exist problems
                     // need to free var_value later.
-                    need_to_free_var_value = 1; 
+                    need_to_free_var_value = 1;
                     var_value = cons(LAMBDA_STRING,
                                      cons(caddr(l), cdddr(l)));
                 }
@@ -734,7 +734,7 @@ int16_t compiler(Instructions * insts,
                         if (str_eq(var_name->data.String.v,
                                    vt->frames[0]->var_names[module->variable_offset[i]])) {
                             printf("DEFINITION ERROR: variable: %s already defined\n", var_name->data.String.v);
-                            
+
                             string = to_string(l);
                             printf("           EXP: %s\n", string);
                             free(string);
@@ -784,13 +784,13 @@ int16_t compiler(Instructions * insts,
                          env,
                          mt,
                          module);
-                
+
                 if(need_to_free_var_value) Object_free(var_value);
-                
+
                 if (i == 1) { // new required
                     LOADED_MODULES->offset = set_index;// save offset
                 }
-                
+
                 // global
                 if (vt->length == 1) {
                     Insts_push(insts, GLOBAL_PUSH << 12);
@@ -840,7 +840,7 @@ int16_t compiler(Instructions * insts,
                     Object_free(temp_);
                     return 0;
                 }
-                
+
                 // change value of a variable
                 var_name = cadr(l);
                 var_value = caddr(l);
@@ -870,11 +870,11 @@ int16_t compiler(Instructions * insts,
                              env,
                              mt,
                              module);
-                    
+
                     if (i == 1) { // new loaded
                         LOADED_MODULES->offset = vt_find[1]; // save offset
                     }
-                    
+
                     Insts_push(insts, SET << 12 | (0x0FFF & vt_find[0])); // frame_index
                     Insts_push(insts, vt_find[1]); // value index
                     return 0;
@@ -921,11 +921,11 @@ int16_t compiler(Instructions * insts,
                     printf("ERROR: Failed to load %s\n", file_name);
                     Insts_push(insts, CONST_NULL);
                     free(file_name_ptr);
-                    
+
                     string = to_string(l);
                     printf("  EXP: %s\n", string);
                     free(string);
-                    
+
                     return 0; // return 0 means already loaded or error
                 }
                 char * content;
@@ -940,7 +940,7 @@ int16_t compiler(Instructions * insts,
                     return 0;
                 }
                 fclose(file); // 不知道要不要加上这个
-                
+
                 Lexer * p;
                 Object * o;
                 p = lexer(content);
@@ -1004,7 +1004,7 @@ int16_t compiler(Instructions * insts,
                         printf("ERROR: Failed to require file: %s\n", file_name);
                         return 0;
                     }
-#endif                    
+#endif
                     // check modules loaded or not
                     uint16_t offset = checkModuleLoaded(&LOADED_MODULES, abs_path, vt->frames[0]);
                     if (offset > 0) { // already loaded
@@ -1013,7 +1013,7 @@ int16_t compiler(Instructions * insts,
                         free(file_name_ptr);
                         return 0; // return 0 means already loaded
                     }
-                    
+
                     // printf("here %s\n", abs_path);
                     /*
                      * TODO : 检查 abs_path 已经load过了
@@ -1040,15 +1040,15 @@ int16_t compiler(Instructions * insts,
                             printf("ERROR: Failed to require %s\n", file_name_ptr);
                             Insts_push(insts, CONST_NULL);
                             free(file_name_ptr);
-                            
+
                             string = to_string(l);
                             printf("  EXP: %s\n", string);
                             free(string);
-                            
+
                             return 0; // return 0 means already loaded or error
                         }
                     }
-                    
+
 		    //FOUND_FILE:;
                     char * content;
                     fseek(file, 0, SEEK_END);
@@ -1061,8 +1061,8 @@ int16_t compiler(Instructions * insts,
                         return 0;
                     }
                     fclose(file); // 不知道要不要加上这个
-                    
-                    
+
+
                     Lexer * p;
                     Object * o;
                     p = lexer(content);
@@ -1115,7 +1115,7 @@ int16_t compiler(Instructions * insts,
                 Insts_push(insts, TEST << 12); // jump over consequence
                 index1 = insts->length;
                 Insts_push(insts, 0x0000); // jump steps
-                
+
                 //printf("\n@ %ld\n", insts->length);
                 //parser_debug(conseq);
                 // compiler_begin ...
@@ -1129,14 +1129,14 @@ int16_t compiler(Instructions * insts,
                                mt,
                                module);
                 //printf("\n@ %ld\n", insts->length);
-                
+
                 index2 = insts->length;
                 Insts_push(insts, JMP<<12); // jmp
                 Insts_push(insts, 0x0000); // jump over alternative
                 Insts_push(insts, 0x0000);
                 jump_steps = index2 - index1 + 4;
                 Insts_set(insts, index1, jump_steps);
-                
+
                 // compiler begin
                 compiler_begin(insts,
                                cons(alter, GLOBAL_NULL),
@@ -1147,12 +1147,12 @@ int16_t compiler(Instructions * insts,
                                env,
                                mt,
                                module);
-                
+
                 index3 = insts->length;
                 jump_steps = index3 - index2;
                 Insts_set(insts, index2 + 1, (0xFFFF0000 & jump_steps) >> 16);
                 Insts_set(insts, index2 + 2, (0x0000FFFF & jump_steps));
-                
+
                 // run if if necessary
                 /*
                  // cannot set acc,
@@ -1188,7 +1188,7 @@ int16_t compiler(Instructions * insts,
                 MacroTable * mt_ = MT_copy(mt); // new macro table
                 VT_add_new_empty_frame(vt_); // we add a new frame
                 MT_add_new_empty_frame(mt_); // we add a new frame
-                
+
                 //macros_.push([]); // add new frame
                 //env_.push([]); // 必须加上这个， 要不然((lambda () (defmacro square ([x] `[* ~x ~x])) (square 12))) macro 会有错
                 while (true) {
@@ -1215,7 +1215,7 @@ int16_t compiler(Instructions * insts,
                     counter++;
                     params = cdr(params);
                 }
-                
+
                 // make lambda
                 Insts_push(insts,
                            (MAKELAMBDA << 12)
@@ -1226,7 +1226,7 @@ int16_t compiler(Instructions * insts,
                 Insts_push(insts, 0x0000); // steps that needed to jump over lambda
                 Insts_push(insts, 0x0000); // used to save frame-length
                 start_pc = insts->length; // get start_pc
-                
+
                 // set function_for_compilation
 				Lambda_for_Compilation * function_ = (Lambda_for_Compilation*)malloc(sizeof(Lambda_for_Compilation));
                 function_->start_pc = start_pc;
@@ -1234,7 +1234,7 @@ int16_t compiler(Instructions * insts,
                 function_->variadic_place = variadic_place;
                 function_->vt = vt_;
                 function_->is_tail_call = 0; // for tail call
-                
+
                 // compile body
                 // 关于这里 compiler_begin 不用 free function_里面的vt_
                 // 因为 vt_ 已经被 free 掉
@@ -1251,7 +1251,7 @@ int16_t compiler(Instructions * insts,
                 Insts_push(insts, RETURN << 12);
                 index2 = insts->length;
                 insts->array[index1] = index2 - index1 + 1; // set jump steps
-                
+
                 // save frame length
                 if (variadic_place != -1) { // variadic
                     insts->array[index1 + 1] = 64; // 64 maximum
@@ -1259,7 +1259,7 @@ int16_t compiler(Instructions * insts,
                 else{
                     insts->array[index1 + 1] = vt_->frames[vt_->length - 1] -> length; // save frame length
                 }
-                
+
                 // 这里出错了, 因该只用free 最top的
                 // VT_free(vt_); // free vt_;
                 // free(vt_);
@@ -1275,7 +1275,7 @@ int16_t compiler(Instructions * insts,
                 free(vt_->frames[vt_->length - 1]);
                 vt_->frames[vt_->length - 1] = NULL;
                 free(vt_);
-                
+
                 // free macro table
                 MacroTableFrame * top_frame = mt_->frames[mt_->length - 1];
                 for (i = 0; i < top_frame->length; i++) {
@@ -1286,18 +1286,18 @@ int16_t compiler(Instructions * insts,
                 top_frame->array = NULL;
                 free(top_frame);
                 free(mt_);
-                
+
                 vt_ = NULL;
                 mt_ = NULL;
-                
+
                 free(function_); // free lambda for compilation
                 function_ = NULL;
-                
+
                 return 0;
             }
             /*
-             (defmacro macro_name 
-                       var0 pattern0 
+             (defmacro macro_name
+                       var0 pattern0
                        var1 pattern1 ...)
              */
             else if (str_eq(tag, "defmacro")){
@@ -1307,11 +1307,11 @@ int16_t compiler(Instructions * insts,
                 // length = frame->length;
                 for (i = frame->length - 1; i >= 0; i--) {
                     if (str_eq(var_name->data.String.v, frame->array[i]->macro_name)) { // already existed
-                        
+
                         free(frame->array[i]->macro_name);
                         frame->array[i]->clauses->use_count--;
                         Object_free(frame->array[i]->clauses);
-                        
+
                         clauses->use_count+=1; // 必须+1
                         frame->array[i] = Macro_init(var_name->data.String.v, (clauses), VT_copy(vt));
                         return 0;
@@ -1323,7 +1323,7 @@ int16_t compiler(Instructions * insts,
                     frame->size*=2;
                     frame->array = (Macro**)realloc(frame->array, frame->size);
                 }
-                
+
                 clauses->use_count+=1; // 必须+1
                 frame->array[frame->length] = Macro_init(var_name->data.String.v, (clauses), VT_copy(vt));
                 frame->length+=1;
@@ -1331,7 +1331,7 @@ int16_t compiler(Instructions * insts,
             }
             /*
              * export macro to upper level.
-             * eg (defn test [] 
+             * eg (defn test []
              *        (defm square [x] `(* ~x ~x))
              *        (export-macro square))       ;; export to upper level
              *    (square 12) ;; => 144
@@ -1429,11 +1429,11 @@ int16_t compiler(Instructions * insts,
                         param_num++;
                         p = cdr(p);
                     }
-                    
+
                     // only one parameters
                     // eg (def test (lambda [i] (if (= i 0) 0 (test (- i 1)))))
                     // 但是没想到这样反而慢了。。。
-                    
+
                     if (param_num == 1) {
                         compiler(insts,
                                  params[0],
@@ -1444,7 +1444,7 @@ int16_t compiler(Instructions * insts,
                                  env,
                                  mt,
                                  module); // compile that one parameter
-                        
+
                         // set tp current frame
                         Insts_push(insts, (SET << 12) | (vt->length - 1)); // frame index
                         Insts_push(insts, 0x0000FFFF & 0x0000); // value index, which is 0
@@ -1470,9 +1470,9 @@ int16_t compiler(Instructions * insts,
                                      env,
                                      mt,
                                      module); // each argument is not tail call
-                            
+
                             Object_free(p);
-                            
+
                             // set tp current frame
                             //Insts_push(insts, (SET << 12) | (vt->length - 1)); // frame index
                             // 这里不能用 SET_OP, 因为stack的size会一直增长。。。
@@ -1497,7 +1497,7 @@ int16_t compiler(Instructions * insts,
                             // 这里不能用 SET_OP, 因为stack的size会一直增长。。。
                             // Insts_push(insts, (SET_TOP << 12)); // frame index
                             // Insts_push(insts, 0x0000FFFF & track_index);
-                            
+
                             Insts_push(insts, TAIL_CALL_PUSH << 12 | track_index);
                             // value index
                         }
@@ -1519,7 +1519,7 @@ int16_t compiler(Instructions * insts,
                             }
                         }
                     }
-                    
+
                     // move parameters
                     for (i = 0; i < count_params; i++) {
                         // get value
@@ -1592,7 +1592,7 @@ int16_t compiler(Instructions * insts,
                 }
             }
         default:
-            
+
             printf("ERROR: Invalid Data\n");
             string = to_string(l);
             printf("  EXP: %s\n", string);
@@ -1613,7 +1613,7 @@ Object * compiler_begin(Instructions * insts,
                         Environment * env,
                         MacroTable * mt,
                         Module * module){
-    
+
     Object * acc = GLOBAL_NULL;
     Object * l_ = l; // make a copy of l, so that we can free it later
     while (l != GLOBAL_NULL) {
@@ -1646,7 +1646,7 @@ Object * compiler_begin(Instructions * insts,
                      module);
         }
         l = cdr(l);
-        
+
         if (eval_flag) {
 #if COMPILER_DEBUG
             printInstructions(insts);
@@ -1661,16 +1661,16 @@ Object * compiler_begin(Instructions * insts,
                      GLOBAL_NULL,
                      NULL); // run vm
             insts->start_pc = insts->length; // update start pc
-            
+
 #if COMPILER_DEBUG
             printf("\n### COMPILER_BEGIN VM ####");
             printf("\nGLOBAL FRAME => length %d", env->frames[0]->length);
 #endif
         }
     }
-    
+
     Object_free(l_); // free parser
-    
+
     return acc;
 }
 

@@ -1,0 +1,38 @@
+;; pattern match library
+;; by Yiyi Wang
+;;
+;;
+;;
+;;
+;;  (pattern-match? '(1 2) '(x y) {}) => {:x 1 :y 2}
+(def pattern-match? (arg0 arg1 result)
+    (def pattern-match?-helper (arg0 arg1)
+        (cond
+            (and (null? arg0) (null? arg1)) result
+            (or  (null? arg0) (null? arg1)) '()
+            else
+        ;        (if (list? (car arg1))
+        ;            (if (list? (car arg0))
+        ;                (begin  (pattern-match?-helper (car arg0) (car arg1))
+        ;                        (pattern-match?-helper (cdr arg0) (cdr arg1)))
+        ;                0)
+        ;            (if (not (eq? "_" (car arg1)))
+        ;                (begin  (result (car arg1) (car arg0))
+        ;                    (pattern-match?-helper (cdr arg0) (cdr arg1)))
+        ;                (pattern-match?-helper (cdr arg0) (cdr arg1))))
+                (cond
+                    (list? (car arg1))  (if (list? (car arg0))
+                                            (if (pattern-match?-helper (car arg0) (car arg1))
+                                                (pattern-match?-helper (cdr arg0) (cdr arg1))
+                                                '())
+                                            '())
+
+                    (not (eq? "_" (car arg1)))  (begin  (result (car arg1) (car arg0))
+                                                        (pattern-match?-helper (cdr arg0) (cdr arg1)))
+
+                    else (pattern-match?-helper (cdr arg0) (cdr arg1))
+                        )))
+    (pattern-match?-helper arg0 arg1))
+
+;(pattern-match? '(1) '(x))
+(print (pattern-match? '(1 (2 3)) '(x (y z)) {}))
