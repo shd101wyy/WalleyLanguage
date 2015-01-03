@@ -116,7 +116,7 @@ void Walley_Repl(){
      *
      */
     // run walley_core.wa (walley_core.h)
-    //Walley_RunString(WALLEY_CORE_CONTENT);
+    Walley_RunString(WALLEY_CORE_CONTENT);
     
     
     int32_t run_eval = true;
