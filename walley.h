@@ -42,11 +42,11 @@ void SwitchWorkingDirectory(char * working_path){
     // now abs_path is the folder
     if(chdir(working_path) != 0){ // change working directory.
         printf("walley.h ERROR: Failed to change working_path\n");
-        
+
     }
     //printf("Current Working Directory %s\n", getcwd(NULL, 0));
 #endif
-    
+
 }
 
 Object * Walley_Run_File_for_VM(char * file_name,
@@ -95,12 +95,12 @@ int32_t read_ints (const char* file_name, uint16_t ** instructions, int32_t * le
 void Walley_Repl(){
     // init walley
     Walley_init();
-    
+
     Lexer * p;
     Object * o;
-    
+
     GLOBAL_PUSH_SAVE_TO_VT = false; // GLOBAL_PUSH的时候不用把变量名字加入vt
-    
+
     //Instructions * insts = Insts_init();
     //Variable_Table * vt = VT_init();
     //Environment * env = createEnvironment();
@@ -110,19 +110,19 @@ void Walley_Repl(){
     Variable_Table * vt = GLOBAL_VARIABLE_TABLE;
     Environment * env = GLOBAL_ENVIRONMENT;
     MacroTable * mt = GLOBAL_MACRO_TABLE;
-    
+
     /*
      * todo: windows platform
      *
      */
     // run walley_core.wa (walley_core.h)
     Walley_RunString(WALLEY_CORE_CONTENT);
-    
-    
+
+
     int32_t run_eval = true;
     //Environment * env = NULL;
     //int run_eval = false;
-    
+
     Object * v;
     char * buffer = NULL;
     size_t n;
@@ -150,7 +150,7 @@ void Walley_Repl(){
             }
         }
         o = parser(p);
-                
+
         // compile
         v = compiler_begin(insts,
                        o,
@@ -161,23 +161,23 @@ void Walley_Repl(){
                        env,
                        mt,
                        GLOBAL_MODULE);
-        
+
         s = to_string(v);
         printf("\n        %s\n", (s));
         free(s); // need to free that value
-        
+
         // printf("\nuse count %d\n", v->use_count);
         Object_free(v); // free accumulator
-        
+
 
         // parser will be freed after compiler_begin finished
         //Object_free(o); // free parser
-        
-        
+
+
 #if WALLEY_DEBUG
         Walley_Debug(v);
 #endif
-        
+
     }
 }
 
@@ -185,7 +185,7 @@ void Walley_Repl(){
     suppose run .wa / .wac file
  */
 void Walley_Run_File(char * file_name){
-    
+
     // get abs_path of file_name
     char * abs_path;
     char working_path[512];
@@ -197,12 +197,12 @@ void Walley_Run_File(char * file_name){
         printf("walley.h ERROR: Failed to read file %s\n", file_name);
         return;
     }
-#endif 
+#endif
 	strcpy(working_path, abs_path);
     // change working directory
     SwitchWorkingDirectory(working_path);
-    
-    
+
+
     // check .wac file
     /*
     uint32_t file_name_length = (uint32_t)strlen(abs_path);
@@ -213,7 +213,7 @@ void Walley_Run_File(char * file_name){
         abs_path[file_name_length - 4] == '.') {
         return Walley_Run_Compiled_File(abs_path);
     }*/
-    
+
     // read content from file
     FILE* file = fopen(abs_path,"r");
     if(file == NULL)
@@ -222,13 +222,13 @@ void Walley_Run_File(char * file_name){
         free(abs_path);
         return; // fail to read
     }
-    
+
     fseek(file, 0, SEEK_END);
     int64_t size = ftell(file);
     rewind(file);
-    
+
     char* content = (char*)calloc(size + 1, 1);
-    
+
     size_t result = fread(content,1,size,file);
     if (result != size) {
         printf("walley.h ERROR: Failed to read file %s\n", abs_path);
@@ -236,46 +236,46 @@ void Walley_Run_File(char * file_name){
         free(abs_path);
         return;
     }
-    
+
     fclose(file); // 不知道要不要加上这个
-    
+
     // init walley
     Walley_init();
-    
+
     Lexer * p;
     Object * o;
-    
+
     GLOBAL_PUSH_SAVE_TO_VT = false; // GLOBAL_PUSH的时候不用把变量名字加入vt
-    
+
 /*
     Instructions * insts = Insts_init();
     Variable_Table * vt = VT_init();
     Environment * env = createEnvironment();
     MacroTable * mt = MT_init();
 */
-    
+
     Instructions * insts = GLOBAL_INSTRUCTIONS;
     Variable_Table * vt = GLOBAL_VARIABLE_TABLE;
     Environment * env = GLOBAL_ENVIRONMENT;
     MacroTable * mt = GLOBAL_MACRO_TABLE;
-    
-    
+
+
     // run walley_core.wa (walley_core.h)
     Walley_RunString(WALLEY_CORE_CONTENT);
-    
+
     int32_t run_eval = true;
-    
+
     //Environment * env = NULL;
     //int run_eval = false;
-    
+
     //Object * v;
-    
+
     p = lexer(content);
     if (p == NULL) {
         printf("ERROR: parentheses () num doesn't match");
     }
     o = parser(p);
-    
+
     // compile
     /*v = */compiler_begin(insts,
                        o,
@@ -304,13 +304,13 @@ void Walley_Run_Compiled_File(char * file_name){
         printf("Failed to read file\n");
         return;
     }
-    
+
     // init walley
     // Walley_init();
     Walley_init_constants();
-    
+
     GLOBAL_PUSH_SAVE_TO_VT = true; // GLOBAL_PUSH的时候用把变量名字加入vt
-    
+
     Instructions * insts = NULL; //  = GLOBAL_INSTRUCTIONS;
     GLOBAL_INSTRUCTIONS = NULL;
     //Variable_Table * vt = GLOBAL_VARIABLE_TABLE;
@@ -318,7 +318,7 @@ void Walley_Run_Compiled_File(char * file_name){
     Environment * env = createEnvironment();
     //MacroTable * mt = GLOBAL_MACRO_TABLE;
     GLOBAL_MACRO_TABLE = NULL;
-    
+
     uint16_t num = 0;
     uint32_t i = 0;
     uint64_t constant_table_insts_length = 0;
@@ -351,9 +351,9 @@ void Walley_Run_Compiled_File(char * file_name){
         i++;
     }
     fclose (file);
-    
+
     //printf("%llu %llu\n", constant_table_insts_length, insts_length);
-    
+
     VM(insts, 0, insts->length, env, NULL, NULL,
        NULL, GLOBAL_NULL, NULL); /* TODO add module */
     return;
@@ -375,37 +375,37 @@ Object * Walley_Run_File_for_VM(char * file_name,
         printf("Failed to read file %s\n", file_name);
         return GLOBAL_NULL; // fail to read
     }
-    
+
     fseek(file, 0, SEEK_END);
     int64_t size = ftell(file);
     rewind(file);
-    
+
     char* content = (char*)calloc(size + 1, 1);
-    
+
     size_t result = fread(content,1,size,file);
     if (result != size) {
         printf("walley.h ERROR: Failed to read file %s\n", file_name);
         free(content);
         return GLOBAL_NULL;
     }
-    
+
     fclose(file); // 不知道要不要加上这个
-    
+
     Lexer * p;
     Object * o;
-    
+
     int32_t run_eval = true;
-    
+
     //Environment * env = NULL;
     //int run_eval = false;
-    
-    
+
+
     p = lexer(content);
     if (p == NULL) {
         printf("ERROR: parentheses () num doesn't match");
     }
     o = parser(p);
-    
+
     // compile
     Object * return_value = compiler_begin(insts,
                            o,
@@ -416,7 +416,7 @@ Object * Walley_Run_File_for_VM(char * file_name,
                            env,
                            mt,
                            GLOBAL_MODULE);
-    
+
     free(content);
     return return_value;
 }
@@ -426,15 +426,15 @@ Object * Walley_Run_File_for_VM(char * file_name,
 Object * Walley_RunString(char * input_string){
     Lexer * p;
     Object * o;
-    
+
     int32_t run_eval = true;
-    
+
     p = lexer(input_string);
     if (p == NULL) {
         printf("ERROR: parentheses () num doesn't match");
     }
     o = parser(p);
-    
+
     // compile
     Object * return_value = compiler_begin(GLOBAL_INSTRUCTIONS,
                                            o,
@@ -445,7 +445,7 @@ Object * Walley_RunString(char * input_string){
                                            GLOBAL_ENVIRONMENT,
                                            GLOBAL_MACRO_TABLE,
                                            GLOBAL_MODULE);
-    
+
     return return_value;
 
 }
@@ -484,7 +484,7 @@ void Walley_Compile(char * file_name){
 	strcpy(working_path, abs_path);
     // change working directory
     SwitchWorkingDirectory(working_path);
-    
+
     COMPILATION_MODE = 1; // if under compilation mode, no print necessary
     GLOBAL_PUSH_SAVE_TO_VT = false; // GLOBAL_PUSH的时候不用把变量名字加入vt
 
@@ -494,13 +494,13 @@ void Walley_Compile(char * file_name){
         printf("Failed to read file %s\n", abs_path);
         return; // fail to read
     }
-    
+
     fseek(file, 0, SEEK_END);
     int64_t size = ftell(file);
     rewind(file);
-    
+
     char* content = (char*)calloc(size + 1, 1);
-    
+
     size_t result = fread(content,1,size,file);
     if (result != size) {
         printf("walley.h ERROR: Failed to read file %s\n", file_name);
@@ -508,41 +508,41 @@ void Walley_Compile(char * file_name){
         return;
     }
     fclose(file); // 不知道要不要加上这个
-    
+
     // init walley
     Walley_init();
-    
+
     Lexer * p;
     Object * o;
-    
+
     /*
      Instructions * insts = Insts_init();
      Variable_Table * vt = VT_init();
      Environment * env = createEnvironment();
      MacroTable * mt = MT_init();
      */
-    
+
     Instructions * insts = GLOBAL_INSTRUCTIONS;
     Variable_Table * vt = GLOBAL_VARIABLE_TABLE;
     Environment * env = GLOBAL_ENVIRONMENT;
     MacroTable * mt = GLOBAL_MACRO_TABLE;
-    
+
     // run walley_core.wa (walley_core.h)
     Walley_RunString(WALLEY_CORE_CONTENT);
-    
+
     int32_t run_eval = true;
-    
+
     //Environment * env = NULL;
     //int run_eval = false;
-    
+
     //Object * v;
-    
+
     p = lexer(content);
     if (p == NULL) {
         printf("ERROR: parentheses () num doesn't match");
     }
     o = parser(p);
-    
+
     // compile
     /*v = */compiler_begin(insts,
                            o,
@@ -553,19 +553,19 @@ void Walley_Compile(char * file_name){
                            env,
                            mt,
                            GLOBAL_MODULE);
-    
+
     free(content);
-    
+
     //printf("INSTS LENGTH %llu\n", insts->length);
     //printf("CONSTANT TABLE LENGTH %llu\n", CONSTANT_TABLE_INSTRUCTIONS->length);
-    
+
     char file_name_buffer[256];
     char inst_buffer[64];
     strcpy(file_name_buffer, abs_path);
     strcat(file_name_buffer, "c");
     file = fopen(file_name_buffer, "w");
     uint64_t i;
-    
+
     // first 64 bits, length of CONSTANT_TABLE_INSTRUCTIONS
     sprintf(inst_buffer, "%04x ", (uint16_t)((CONSTANT_TABLE_INSTRUCTIONS->length & 0xFFFF000000000000) >> 48));
     fputs(inst_buffer, file);
@@ -585,13 +585,13 @@ void Walley_Compile(char * file_name){
     fputs(inst_buffer, file);
     sprintf(inst_buffer, "%04x ", (uint16_t)((insts->length & 0x000000000000FFFF) >> 0));
     fputs(inst_buffer, file);
-    
+
     // 0000 0000 0000 0000 length of CONSTANT_TABLE_INSTRUCTIONS
     // 0000 0000 0000 0000 length of insts
     // 0000                reserved
-    
+
     fputs("0000 ", file);
-    
+
     // save CONSTANT TABLE INSTRUCTIONS
     for (i = 0; i < CONSTANT_TABLE_INSTRUCTIONS->length; i++) {
         sprintf(inst_buffer, "%04x ", CONSTANT_TABLE_INSTRUCTIONS->array[i]);
@@ -603,7 +603,7 @@ void Walley_Compile(char * file_name){
         fputs(inst_buffer, file);
     }
     fclose(file);
-    
+
     return;
 }
 
@@ -615,6 +615,3 @@ void quit_program_signal_handler(){
 
 
 #endif
-
-
-

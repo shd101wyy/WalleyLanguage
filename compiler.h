@@ -885,7 +885,7 @@ int16_t compiler(Instructions * insts,
              *
              */
             else if (str_eq(tag, "load")){
-                char abs_path[256];
+                char * abs_path = NULL;
                 char * file_name_ptr;
                 char file_name[256];
                 if (cadr(l)->type == PAIR && str_eq(car(cadr(l))->data.String.v, "quote")) {
@@ -910,7 +910,7 @@ int16_t compiler(Instructions * insts,
 #ifdef WIN32
 				GetFullPathName((TCHAR*)file_name, 256, (TCHAR*)abs_path, NULL); // I don't know is this correct
 #else
-                if(!realpath(file_name, abs_path)){
+                if(!(abs_path = realpath(file_name, NULL))){
                     printf("ERROR: Failed to load %s\n", file_name);
                     return 0;
                 }
@@ -925,7 +925,7 @@ int16_t compiler(Instructions * insts,
                     string = to_string(l);
                     printf("  EXP: %s\n", string);
                     free(string);
-
+                    free(abs_path);
                     return 0; // return 0 means already loaded or error
                 }
                 char * content;
@@ -937,6 +937,7 @@ int16_t compiler(Instructions * insts,
                 if (result != size) {
                     printf("ERROR: Failed to load %s\n", file_name);
                     free(content);
+                    free(abs_path);
                     return 0;
                 }
                 fclose(file); // 不知道要不要加上这个
@@ -958,6 +959,7 @@ int16_t compiler(Instructions * insts,
                                mt,
                                module);
                 free(content);
+                free(abs_path);
                 return 0;
             }
             /*
@@ -975,7 +977,7 @@ int16_t compiler(Instructions * insts,
                     return 0;
                 }
                 else{
-                    char abs_path[256];
+                    char * abs_path;
                     char * file_name_ptr;
                     char file_name[256];
                     if (cadr(l)->type == PAIR && str_eq(car(cadr(l))->data.String.v, "quote")) {
@@ -1000,7 +1002,7 @@ int16_t compiler(Instructions * insts,
 #ifdef WIN32
 					GetFullPathName((TCHAR*)file_name, 256, (TCHAR*)abs_path, NULL); // I don't know is this correct
 #else
-                    if(!realpath(file_name, abs_path)){
+                    if(!(abs_path = realpath(file_name, NULL))){
                         printf("ERROR: Failed to require file: %s\n", file_name);
                         return 0;
                     }
@@ -1011,6 +1013,7 @@ int16_t compiler(Instructions * insts,
                         Insts_push(insts, GET<<12 | 0);
                         Insts_push(insts, offset);
                         free(file_name_ptr);
+                        free(abs_path);
                         return 0; // return 0 means already loaded
                     }
 
@@ -1044,7 +1047,7 @@ int16_t compiler(Instructions * insts,
                             string = to_string(l);
                             printf("  EXP: %s\n", string);
                             free(string);
-
+                            free(abs_path);
                             return 0; // return 0 means already loaded or error
                         }
                     }
@@ -1058,6 +1061,7 @@ int16_t compiler(Instructions * insts,
                     size_t result = fread(content,1,size,file);
                     if (result != size) {
                         printf("ERROR: Failed to require file: %s\n", file_name);
+                        free(abs_path);
                         return 0;
                     }
                     fclose(file); // 不知道要不要加上这个
@@ -1093,6 +1097,7 @@ int16_t compiler(Instructions * insts,
                 //LOAD_DONE:
                     free(content);
                     free(file_name_ptr);
+                    free(abs_path);
                     return 1;
                 }
             }

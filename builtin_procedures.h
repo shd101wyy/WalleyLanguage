@@ -346,10 +346,10 @@ Object *builtin_vector_push(Object ** params, uint32_t param_num){
 Object *builtin_vector_pop(Object ** params, uint32_t param_num){
     Object * vec = params[0];
     uint64_t length = vector_Length(vec);
-    
+
     Object *return_out = vector_Get(vec, length - 1); // get pop value
     return_out->use_count--;                          // decrement use count
-    
+
     vector_Get(vec, length - 1) = GLOBAL_NULL; // clear that variable
     length = length - 1;
     vec->data.Vector.length = length; // reset length
@@ -443,7 +443,7 @@ int32_t lt_2(Object * p1, Object * p2){
                     return (p1->data.Double.v < p2->data.Double.v) ? 1 : 0;
                 case RATIO:
                     return (p1->data.Double.v < p2->data.Ratio.numer/p2->data.Ratio.denom) ? 1 : 0;
-                    
+
                 default:
                     printf("ERROR: < invalid data type\n");
                     printf("     :%s\n", to_string(p2));
@@ -508,7 +508,7 @@ int32_t le_2(Object * p1, Object * p2){
                     return (p1->data.Double.v <= p2->data.Double.v) ? 1 : 0;
                 case RATIO:
                     return (p1->data.Double.v <= p2->data.Ratio.numer/p2->data.Ratio.denom) ? 1 : 0;
-                    
+
                 default:
                     printf("ERROR: <= invalid data type\n");
                     printf("     :%s\n", to_string(p2));
@@ -579,7 +579,7 @@ Object *builtin_string_type(Object ** params, int param_num){
         return GLOBAL_TRUE;
     return GLOBAL_NULL;
 }
- 
+
  16 ===> load int_index 1
  */
 /*
@@ -714,13 +714,13 @@ Object * builtin_file_read(Object ** params, uint32_t param_num){
     {
         return GLOBAL_NULL; // fail to read
     }
-    
+
     fseek(file, 0, SEEK_END);
     uint64_t size = ftell(file);
     rewind(file);
-    
+
     char* content = (char*)calloc(size + 1, 1);
-    
+
     size_t result = fread(content,1,size,file);
     if (result != size) {
         free(content);
@@ -1329,14 +1329,16 @@ Object * builtin_bitwise_or(Object ** params, uint32_t param_num){
 }
 // 73 abs_path
 Object * builtin_abs_path(Object ** params, uint32_t param_num){
-    char abs_path[256];
+    char * abs_path = NULL;
     // get absolute path
 #ifdef WIN32
     GetFullPathName((TCHAR*)params[0]->data.String.v, 256, (TCHAR*)abs_path, NULL); // I don't know is this correct
 #else
-    if(!realpath(params[0]->data.String.v, abs_path)) return GLOBAL_NULL;
+    if(!(abs_path = realpath(params[0]->data.String.v, NULL))) return GLOBAL_NULL;
 #endif
-    return Object_initString(abs_path, strlen(abs_path));
+    Object * o =  Object_initString(abs_path, strlen(abs_path));
+    free(abs_path);
+    return o;
 }
 // 74 float->int64
 Object * builtin_float_to_int64(Object ** params, uint32_t param_num){
