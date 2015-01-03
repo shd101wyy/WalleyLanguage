@@ -1,4 +1,4 @@
-﻿//
+//
 //  data_type.c
 //  walley
 //
@@ -92,41 +92,41 @@ struct  Table_Pair{ // used for table
  several data types
  */
 struct Object {
-    DataType type;
-    uint32_t use_count;
+    DataType type;        // 4 bytes
+    uint32_t use_count;   // 4 bytes
     union {
-        struct {
+        struct {      // 8 bytes 
             int64_t v; // 将来会只用long
         } Integer;
-        struct {
+        struct {      // 8 bytes
             double v;
         } Double;
-        struct{
+        struct{       // 16 bytes
             int64_t denom;
             int64_t numer;
          } Ratio;
-        struct {
+        struct {      // 8 + 8 + 8 + 8 = 32 bytes
             uint64_t size;
             uint64_t length;
             Table_Pair **vec; // array to save Table_Pairs
             Object * proto;   // for object
         } Table;
-        struct {
+        struct {     //  16 bytes
             char * v;
             uint64_t length;
         } String;
-        struct {
+        struct {    //   16 bytes
             Object * car;
             Object * cdr;
         } Pair;
-        struct {
+        struct {   // 2 + 8 + 8 + 1 = 24 bytes
             uint8_t param_num;
             int8_t variadic_place;
             uint64_t start_pc;
             Environment * env;
             uint8_t frame_size;
         } User_Defined_Lambda;
-        struct {
+        struct {   //  8 + 8 + 8 + 1 => 32 bytes
             Object ** v;   // array of pointers
             uint64_t size;      // size of allocated vector
             uint64_t length;    // length
