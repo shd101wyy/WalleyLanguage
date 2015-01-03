@@ -187,13 +187,13 @@ void Walley_Repl(){
 void Walley_Run_File(char * file_name){
     
     // get abs_path of file_name
-    char abs_path[256];
-    char working_path[256];
+    char * abs_path;
+    char working_path[512];
 // get absolute path
 #ifdef WIN32
 	GetFullPathName((TCHAR*)file_name, 256, (TCHAR*)abs_path, NULL); // I don't know is this correct
 #else
-    if(!realpath(file_name, abs_path)){
+    if(!(abs_path = realpath(file_name, NULL))){
         printf("walley.h ERROR: Failed to read file %s\n", file_name);
         return;
     }
@@ -204,6 +204,7 @@ void Walley_Run_File(char * file_name){
     
     
     // check .wac file
+    /*
     uint32_t file_name_length = (uint32_t)strlen(abs_path);
     if (file_name_length >= 5 &&
         abs_path[file_name_length - 1] == 'c' &&
@@ -211,13 +212,14 @@ void Walley_Run_File(char * file_name){
         abs_path[file_name_length - 3] == 'w' &&
         abs_path[file_name_length - 4] == '.') {
         return Walley_Run_Compiled_File(abs_path);
-    }
+    }*/
     
     // read content from file
     FILE* file = fopen(abs_path,"r");
     if(file == NULL)
     {
         printf("Failed to read file %s\n", abs_path);
+        free(abs_path);
         return; // fail to read
     }
     
@@ -231,6 +233,7 @@ void Walley_Run_File(char * file_name){
     if (result != size) {
         printf("walley.h ERROR: Failed to read file %s\n", abs_path);
         free(content);
+        free(abs_path);
         return;
     }
     
@@ -284,6 +287,7 @@ void Walley_Run_File(char * file_name){
                        mt,
                        GLOBAL_MODULE);
     free(content);
+    free(abs_path);
     return;
 }
 /*

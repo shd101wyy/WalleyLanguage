@@ -253,6 +253,8 @@ void EF_free(Environment_Frame * ef){
         for (i = 0; i < ef->length; i++) {
             if (ef->array[i] == NULL) { // 这里不检查的话会有bug, 可能是vm或者compiler哪里有问题。
                 // printf("ef->array[i] is NULL, but it shouldnt\n");
+                free(ef->array);
+                free(ef);
                 return;
             }
             ef->array[i]->use_count--;
